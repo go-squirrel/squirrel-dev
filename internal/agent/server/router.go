@@ -3,7 +3,7 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 
-	"squirrel-dev/internal/handler/health"
+	"squirrel-dev/internal/agent/handler/health"
 )
 
 // SetupRouter 初始化gin入口，路由信息

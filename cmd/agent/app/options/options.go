@@ -3,10 +3,10 @@ package options
 import (
 	"github.com/gin-gonic/gin"
 
-	"squirrel-dev/internal/config"
+	"squirrel-dev/internal/agent/config"
+	"squirrel-dev/internal/agent/server"
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/pkg/middleware/log"
-	"squirrel-dev/internal/server"
 )
 
 type AppOptions struct {
@@ -26,7 +26,7 @@ func (o *AppOptions) NewServer() (*server.Server, error) {
 
 	gin.SetMode(s.Config.Server.Mode)
 	s.Gin = gin.New()
-	
+
 	s.Log = log.NewClient(o.Config.Log.InfoFilePath, o.Config.Log.ErrorFilePath, o.Config.Log.Level,
 		o.Config.Log.MaxSize, o.Config.Log.MaxBackups, o.Config.Log.MaxAge,
 	)
@@ -40,7 +40,7 @@ func (o *AppOptions) NewServer() (*server.Server, error) {
 			"?charset=utf8mb4&parseTime=True&loc=Local"
 		s.DB = database.New(o.Config.DB.Type, Connect, database.WithMigrate(true))
 	}
-	
+
 	return s, nil
 }
 

@@ -1,15 +1,15 @@
 package health
 
 import (
-	"squirrel-dev/internal/config"
+	"squirrel-dev/internal/apiserver/config"
+	healthModel "squirrel-dev/internal/apiserver/model/health"
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/pkg/response"
-	healthModel "squirrel-dev/internal/model/health"
 )
 
-type Health struct{
-	Config *config.Config
-	DB     database.DB
+type Health struct {
+	Config            *config.Config
+	DB                database.DB
 	HealthModelClient healthModel.Client
 }
 

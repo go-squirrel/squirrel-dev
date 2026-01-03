@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
-	
-	"squirrel-dev/cmd/app/app"
+
+	"squirrel-dev/cmd/agent/app"
 )
 
 func main() {

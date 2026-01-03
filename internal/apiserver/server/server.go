@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-    "squirrel-dev/internal/config"
+	"squirrel-dev/internal/apiserver/config"
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/pkg/middleware/cors"
 	"squirrel-dev/internal/pkg/middleware/log"
@@ -17,7 +17,7 @@ type Server struct {
 	Gin    *gin.Engine
 	// 导入日志
 	Log *log.Client
-	DB        database.DB
+	DB  database.DB
 }
 
 func NewServer() *Server {
@@ -42,7 +42,7 @@ func (s *Server) Run() {
 		c)
 
 	s.migrate()
-	
+
 	s.SetupRouter()
 
 	err := s.Gin.Run(s.Config.Server.Bind + ":" + s.Config.Server.Port)

@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/spf13/cobra"
 
-	"squirrel-dev/cmd/app/app/options"
+	"squirrel-dev/cmd/agent/app/options"
 	"squirrel-dev/internal/pkg/response"
 )
 

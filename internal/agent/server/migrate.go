@@ -1,16 +1,16 @@
 package server
 
 import (
-    "squirrel-dev/internal/model/health"
-    "squirrel-dev/internal/model/migration"
+	"squirrel-dev/internal/agent/model/health"
+	"squirrel-dev/internal/agent/model/migration"
 
-    "go.uber.org/zap"
+	"go.uber.org/zap"
 )
 
 func (s *Server) migrate() {
-    registry := migration.NewMigrationRegistry()
+	registry := migration.NewMigrationRegistry()
 
-    health.RegisterMigrations(registry)
+	health.RegisterMigrations(registry)
 
 	if err := migration.RunMigrations(s.DB.GetDB(), registry); err != nil {
 		zap.S().Errorf("迁移失败: %v", err)

@@ -1,7 +1,7 @@
 package health
 
 import (
-	"squirrel-dev/internal/model/migration"
+	"squirrel-dev/internal/agent/model/migration"
 
 	"gorm.io/gorm"
 )
@@ -21,4 +21,3 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 		},
 	)
 }
-
