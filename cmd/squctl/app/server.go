@@ -6,6 +6,8 @@ import (
 	"squirrel-dev/cmd/squctl/app/options"
 )
 
+var Version = "unknown"
+
 func NewServerCommand() *cobra.Command {
 	o := options.NewAppOptions()
 	cmd := &cobra.Command{
@@ -20,7 +22,7 @@ func NewServerCommand() *cobra.Command {
 		Use:   "version",
 		Short: "Print the version of squirrel-dev.",
 		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Println("abc")
+			cmd.Println("version:", Version)
 		},
 	}
 

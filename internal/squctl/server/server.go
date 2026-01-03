@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"squirrel-dev/internal/squctl/config"
 )
 
@@ -13,5 +14,6 @@ func NewServer() *Server {
 }
 
 func (s *Server) Run() {
+	fmt.Println("run")
 	return
 }
