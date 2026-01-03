@@ -16,7 +16,7 @@ func NewServerCommand() *cobra.Command {
 			return run(o)
 		},
 	}
-	cmd.Flags().StringVarP(&o.ConfFile, "config", "c", "config/config.yaml", "Config file path.")
+	cmd.Flags().StringVarP(&o.ConfFile, "config", "c", "config/agent.yaml", "Config file path.")
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Print the version of squirrel-dev.",

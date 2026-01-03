@@ -1,6 +1,8 @@
 package options
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 
 	"squirrel-dev/internal/agent/config"
@@ -35,9 +37,12 @@ func (o *AppOptions) NewServer() (*server.Server, error) {
 		s.DB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.FilePath, database.WithMigrate(true))
 		return s, nil
 	} else {
-		Connect := o.Config.DB.Mysql.Username + ":" + o.Config.DB.Mysql.Password + "@tcp(" +
-			o.Config.DB.Mysql.Host + ":" + o.Config.DB.Mysql.Port + ")/" + o.Config.DB.Mysql.DbName +
-			"?charset=utf8mb4&parseTime=True&loc=Local"
+		Connect := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			o.Config.DB.Mysql.Username,
+			o.Config.DB.Mysql.Password,
+			o.Config.DB.Mysql.Host,
+			o.Config.DB.Mysql.Port,
+			o.Config.DB.Mysql.DbName)
 		s.DB = database.New(o.Config.DB.Type, Connect, database.WithMigrate(true))
 	}
 
