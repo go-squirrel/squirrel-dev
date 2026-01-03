@@ -1,0 +1,12 @@
+{
+    "rest-client.environmentVariables": {
+        "$shared": {
+            "username": "pkslow",
+            "password": "123456"
+          },
+        "local": {
+            "url": "http://127.0.0.1:10700"
+        }
+        
+    }
+}

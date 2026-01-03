@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"squirrel-dev/cmd/apiserver/app"
+	"squirrel-dev/cmd/squ-apiserver/app"
 )
 
 func main() {

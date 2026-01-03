@@ -1,0 +1,4 @@
+POST  {{url}}/api/v1/login
+content-type: application/json
+
+< json/login.json
