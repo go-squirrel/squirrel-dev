@@ -1,0 +1,2 @@
+GET   {{url}}/api/v1/server
+content-type: application/json

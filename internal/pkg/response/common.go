@@ -11,7 +11,8 @@ const (
 	ErrCodeParameter = 41001
 
 	// 5 开头是后端问题
-	ErrSQL = 50000
+	ErrSQL         = 50000
+	ErrSQLNotFound = 50001
 )
 
 func Init() {
@@ -23,6 +24,7 @@ func baseRes(msg map[int]string) map[int]string {
 	msg[CodeSuccess] = "success"
 	msg[ErrCodeParameter] = "参数错误"
 	msg[ErrSQL] = "sql错误"
+	msg[ErrSQLNotFound] = "sql未找到"
 
 	return msg
 }
