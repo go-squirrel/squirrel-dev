@@ -16,4 +16,8 @@ func Server(group *gin.RouterGroup, conf *config.Config, db database.DB) {
 		ModelClient: serverModel.New(db.GetDB()),
 	}
 	group.GET("/server", server.ListHandler(&service))
+	group.GET("/server/:id", server.GetHandler(&service))
+	group.DELETE("/server/:id", server.DeleteHandler(&service))
+	group.POST("/server", server.AddHandler(&service))
+	group.POST("/server/:1", server.UpdateHandler(&service))
 }
