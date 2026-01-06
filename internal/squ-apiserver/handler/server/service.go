@@ -5,6 +5,7 @@ import (
 	"squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/server/req"
 	"squirrel-dev/internal/squ-apiserver/handler/server/res"
+	"squirrel-dev/internal/squ-apiserver/model"
 
 	serverModel "squirrel-dev/internal/squ-apiserver/model/server"
 )
@@ -18,7 +19,7 @@ func (s *Server) List() response.Response {
 	var servers []res.Server
 	daoServers, err := s.ModelClient.List()
 	if err != nil {
-		return response.Error(response.ErrSQLNotFound)
+		return response.Error(model.ReturnErrCode(err))
 	}
 	for _, daoS := range daoServers {
 		servers = append(servers, res.Server{
@@ -38,7 +39,7 @@ func (s *Server) Get(id uint) response.Response {
 	var serverRes res.Server
 	daoS, err := s.ModelClient.Get(id)
 	if err != nil {
-		return response.Error(response.ErrSQLNotFound)
+		return response.Error(model.ReturnErrCode(err))
 	}
 	serverRes = res.Server{
 		ID:          daoS.ID,
@@ -57,7 +58,7 @@ func (s *Server) Delete(id uint) response.Response {
 	var serverRes res.Server
 	err := s.ModelClient.Delete(id)
 	if err != nil {
-		return response.Error(response.ErrSQLNotFound)
+		return response.Error(model.ReturnErrCode(err))
 	}
 
 	return response.Success(serverRes)
@@ -73,9 +74,9 @@ func (s *Server) Add(request req.Server) response.Response {
 		Status:      request.Status,
 	}
 
-	err := s.ModelClient.Add(modelReq)
+	err := s.ModelClient.Add(&modelReq)
 	if err != nil {
-		return response.Error(response.ErrSQLNotFound)
+		return response.Error(model.ReturnErrCode(err))
 	}
 
 	return response.Success("success")
@@ -90,9 +91,10 @@ func (s *Server) Update(request req.Server) response.Response {
 		Status:      request.Status,
 	}
 	modelReq.ID = request.ID
-	err := s.ModelClient.Update(modelReq)
+	err := s.ModelClient.Update(&modelReq)
+
 	if err != nil {
-		return response.Error(response.ErrSQLNotFound)
+		return response.Error(model.ReturnErrCode(err))
 	}
 
 	return response.Success("success")

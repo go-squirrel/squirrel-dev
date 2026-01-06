@@ -1,6 +1,7 @@
 package server
 
 import (
+	"os"
 	"squirrel-dev/internal/squ-apiserver/model/migration"
 
 	"gorm.io/gorm"
@@ -17,7 +18,12 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 			if err != nil {
 				return err
 			}
-			return err
+			hostname, _ := os.Hostname()
+			server := &Server{
+				Hostname:  hostname,
+				IpAddress: "127.0.0.1",
+			}
+			return db.Create(server).Error
 		},
 		// 回滚函数
 		func(db *gorm.DB) error {

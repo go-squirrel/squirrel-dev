@@ -2,9 +2,9 @@ package response
 
 // Response 回调时的固定内容
 type Response struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
 }
 
 // Error 回调错误信息
@@ -13,7 +13,6 @@ func Error(code int) Response {
 		Code:    code,
 		Message: getMessage(code),
 	}
-
 }
 
 func ErrorUnknown(code int, data string) Response {

@@ -14,10 +14,11 @@ func (c *ModelClient) Delete(id uint) (err error) {
 	return c.DB.Delete(&Server{}, id).Error
 }
 
-func (c *ModelClient) Add(req Server) (err error) {
+func (c *ModelClient) Add(req *Server) (err error) {
+
 	return c.DB.Create(req).Error
 }
 
-func (c *ModelClient) Update(req Server) (err error) {
+func (c *ModelClient) Update(req *Server) (err error) {
 	return c.DB.Updates(req).Error
 }

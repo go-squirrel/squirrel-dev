@@ -23,7 +23,7 @@ func (a *Auth) Login(request req.Request) response.Response {
 
 	ok := a.ModelClient.Get(request.Username, request.Password)
 	if !ok {
-		return response.ErrorUnknown(40000, "账号密码错误")
+		return response.Error(response.ErrUserOrPassword)
 	}
 
 	j := jwt.New(a.Config.Auth.Jwt.SigningKey)
