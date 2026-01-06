@@ -22,7 +22,6 @@ func (c *Client) GetNodeIps() (ips map[string]string, err error) {
 	if err != nil {
 		return nil, err
 	}
-	// 这里应该给map开辟一个空间，用items的长度
 	ips = make(map[string]string, len(nodes.Items))
 
 	for _, node := range nodes.Items {
@@ -80,22 +79,18 @@ type NodeLabelInfo struct {
 	Labels map[string]string
 }
 
-/**
- * @description: 获取节点的信息，返回节点的标签信息
- * @return {*}
- */
 func (c *Client) GetNodeLabels() (nodeLabels map[string]NodeLabelInfo, err error) {
 	nodes, err := c.GetNodes()
 	if err != nil {
 		return nil, err
 	}
-	// 这里应该给map开辟一个空间，用items的长度
+
 	nodeLabels = make(map[string]NodeLabelInfo, len(nodes.Items))
 
 	for _, node := range nodes.Items {
 		nodeIp := ""
 		for _, addr := range node.Status.Addresses {
-			if addr.Type == "InternalIP" { // 选择你需要的地址类型，比如 InternalIP 或 ExternalIP
+			if addr.Type == "InternalIP" {
 				nodeIp = addr.Address
 				break
 			}
@@ -108,7 +103,6 @@ func (c *Client) GetNodeLabels() (nodeLabels map[string]NodeLabelInfo, err error
 	return nodeLabels, nil
 }
 
-// label key = value
 func (c *Client) SetNodeLabel(node *v1.Node, labels map[string]string) (err error) {
 	if node.Labels == nil {
 		node.Labels = make(map[string]string)

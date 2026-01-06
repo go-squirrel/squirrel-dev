@@ -9,7 +9,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// 根据namespace获取pods，传all-namespaces等于 -A
 func (c *Client) GetPodsByNamespace(namespace string) (pods *v1.PodList, err error) {
 	if namespace == "all-namespaces" {
 		namespace = ""
@@ -23,7 +22,7 @@ func (c *Client) GetPodsByNamespace(namespace string) (pods *v1.PodList, err err
 }
 
 func (c *Client) GetPodsFilterByNamespace(allPods *v1.PodList, namespace string) (podsRes *v1.PodList, err error) {
-	// 初始化
+
 	podsRes = &v1.PodList{
 		TypeMeta: allPods.TypeMeta,
 		ListMeta: allPods.ListMeta,
@@ -37,7 +36,6 @@ func (c *Client) GetPodsFilterByNamespace(allPods *v1.PodList, namespace string)
 	return
 }
 
-// 获取所有pod信息
 func (c *Client) GetAllPods() (pods *v1.PodList, err error) {
 	pods, err = c.ClientSet.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -48,10 +46,6 @@ func (c *Client) GetAllPods() (pods *v1.PodList, err error) {
 }
 
 func isPodReady(pod *v1.Pod) bool {
-	// if pod.Status.Phase == v1.PodRunning || pod.Status.Phase == v1.PodSucceeded {
-	// 	return true
-	// }
-	// return false
 	for _, containersStatus := range pod.Status.ContainerStatuses {
 		fmt.Println("pod:", pod.Name, "/", pod.Namespace, "detail-- container:", containersStatus.Name, "status:", containersStatus.Ready)
 		if containersStatus.State.Terminated != nil && containersStatus.State.Terminated.Reason == "Completed" {
@@ -67,48 +61,45 @@ func isPodReady(pod *v1.Pod) bool {
 }
 
 func (c *Client) CheckPodsReadiness(namespace string) error {
-	// 获取所有Deployments
 	deployments, err := c.ClientSet.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		return fmt.Errorf("获取Deployments失败: %v", err)
+		return fmt.Errorf("Failed to get Deployments: %v", err)
 	}
 
-	// 对于每一个Deployment，获取其Pods
 	for _, deployment := range deployments.Items {
 		selector, err := metav1.LabelSelectorAsSelector(deployment.Spec.Selector)
 		if err != nil {
-			return fmt.Errorf("转换LabelSelector失败: %v", err)
+			return fmt.Errorf("Failed to convert LabelSelector: %v", err)
 		}
 		pods, err := c.ClientSet.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: selector.String()})
 		if err != nil {
-			return fmt.Errorf("获取Pods失败: %v", err)
+			return fmt.Errorf("Failed to get Pods: %v", err)
 		}
 		for _, pod := range pods.Items {
 			if !isPodReady(&pod) {
-				zap.S().Warnf("Deployment关联的Pod %s/%s 未准备好", pod.Namespace, pod.Name)
+				zap.S().Warnf("Pod %s/%s associated with Deployment is not ready", pod.Namespace, pod.Name)
 			}
 		}
 	}
 
-	// 获取所有StatefulSets
 	statefulSets, err := c.ClientSet.AppsV1().StatefulSets(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		return fmt.Errorf("获取StatefulSets失败: %v", err)
+		return fmt.Errorf("Failed to get StatefulSets: %v", err)
 	}
 
-	// 对于每一个StatefulSet，获取其Pods
+	// For each StatefulSet, get its Pods
 	for _, sts := range statefulSets.Items {
 		selector, err := metav1.LabelSelectorAsSelector(sts.Spec.Selector)
 		if err != nil {
-			return fmt.Errorf("转换LabelSelector失败: %v", err)
+			return fmt.Errorf("Failed to convert LabelSelector: %v", err)
 		}
 		pods, err := c.ClientSet.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: selector.String()})
 		if err != nil {
-			return fmt.Errorf("获取Pods失败: %v", err)
+			return fmt.Errorf("Failed to get Pods: %v", err)
 		}
 		for _, pod := range pods.Items {
 			if !isPodReady(&pod) {
-				zap.S().Warnf("StatefulSet关联的Pod %s/%s 未准备好", pod.Namespace, pod.Name)
+				zap.S().Warnf("Pod %s/%s associated with StatefulSet is not ready", pod.Namespace, pod.Name)
 			}
 		}
 	}

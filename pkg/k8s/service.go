@@ -6,7 +6,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// 根据serviceName获取clusterIp
+// Get clusterIp by serviceName
 func (c *Client) GetClusterIPByName(serviceName string, namespace string) (clusterIp string, err error) {
 	service, err := c.ClientSet.CoreV1().Services(namespace).Get(context.TODO(), serviceName, v1.GetOptions{})
 	if err != nil {

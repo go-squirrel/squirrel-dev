@@ -30,10 +30,7 @@ func (c *Client) GetDeploymentsByNamespace(namespace string) (deployments *appsV
 	return deployments, err
 }
 
-// 全量的Deployments，根据namespace属性过滤出指定
-// 屏蔽多次调用k8sClient
 func (c *Client) GetDeploymentsFilterByNamespace(allDeployments *appsV1.DeploymentList, namespace string) (deploymentsRes *appsV1.DeploymentList, err error) {
-	// 初始化
 	deploymentsRes = &appsV1.DeploymentList{
 		TypeMeta: allDeployments.TypeMeta,
 		ListMeta: allDeployments.ListMeta,

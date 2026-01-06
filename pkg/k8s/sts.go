@@ -28,7 +28,7 @@ func (c *Client) GetStatefulsetsByNamespace(namespace string) (statefulsets *app
 
 func (c *Client) GetPodByStatefulsetName(pods *v1.PodList, statefulSetName string) (statefulsetPods []*v1.Pod, err error) {
 	for _, pod := range pods.Items {
-		// 检查 Pod 的标签，看是否属于指定的 StatefulSet
+		// Check Pod labels to see if they belong to the specified StatefulSet
 		if val, ok := pod.Labels["statefulset.kubernetes.io/pod-name"]; ok && strings.HasPrefix(val, statefulSetName) {
 			podCopy := pod
 			statefulsetPods = append(statefulsetPods, &podCopy)

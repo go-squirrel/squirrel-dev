@@ -12,9 +12,9 @@ func StringToUint(s string) (uint, error) {
 		return 0, err
 	}
 
-	// 检查是否超出 uint 范围（在32位系统上 uint 最大为 math.MaxUint32）
+	// Check if value exceeds uint range (on 32-bit systems, uint max is math.MaxUint32)
 	if value > math.MaxUint && ^uint(0) == math.MaxUint32 {
-		return 0, fmt.Errorf("值 %d 超出 uint 范围", value)
+		return 0, fmt.Errorf("Value %d exceeds uint range", value)
 	}
 
 	return uint(value), nil

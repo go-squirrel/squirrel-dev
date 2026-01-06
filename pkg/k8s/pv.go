@@ -8,7 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// PersistentVolume 结构体定义
+// PersistentVolume struct definition
 type PersistentVolume struct {
 	APIVersion string               `yaml:"apiVersion"`
 	Kind       string               `yaml:"kind"`
@@ -21,7 +21,7 @@ type Metadata struct {
 	Labels map[string]string `yaml:"labels,omitempty"`
 }
 
-// PersistentVolumeSpec 定义PV的规格
+// PersistentVolumeSpec defines PV specification
 type PersistentVolumeSpec struct {
 	Capacity                      Capacity              `yaml:"capacity"`
 	AccessModes                   []string              `yaml:"accessModes"`
@@ -30,7 +30,7 @@ type PersistentVolumeSpec struct {
 	PersistentVolumeReclaimPolicy string                `yaml:"persistentVolumeReclaimPolicy,omitempty"`
 }
 
-// HostPathVolumeSource 定义hostPath卷源
+// HostPathVolumeSource defines hostPath volume source
 type HostPathVolumeSource struct {
 	Path string `yaml:"path"`
 }
@@ -58,19 +58,19 @@ func (c *Client) GeneratePV(name string,
 		},
 	}
 
-	// 设置存储容量
+	// Set storage capacity
 	pv.Spec.Capacity.Storage = size
 
-	// 设置访问模式
+	// Set access mode
 	pv.Spec.AccessModes = []string{mode}
 
-	// 设置存储类名称
+	// Set storage class name
 	pv.Spec.StorageClassName = storageClassName
 
-	// 设置回收策略
+	// Set reclaim policy
 	pv.Spec.PersistentVolumeReclaimPolicy = "Retain"
 
-	// 设置存储类型（这里以hostPath为例）
+	// Set storage type (using hostPath as an example)
 	pv.Spec.HostPath = &HostPathVolumeSource{
 		Path: path,
 	}

@@ -9,7 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Secret 结构体定义
+// Secret struct definition
 type Secret struct {
 	APIVersion string            `yaml:"apiVersion"`
 	Kind       string            `yaml:"kind"`
@@ -18,19 +18,19 @@ type Secret struct {
 	Data       map[string]string `yaml:"data"`
 }
 
-// SecretMetadata 包含Secret的元数据
+// SecretMetadata contains Secret metadata
 type SecretMetadata struct {
 	Name      string            `yaml:"name"`
 	Namespace string            `yaml:"namespace,omitempty"`
 	Labels    map[string]string `yaml:"labels,omitempty"`
 }
 
-// 创建TLS证书Secret的函数
+// Function to create TLS certificate Secret
 func (c *Client) GenerateTLSSecret(
 	name string,
 	namespace string,
-	tlsCrt string, // Base64编码的证书
-	tlsKey string, // Base64编码的私钥
+	tlsCrt string, // Base64 encoded certificate
+	tlsKey string, // Base64 encoded private key
 	labelKey string,
 	labelValue string,
 	caCrt ...string,
@@ -54,7 +54,7 @@ func (c *Client) GenerateTLSSecret(
 				labelKey: labelValue,
 			},
 		},
-		Type: "kubernetes.io/tls", // TLS证书类型
+		Type: "kubernetes.io/tls", // TLS certificate type
 		Data: data,
 	}
 	return secret, nil

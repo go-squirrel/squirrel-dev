@@ -8,7 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// StorageClass 结构体定义
+// StorageClass struct definition
 type StorageClass struct {
 	APIVersion        string   `yaml:"apiVersion"`
 	Kind              string   `yaml:"kind"`
@@ -17,7 +17,7 @@ type StorageClass struct {
 	VolumeBindingMode string   `yaml:"volumeBindingMode,omitempty"`
 }
 
-// 创建StorageClass的函数
+// Function to create StorageClass
 func (c *Client) GenerateSC(
 	name string,
 	provisioner string,
@@ -40,7 +40,7 @@ func (c *Client) GenerateSC(
 }
 
 func (c *Client) CreateStorageClass(name string) {
-	// 定义StorageClass对象
+	// Define StorageClass object
 	storageClass := &storagev1.StorageClass{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
@@ -52,12 +52,12 @@ func (c *Client) CreateStorageClass(name string) {
 		}(),
 	}
 
-	// 创建StorageClass
+	// Create StorageClass
 	result, err := c.ClientSet.StorageV1().StorageClasses().Create(context.TODO(), storageClass, metav1.CreateOptions{})
 	if err != nil {
-		fmt.Printf("创建StorageClass失败: %v\n", err)
+		fmt.Printf("Failed to create StorageClass: %v\n", err)
 		return
 	}
 
-	fmt.Printf("成功创建StorageClass: %s\n", result.Name)
+	fmt.Printf("Successfully created StorageClass: %s\n", result.Name)
 }
