@@ -55,13 +55,12 @@ func (s *Server) Get(id uint) response.Response {
 }
 
 func (s *Server) Delete(id uint) response.Response {
-	var serverRes res.Server
 	err := s.ModelClient.Delete(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	return response.Success(serverRes)
+	return response.Success("success")
 }
 
 func (s *Server) Add(request req.Server) response.Response {

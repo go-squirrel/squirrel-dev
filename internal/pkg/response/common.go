@@ -1,6 +1,12 @@
 package response
 
-var codeMsgMap map[int]string
+import "sync"
+
+var (
+	codeMsgMap map[int]string
+	once       sync.Once
+	mu         sync.RWMutex // 用于并发安全（可选，但推荐）
+)
 
 // 错误码
 const (
@@ -16,8 +22,10 @@ const (
 )
 
 func Init() {
-	codeMsgMap = make(map[int]string, 1024)
-	codeMsgMap = baseRes(codeMsgMap)
+	once.Do(func() {
+		codeMsgMap = make(map[int]string)
+		baseRes(codeMsgMap)
+	})
 }
 
 func baseRes(msg map[int]string) map[int]string {

@@ -31,3 +31,16 @@ func Success(data interface{}) Response {
 		Data:    data,
 	}
 }
+
+func Register(code int, message string, force ...bool) {
+	Init() // 确保已初始化
+
+	doForce := len(force) > 0 && force[0]
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	if _, exists := codeMsgMap[code]; !exists || doForce {
+		codeMsgMap[code] = message
+	}
+}

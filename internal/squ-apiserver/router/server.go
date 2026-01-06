@@ -4,6 +4,7 @@ import (
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/server"
+	serverRes "squirrel-dev/internal/squ-apiserver/handler/server/res"
 
 	serverModel "squirrel-dev/internal/squ-apiserver/model/server"
 
@@ -11,6 +12,7 @@ import (
 )
 
 func Server(group *gin.RouterGroup, conf *config.Config, db database.DB) {
+	serverRes.RegisterCode()
 	service := server.Server{
 		Config:      conf,
 		ModelClient: serverModel.New(db.GetDB()),
