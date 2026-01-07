@@ -8,13 +8,8 @@ import (
 	"io"
 	"log"
 	"os"
-	"regexp"
-	"strings"
 
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/jsonmessage"
+	"github.com/moby/moby/client"
 	"go.uber.org/zap"
 )
 
@@ -29,12 +24,12 @@ type PullResponse struct {
 }
 
 func New(regUser, regPassword, regUrl string) *Docker {
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	cli, err := client.New(client.FromEnv)
 	if err != nil {
 		zap.S().Error("Failed connect docker")
 		return nil
 	}
-	authConfig := registry.AuthConfig{
+	authConfig := client.RegistryLoginOptions{
 		Username:      regUser,     // 替换为你的用户名
 		Password:      regPassword, // 替换为你的密码
 		ServerAddress: regUrl,      // 替换为你的镜像仓库地址，包括端口号，例如 "registry.example.com:80" 或 "registry.example.com:443"
@@ -58,7 +53,7 @@ func New(regUser, regPassword, regUrl string) *Docker {
 // Pull pulls an image from a specified repository using docker command.
 
 func (d *Docker) Pull(imageName string) (err error) {
-	out, err := d.Client.ImagePull(context.Background(), imageName, image.PullOptions{
+	out, err := d.Client.ImagePull(context.Background(), imageName, client.ImagePullOptions{
 		RegistryAuth: d.AuthStr,
 	})
 	if err != nil {
@@ -85,14 +80,20 @@ func (d *Docker) Pull(imageName string) (err error) {
 
 // Tag tags an existing image with a new tag using docker command.
 func (d *Docker) Tag(oldImage string, newImage string) {
-	if err := d.Client.ImageTag(context.Background(), oldImage, newImage); err != nil {
+	opt := client.ImageTagOptions{
+
+		Source: oldImage,
+
+		Target: newImage,
+	}
+	if _, err := d.Client.ImageTag(context.Background(), opt); err != nil {
 		log.Fatalf("err: %v", err)
 	}
 }
 
 // Push pushes a tagged image to a specified repository using docker command.
 func (d *Docker) Push(imageName string) (err error) {
-	out, err := d.Client.ImagePush(context.Background(), imageName, image.PushOptions{
+	out, err := d.Client.ImagePush(context.Background(), imageName, client.ImagePushOptions{
 		RegistryAuth: d.AuthStr,
 	})
 	if err != nil {
@@ -119,60 +120,6 @@ func (d *Docker) Push(imageName string) (err error) {
 		}
 	}
 	return err
-}
-
-// Push pushes a tagged image to a specified repository using docker command.
-func (d *Docker) LoadAndPush(filePath string, repo string) (err error) {
-	f, err := os.Open(filePath)
-	if err != nil {
-		zap.S().Error(err)
-		return err
-	}
-	defer f.Close()
-
-	ctx := context.Background()
-	response, err := d.Client.ImageLoad(ctx, f, client.ImageLoadWithPlatforms())
-	if err != nil {
-		zap.S().Error(err)
-		return err
-	}
-	defer response.Body.Close()
-	// 获取所有镜像ID
-	loadedImages := []string{}
-	decoder := json.NewDecoder(response.Body)
-	re := regexp.MustCompile(`Loaded image: ([^:]+):(.+)`)
-	for {
-		var jm jsonmessage.JSONMessage
-		if err := decoder.Decode(&jm); err != nil {
-			if err == io.EOF {
-				break
-			}
-			return err
-		}
-
-		if jm.Stream != "" {
-			matches := re.FindStringSubmatch(strings.TrimSpace(jm.Stream))
-			if len(matches) > 2 {
-				imageName := matches[1]
-				tag := matches[2]
-				repoTag := imageName + ":" + tag
-				fmt.Println("Load image: ", repoTag)
-				loadedImages = append(loadedImages, repoTag)
-			}
-		}
-	}
-	for _, v := range loadedImages {
-		newStringList := strings.Split(v, "/")
-		newString := fmt.Sprintf("%v/%v", repo, newStringList[len(newStringList)-1])
-		d.Tag(v, newString)
-		fmt.Println("Push image: ", newString)
-		err = d.Push(newString)
-		if err != nil {
-			return fmt.Errorf("推送失败失败: %v", err)
-		}
-	}
-
-	return nil
 }
 
 func (d *Docker) SaveImagesToTar(ctx context.Context, images []string, outputFile string) error {
