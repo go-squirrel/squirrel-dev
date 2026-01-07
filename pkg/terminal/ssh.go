@@ -2,28 +2,23 @@ package terminal
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"sync"
 
-	"github.com/gorilla/websocket"
 	"golang.org/x/crypto/ssh"
 )
 
-type SSHSession struct {
-	conn   *ssh.Client
-	client *ssh.Client
-	mu     sync.Mutex
+type SShTerminal struct {
+	session *ssh.Session
+	stdin   io.WriteCloser
+	stdout  io.Reader
+	stderr  io.Reader
+	mu      sync.Mutex
 }
 
-func NewSSHSession(sshClient *ssh.Client) (*SSHSession, error) {
-	return &SSHSession{
-		conn:   sshClient,
-		client: sshClient,
-	}, nil
-}
-
-func (s *SSHSession) StartTerminal(width, height int) (*TerminalSession, error) {
-	session, err := s.client.NewSession()
+func NewSShTerminal(sshClient *ssh.Client, height, width int) (*SShTerminal, error) {
+	session, err := sshClient.NewSession()
 	if err != nil {
 		return nil, fmt.Errorf("创建SSH会话失败: %v", err)
 	}
@@ -67,7 +62,7 @@ func (s *SSHSession) StartTerminal(width, height int) (*TerminalSession, error) 
 		return nil, fmt.Errorf("启动shell失败: %v", err)
 	}
 
-	return &TerminalSession{
+	return &SShTerminal{
 		session: session,
 		stdin:   stdin,
 		stdout:  stdout,
@@ -75,30 +70,47 @@ func (s *SSHSession) StartTerminal(width, height int) (*TerminalSession, error) 
 	}, nil
 }
 
-func (s *SSHSession) Close() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (ts *SShTerminal) Write(data []byte) (int, error) {
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
 
-	if s.client != nil {
-		return s.client.Close()
+	if ts.stdin == nil {
+		return 0, fmt.Errorf("终端未初始化")
 	}
 
-	return nil
+	return ts.stdin.Write(data)
 }
 
-// HandleWebSocketWithSSH 处理WebSocket连接并使用SSH终端
-func HandleWebSocketWithSSH(conn *websocket.Conn, sshClient *ssh.Client) error {
-	session, err := NewSSHSession(sshClient)
-	if err != nil {
-		return err
-	}
-	defer session.Close()
-
-	terminalSession, err := session.StartTerminal(80, 24)
-	if err != nil {
-		return err
+func (ts *SShTerminal) Read(output []byte) (int, error) {
+	if ts.stdout == nil {
+		return 0, fmt.Errorf("终端未初始化")
 	}
 
-	HandleWebSocket(conn, terminalSession)
+	return ts.stdout.Read(output)
+}
+
+func (ts *SShTerminal) Resize(width, height int) error {
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
+
+	if ts.session == nil {
+		return fmt.Errorf("会话未初始化")
+	}
+
+	return ts.session.WindowChange(height, width)
+}
+
+func (ts *SShTerminal) Close() error {
+	ts.mu.Lock()
+	defer ts.mu.Unlock()
+
+	if ts.session != nil {
+		ts.session.Close()
+	}
+
+	if ts.stdin != nil {
+		ts.stdin.Close()
+	}
+
 	return nil
 }

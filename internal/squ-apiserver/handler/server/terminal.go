@@ -38,10 +38,11 @@ func (s *Server) GetTerminal(id uint, conn *websocket.Conn) response.Response {
 		zap.S().Error("ssh connect failed", zap.Error(err))
 		return response.Error(res.ErrConnectFailed)
 	}
-	err = terminal.HandleWebSocketWithSSH(conn, sshClient.Client)
+	terminalHandler, err := terminal.NewTerminalHandler("ssh", 80, 24, sshClient.Client)
 	if err != nil {
 		zap.S().Error("ssh connect failed", zap.Error(err))
 		return response.Error(res.ErrConnectFailed)
 	}
+	terminal.HandleWebSocket(conn, terminalHandler)
 	return response.Success("success")
 }
