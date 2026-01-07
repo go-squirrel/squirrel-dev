@@ -37,9 +37,10 @@ func (s *Server) Run() {
 		MaxAge: 12 * time.Hour,
 	})
 
-	s.Gin.Use(log.GinLogger(s.Log.Logger),
-		log.GinRecovery(s.Log.Logger, true),
-		c)
+	// s.Gin.Use(log.GinLogger(s.Log.Logger),
+	// 	log.GinRecovery(s.Log.Logger, true),
+	// 	c)
+	s.Gin.Use(c)
 
 	s.migrate()
 
