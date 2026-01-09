@@ -1,77 +1,87 @@
 package collector
 
 import (
-	"regexp"
+	"fmt"
+	"strings"
 
-	"github.com/shirou/gopsutil/disk"
-	"go.uber.org/zap"
+	"github.com/shirou/gopsutil/v4/disk"
 )
 
-type DiskInfo struct {
-	Path        string  `json:"path"`
-	Total       uint64  `json:"total"`
-	Used        uint64  `json:"used"`
-	Free        uint64  `json:"free"`
-	UsedPercent float64 `json:"used_percent"`
+type Disk struct {
+	BaseCollector
 }
 
-func GetDiskInfo() (diskInfos []DiskInfo) {
-	fsFilterRegex := regexp.MustCompile(`^(fuse.lxcfs|loop|nsfs|tmpfs|autofs|binfmt_misc|cgroup|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|sysfs|tracefs)$`)
-	pathFilterRegex := regexp.MustCompile(`^/(var/lib/kubelet|snap|dev|proc|sys|var/lib/docker/.+)($|/)`)
+func NewDiskCollector() *Disk {
+	return &Disk{
+		BaseCollector: BaseCollector{name: "disk"},
+	}
+}
+
+func (d *Disk) Collect() (interface{}, error) {
+	return d.CollectDisk()
+}
+
+func (d *Disk) CollectDisk() (*DiskInfo, error) {
 	partitions, err := disk.Partitions(true)
 	if err != nil {
-		zap.S().Error(err)
-		return
+		return nil, fmt.Errorf("获取磁盘分区失败: %w", err)
 	}
 
-	var filteredPartitions []disk.PartitionStat
+	diskInfo := &DiskInfo{}
+	var total, used, free uint64
+
 	for _, partition := range partitions {
-		if !fsFilterRegex.MatchString(partition.Fstype) && !pathFilterRegex.MatchString(partition.Mountpoint) {
-			filteredPartitions = append(filteredPartitions, partition)
+		// 跳过特殊文件系统
+		if d.shouldSkip(partition.Fstype) {
+			continue
 		}
-	}
 
-	diskInfos = []DiskInfo{}
-	for _, partition := range filteredPartitions {
-
-		usageStat, err := disk.Usage(partition.Mountpoint)
+		usage, err := disk.Usage(partition.Mountpoint)
 		if err != nil {
-			continue // 如果无法获取某个分区的信息，则跳过
+			continue // 跳过无法访问的分区
 		}
-		diskInfos = append(diskInfos, DiskInfo{
-			Path:        partition.Mountpoint,
-			Total:       usageStat.Total,
-			Used:        usageStat.Used,
-			Free:        usageStat.Free,
-			UsedPercent: usageStat.UsedPercent,
-		})
+
+		partitionInfo := Partition{
+			Device:     partition.Device,
+			MountPoint: partition.Mountpoint,
+			FSType:     partition.Fstype,
+			Total:      usage.Total,
+			Used:       usage.Used,
+			Available:  usage.Free,
+			Usage:      usage.UsedPercent,
+		}
+
+		diskInfo.Partitions = append(diskInfo.Partitions, partitionInfo)
+
+		// 累计总量
+		total += usage.Total
+		used += usage.Used
+		free += usage.Free
 	}
 
-	return diskInfos
-}
-
-type IoStats struct {
-	ReadCount        uint64 `json:"read_count"`
-	MergedReadCount  uint64 `json:"merged_read_count"`
-	WriteCount       uint64 `json:"write_count"`
-	MergedWriteCount uint64 `json:"merged_write_count"`
-	ReadBytes        uint64 `json:"read_bytes"`
-	WriteBytes       uint64 `json:"write_bytes"`
-	ReadTime         uint64 `json:"read_time"`
-	WriteTime        uint64 `json:"write_time"`
-	IopsInProgress   uint64 `json:"iopsIn_progress"`
-	IoTime           uint64 `json:"io_time"`
-	WeightedIO       uint64 `json:"weighted_io"`
-	Name             string `json:"name"`
-	SerialNumber     string `json:"serial_number"`
-	Label            string `json:"label"`
-}
-
-func GetIoStats() (stats []IoStats) {
-	stats = []IoStats{}
-	mapStat, _ := disk.IOCounters()
-	for _, stat := range mapStat {
-		stats = append(stats, IoStats(stat))
+	// 计算总体使用率
+	diskInfo.Total = total
+	diskInfo.Used = used
+	diskInfo.Available = free
+	if total > 0 {
+		diskInfo.Usage = (float64(used) / float64(total)) * 100
 	}
-	return stats
+
+	return diskInfo, nil
+}
+
+func (d *Disk) shouldSkip(fsType string) bool {
+	// 跳过虚拟文件系统
+	skipTypes := []string{
+		"proc", "sysfs", "tmpfs", "devtmpfs",
+		"devpts", "cgroup", "cgroup2", "overlay",
+		"aufs", "squashfs",
+	}
+
+	for _, t := range skipTypes {
+		if strings.Contains(fsType, t) {
+			return true
+		}
+	}
+	return false
 }

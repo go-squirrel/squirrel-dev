@@ -1,122 +1,77 @@
 package collector
 
 import (
-	"bufio"
+	"fmt"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
 
-	"go.uber.org/zap"
+	"github.com/shirou/gopsutil/v4/cpu"
 )
 
-type CpuStats struct {
-	TotalUsage   float64   `json:"total_usage"`
-	PerCoreUsage []float64 `json:"per_core_usage"`
-	Counts       int       `json:"counts"`
+type CPU struct {
+	BaseCollector
 }
 
-func GetCpuLinuxStats() (info CpuStats) {
-	cpuCount := getCPUCount()
-	totalUsage, perCoreUsage := getCPUUsage(cpuCount)
-	info.Counts = cpuCount
-	info.TotalUsage = totalUsage
-	info.PerCoreUsage = perCoreUsage
-	return info
+func NewCPUCollector() *CPU {
+	return &CPU{
+		BaseCollector: BaseCollector{name: "cpu"},
+	}
 }
 
-func getCPUCount() int {
-	file, err := os.Open("/proc/cpuinfo")
+func (c *CPU) Collect() (interface{}, error) {
+	return c.CollectCPU()
+}
+
+func (c *CPU) CollectCPU() (*CPUInfo, error) {
+	info := &CPUInfo{}
+
+	// 获取CPU核心数
+	info.Cores = runtime.NumCPU()
+
+	// 获取CPU使用率（1秒间隔）
+	percent, err := cpu.Percent(time.Second, true)
 	if err != nil {
-		zap.S().Error("open err:", err)
-		return 0
+		return nil, fmt.Errorf("获取CPU使用率失败: %w", err)
 	}
-	defer file.Close()
 
-	cpuCount := 0
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, "processor") {
-			cpuCount++
-		}
+	// 计算总使用率
+	var totalPercent float64
+	for _, p := range percent {
+		totalPercent += p
 	}
-	return cpuCount
+	info.Usage = totalPercent / float64(len(percent))
+	info.PerCoreUsage = percent
+
+	// 获取CPU信息
+	cpuInfo, err := cpu.Info()
+	if err == nil && len(cpuInfo) > 0 {
+		info.Model = cpuInfo[0].ModelName
+		info.Frequency = cpuInfo[0].Mhz
+	}
+
+	// 获取负载（仅Linux/Mac）
+	info.LoadAverage = c.getLoadAverage()
+
+	return info, nil
 }
 
-func getCPUUsage(cpuCount int) (float64, []float64) {
-	initialStats := readCPUStats(cpuCount)
-	time.Sleep(1 * time.Second) // 等待1秒以获取CPU使用情况的样本
-	finalStats := readCPUStats(cpuCount)
+func (c *CPU) getLoadAverage() [3]float64 {
+	var load [3]float64
 
-	totalUsage := calculateTotalUsage(initialStats, finalStats)
-	perCoreUsage := calculatePerCoreUsage(initialStats, finalStats)
-
-	return totalUsage, perCoreUsage
-}
-
-func readCPUStats(cpuCount int) [][]int64 {
-	file, err := os.Open("/proc/stat")
-	if err != nil {
-		zap.S().Error("open err:", err)
-		return nil
-	}
-	defer file.Close()
-
-	var stats [][]int64
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, "cpu") {
-			fields := strings.Fields(line)[1:]
-			var stat []int64
-			for _, field := range fields {
-				val, _ := strconv.ParseInt(field, 10, 64)
-				stat = append(stat, val)
-			}
-			stats = append(stats, stat)
-			if len(stats) == cpuCount+1 { // 包括总体CPU使用情况和每个核心的使用情况
-				break
+	// 尝试读取/proc/loadavg（Linux）
+	if data, err := os.ReadFile("/proc/loadavg"); err == nil {
+		fields := strings.Fields(string(data))
+		if len(fields) >= 3 {
+			for i := 0; i < 3; i++ {
+				if val, err := strconv.ParseFloat(fields[i], 64); err == nil {
+					load[i] = val
+				}
 			}
 		}
 	}
-	return stats
-}
 
-func calculateTotalUsage(initial, final [][]int64) float64 {
-	initialTotal := sum(initial[0])
-	finalTotal := sum(final[0])
-	initialIdle := initial[0][3]
-	finalIdle := final[0][3]
-
-	totalDelta := finalTotal - initialTotal
-	idleDelta := finalIdle - initialIdle
-
-	usage := (1.0 - float64(idleDelta)/float64(totalDelta)) * 100
-	return usage
-}
-
-func calculatePerCoreUsage(initial, final [][]int64) []float64 {
-	var perCoreUsage []float64
-	for i := 1; i < len(initial); i++ {
-		initialTotal := sum(initial[i])
-		finalTotal := sum(final[i])
-		initialIdle := initial[i][3]
-		finalIdle := final[i][3]
-
-		totalDelta := finalTotal - initialTotal
-		idleDelta := finalIdle - initialIdle
-
-		usage := (1.0 - float64(idleDelta)/float64(totalDelta)) * 100
-		perCoreUsage = append(perCoreUsage, usage)
-	}
-	return perCoreUsage
-}
-
-func sum(slice []int64) int64 {
-	total := int64(0)
-	for _, val := range slice {
-		total += val
-	}
-	return total
+	return load
 }
