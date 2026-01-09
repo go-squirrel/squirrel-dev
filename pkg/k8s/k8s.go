@@ -49,7 +49,7 @@ func (c *Client) CreateByYaml(yamlString string) (err error) {
 		decoder := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 		_, gvk, err := decoder.Decode([]byte(doc), nil, obj)
 		if err != nil {
-			panic(err.Error())
+			return err
 		}
 
 		mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(c.ClientSet))
