@@ -17,7 +17,7 @@ func NewDiskCollector() *Disk {
 	}
 }
 
-func (d *Disk) Collect() (interface{}, error) {
+func (d *Disk) Collect() (any, error) {
 	return d.CollectDisk()
 }
 
@@ -73,9 +73,12 @@ func (d *Disk) CollectDisk() (*DiskInfo, error) {
 func (d *Disk) shouldSkip(fsType string) bool {
 	// 跳过虚拟文件系统
 	skipTypes := []string{
-		"proc", "sysfs", "tmpfs", "devtmpfs",
-		"devpts", "cgroup", "cgroup2", "overlay",
-		"aufs", "squashfs",
+		"fuse.lxcfs", "loop", "nsfs", "tmpfs",
+		"autofs", "binfmt_misc", "cgroup", "cgroup2",
+		"configfs", "debugfs", "devpts", "devtmpfs", "fusectl",
+		"hugetlbfs", "mqueue", "overlay", "proc", "procfs", "bpf",
+		"pstore", "rpc_pipefs", "securityfs", "sysfs", "tracefs",
+		"var/lib/kubelet", "snap", "dev", "proc", "sys", "var/lib/docker/",
 	}
 
 	for _, t := range skipTypes {

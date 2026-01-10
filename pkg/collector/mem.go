@@ -16,7 +16,7 @@ func NewMemoryCollector() *Memory {
 	}
 }
 
-func (m *Memory) Collect() (interface{}, error) {
+func (m *Memory) Collect() (any, error) {
 	return m.CollectMemory()
 }
 

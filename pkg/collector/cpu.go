@@ -21,7 +21,7 @@ func NewCPUCollector() *CPU {
 	}
 }
 
-func (c *CPU) Collect() (interface{}, error) {
+func (c *CPU) Collect() (any, error) {
 	return c.CollectCPU()
 }
 
