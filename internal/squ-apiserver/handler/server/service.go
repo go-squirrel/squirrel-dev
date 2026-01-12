@@ -12,7 +12,7 @@ import (
 
 type Server struct {
 	Config      *config.Config
-	ModelClient serverModel.Client
+	ModelClient serverModel.Repository
 }
 
 func (s *Server) List() response.Response {

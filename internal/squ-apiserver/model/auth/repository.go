@@ -2,12 +2,12 @@ package auth
 
 import "gorm.io/gorm"
 
-type Client interface {
+type Repository interface {
 	Get(username, password string) bool
 }
 
-func New(db *gorm.DB) Client {
-	return &ModelClient{
+func New(db *gorm.DB) Repository {
+	return &Client{
 		DB: db,
 	}
 }

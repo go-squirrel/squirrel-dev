@@ -1,13 +1,13 @@
 // The model is written using APIs to facilitate the creation of mock data during service testing.
-package application
+package health
 
 import "gorm.io/gorm"
 
-type Client interface {
+type Repository interface {
 }
 
-func New(db *gorm.DB) Client {
-	return &AppClient{
+func New(db *gorm.DB) Repository {
+	return &Client{
 		DB: db,
 	}
 }

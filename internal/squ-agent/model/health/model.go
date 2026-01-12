@@ -1,11 +1,9 @@
 package health
 
 import (
-
 	"gorm.io/gorm"
 )
 
-type HealthClient struct {
+type Client struct {
 	DB *gorm.DB
 }
-

@@ -4,6 +4,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type MonitorClient struct {
+type Client struct {
 	DB *gorm.DB
 }

@@ -4,7 +4,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Client interface {
+type Repository interface {
 	List() (servers []Server, err error)
 	Get(id uint) (servers Server, err error)
 	Delete(id uint) (err error)
@@ -12,8 +12,8 @@ type Client interface {
 	Update(req *Server) (err error)
 }
 
-func New(db *gorm.DB) Client {
-	return &ModelClient{
+func New(db *gorm.DB) Repository {
+	return &Client{
 		DB: db,
 	}
 }

@@ -3,11 +3,11 @@ package monitor
 
 import "gorm.io/gorm"
 
-type Client interface {
+type Repository interface {
 }
 
-func New(db *gorm.DB) Client {
-	return &MonitorClient{
+func New(db *gorm.DB) Repository {
+	return &Client{
 		DB: db,
 	}
 }

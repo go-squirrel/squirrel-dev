@@ -3,11 +3,11 @@ package health
 
 import "gorm.io/gorm"
 
-type Client interface {
+type Repository interface {
 }
 
-func New(db *gorm.DB) Client {
-	return &HealthClient{
+func New(db *gorm.DB) Repository {
+	return &Client{
 		DB: db,
 	}
 }

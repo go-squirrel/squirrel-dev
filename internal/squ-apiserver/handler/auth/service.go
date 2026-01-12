@@ -16,7 +16,7 @@ import (
 
 type Auth struct {
 	Config      *config.Config
-	ModelClient authModel.Client
+	ModelClient authModel.Repository
 }
 
 func (a *Auth) Login(request req.Request) response.Response {
