@@ -1,30 +1,83 @@
 package application
 
 import (
-	"fmt"
 	"net/http"
 	"squirrel-dev/internal/pkg/response"
-	"squirrel-dev/internal/squ-apiserver/handler/auth/req"
+	"squirrel-dev/internal/squ-apiserver/handler/application/req"
+	"squirrel-dev/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
-func LoginHandler(service *Application) func(c *gin.Context) {
-
+func ListHandler(service *Application) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		res := service.List()
+		c.JSON(http.StatusOK, res)
+	}
+}
 
-		request := req.Request{}
-		err := c.ShouldBindJSON(&request)
+func GetHandler(service *Application) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			fmt.Println(err)
 			zap.S().Warn(err)
 			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
 			return
 		}
-
-		res := service.List(request)
-
+		res := service.Get(idUint)
 		c.JSON(http.StatusOK, res)
 	}
 }
+
+func DeleteHandler(service *Application) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		idUint, err := utils.StringToUint(id)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.Delete(idUint)
+		c.JSON(http.StatusOK, res)
+	}
+}
+
+func AddHandler(service *Application) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		request := req.Application{}
+		err := c.ShouldBindJSON(&request)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.Add(request)
+		c.JSON(http.StatusOK, res)
+	}
+}
+
+func UpdateHandler(service *Application) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		idUint, err := utils.StringToUint(id)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		request := req.Application{}
+		err = c.ShouldBindJSON(&request)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		request.ID = idUint
+		res := service.Update(request)
+		c.JSON(http.StatusOK, res)
+	}
+}
+
