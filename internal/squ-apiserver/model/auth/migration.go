@@ -10,7 +10,7 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 	// 注册配置表初始迁移
 	registry.Register(
 		"1.0.0",
-		"用户初始化",
+		"用户列表",
 		// 升级函数
 		func(db *gorm.DB) error {
 			err := db.AutoMigrate(&User{})
