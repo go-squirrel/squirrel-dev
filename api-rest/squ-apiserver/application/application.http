@@ -1,0 +1,26 @@
+GET   {{url}}/api/v1/application
+content-type: application/json
+
+### 
+
+GET   {{url}}/api/v1/application/1
+content-type: application/json
+
+### 
+
+DELETE    {{url}}/api/v1/application/1
+content-type: application/json
+
+### 
+
+POST    {{url}}/api/v1/application
+content-type: application/json
+
+< json/create.json
+
+### 
+
+POST    {{url}}/api/v1/application/2
+content-type: application/json
+
+< json/update.json
