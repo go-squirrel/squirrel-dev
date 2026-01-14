@@ -1,0 +1,16 @@
+{
+    "name": "Redis",
+    "description": "Redis is an open source (BSD licensed), in-memory data structure store, used as a database, cache, message broker, and streaming engine",
+    "type": "compose",
+    "category": "database",
+    "icon": "https://redis.io/images/redis-white.png",
+    "version": "7.2.0",
+    "content": "version: '3'\nservices:\n  redis:\n    image: redis:7.2-alpine\n    ports:\n      - '6379:6379'\n    volumes:\n      - redis_data:/data\n\nvolumes:\n  redis_data:",
+    "tags": "database,cache,in-memory",
+    "author": "Redis Labs",
+    "repo_url": "https://github.com/redis/redis",
+    "homepage_url": "https://redis.io",
+    "is_official": true,
+    "downloads": 0,
+    "status": "active"
+}

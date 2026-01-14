@@ -1,6 +1,7 @@
 package server
 
 import (
+	"squirrel-dev/internal/squ-apiserver/model/app_store"
 	"squirrel-dev/internal/squ-apiserver/model/application"
 	"squirrel-dev/internal/squ-apiserver/model/auth"
 	"squirrel-dev/internal/squ-apiserver/model/config"
@@ -19,6 +20,7 @@ func (s *Server) migrate() {
 	serverModel.RegisterMigrations(registry)
 	config.RegisterMigrations(registry)
 	application.RegisterMigrations(registry)
+	app_store.RegisterMigrations(registry)
 
 	if err := migration.RunMigrations(s.DB.GetDB(), registry); err != nil {
 		zap.S().Errorf("迁移失败: %v", err)

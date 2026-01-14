@@ -1,26 +1,26 @@
-GET   {{url}}/api/v1/application
+GET   {{url}}/api/v1/app_store
 content-type: application/json
 
 ###
 
-GET   {{url}}/api/v1/application/1
+GET   {{url}}/api/v1/app_store/1
 content-type: application/json
 
 ###
 
-DELETE    {{url}}/api/v1/application/1
+DELETE    {{url}}/api/v1/app_store/1
 content-type: application/json
 
 ###
 
-POST    {{url}}/api/v1/application
+POST    {{url}}/api/v1/app_store
 content-type: application/json
 
 < json/create.json
 
 ###
 
-POST    {{url}}/api/v1/application/1
+POST    {{url}}/api/v1/app_store/1
 content-type: application/json
 
 < json/update.json

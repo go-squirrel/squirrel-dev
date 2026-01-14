@@ -16,6 +16,7 @@ func (s *Server) SetupRouter() {
 	router.Server(v1Router, s.Config, s.DB)
 	router.Application(v1Router, s.Config, s.DB)
 	router.Config(v1Router, s.Config, s.DB)
+	router.AppStore(v1Router, s.Config, s.DB)
 }
 
 func healthRouter(group *gin.RouterGroup) {
