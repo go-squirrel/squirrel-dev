@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Web Server",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/squ-apiserver/apiserver.go",
+      "cwd": "${workspaceFolder}",
+      "args": [],
+      "env": { },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "showLog": true,
+      "trace": "verbose"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Server + Client",
+      "configurations": ["Launch Web Server"]
+    }
+  ]
+}
