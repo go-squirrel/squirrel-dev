@@ -1,10 +1,6 @@
-package server
+package model
 
 import "gorm.io/gorm"
-
-type Client struct {
-	DB *gorm.DB
-}
 
 type Server struct {
 	gorm.Model
@@ -18,8 +14,4 @@ type Server struct {
 	AuthType      string  `gorm:"column:auth_type;type:varchar(20);default:'password';comment:认证方式" `
 	ServerAlias   *string `gorm:"column:server_alias;type:varchar(100);comment:服务器别名" `
 	Status        string  `gorm:"column:status;type:varchar(20);comment:状态" `
-}
-
-func (Server) TableName() string {
-	return "servers"
 }

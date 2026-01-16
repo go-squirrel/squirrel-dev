@@ -7,17 +7,17 @@ import (
 	"squirrel-dev/internal/squ-apiserver/handler/config/res"
 	"squirrel-dev/internal/squ-apiserver/model"
 
-	configModel "squirrel-dev/internal/squ-apiserver/model/config"
+	configRepository "squirrel-dev/internal/squ-apiserver/repository/config"
 )
 
 type Config struct {
-	Config      *config.Config
-	ModelClient configModel.Repository
+	Config     *config.Config
+	Repository configRepository.Repository
 }
 
 func (c *Config) List() response.Response {
 	var configs []res.Config
-	daoConfigs, err := c.ModelClient.List()
+	daoConfigs, err := c.Repository.List()
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -33,7 +33,7 @@ func (c *Config) List() response.Response {
 
 func (c *Config) Get(id uint) response.Response {
 	var configRes res.Config
-	daoC, err := c.ModelClient.Get(id)
+	daoC, err := c.Repository.Get(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -47,7 +47,7 @@ func (c *Config) Get(id uint) response.Response {
 }
 
 func (c *Config) Delete(id uint) response.Response {
-	err := c.ModelClient.Delete(id)
+	err := c.Repository.Delete(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -56,12 +56,12 @@ func (c *Config) Delete(id uint) response.Response {
 }
 
 func (c *Config) Add(request req.Config) response.Response {
-	modelReq := configModel.Config{
+	modelReq := model.Config{
 		Key:   request.Key,
 		Value: request.Value,
 	}
 
-	err := c.ModelClient.Add(&modelReq)
+	err := c.Repository.Add(&modelReq)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -70,12 +70,12 @@ func (c *Config) Add(request req.Config) response.Response {
 }
 
 func (c *Config) Update(request req.Config) response.Response {
-	modelReq := configModel.Config{
+	modelReq := model.Config{
 		Key:   request.Key,
 		Value: request.Value,
 	}
 	modelReq.ID = request.ID
-	err := c.ModelClient.Update(&modelReq)
+	err := c.Repository.Update(&modelReq)
 
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
@@ -83,4 +83,3 @@ func (c *Config) Update(request req.Config) response.Response {
 
 	return response.Success("success")
 }
-

@@ -1,12 +1,8 @@
-package app_store
+package model
 
 import (
 	"gorm.io/gorm"
 )
-
-type Client struct {
-	DB *gorm.DB
-}
 
 type AppStore struct {
 	gorm.Model
@@ -24,8 +20,4 @@ type AppStore struct {
 	IsOfficial  bool    `gorm:"column:is_official;type:tinyint(1);default:false;comment:是否官方模板"`
 	Downloads   int     `gorm:"column:downloads;type:int(10);default:0;comment:下载次数"`
 	Status      string  `gorm:"column:status;type:varchar(20);default:'active';comment:状态(active/deprecated)"`
-}
-
-func (AppStore) TableName() string {
-	return "app_stores"
 }

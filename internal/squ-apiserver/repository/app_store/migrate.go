@@ -5,7 +5,8 @@ import (
 	"io/fs"
 	"path/filepath"
 
-	"squirrel-dev/internal/squ-apiserver/model/migration"
+	"squirrel-dev/internal/pkg/migration"
+	"squirrel-dev/internal/squ-apiserver/model"
 
 	"gorm.io/gorm"
 )
@@ -17,13 +18,13 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 		"应用商店",
 		// 升级函数
 		func(db *gorm.DB) error {
-			err := db.AutoMigrate(&AppStore{})
+			err := db.AutoMigrate(&model.AppStore{})
 			if err != nil {
 				return err
 			}
 
 			// 预置应用模板
-			apps := []AppStore{
+			apps := []model.AppStore{
 				{
 					Name:        "MySQL",
 					Description: "MySQL 8.0 with persistence, monitoring and exporter. Open-source relational database.",
@@ -107,4 +108,3 @@ func readFile(filename string) (string, error) {
 func strPtr(s string) *string {
 	return &s
 }
-

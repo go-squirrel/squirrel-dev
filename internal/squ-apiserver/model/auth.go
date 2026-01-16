@@ -1,10 +1,6 @@
-package auth
+package model
 
 import "gorm.io/gorm"
-
-type Client struct {
-	DB *gorm.DB
-}
 
 type User struct {
 	gorm.Model

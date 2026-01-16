@@ -12,7 +12,7 @@ import (
 )
 
 func (s *Server) GetTerminal(id uint, conn *websocket.Conn) response.Response {
-	daoS, err := s.ModelClient.Get(id)
+	daoS, err := s.Repository.Get(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}

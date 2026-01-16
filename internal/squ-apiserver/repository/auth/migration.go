@@ -1,7 +1,8 @@
 package auth
 
 import (
-	"squirrel-dev/internal/squ-apiserver/model/migration"
+	"squirrel-dev/internal/pkg/migration"
+	"squirrel-dev/internal/squ-apiserver/model"
 
 	"gorm.io/gorm"
 )
@@ -13,11 +14,11 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 		"用户列表",
 		// 升级函数
 		func(db *gorm.DB) error {
-			err := db.AutoMigrate(&User{})
+			err := db.AutoMigrate(&model.User{})
 			if err != nil {
 				return err
 			}
-			user := &User{
+			user := &model.User{
 				Username: "test",
 				Password: "test",
 			}

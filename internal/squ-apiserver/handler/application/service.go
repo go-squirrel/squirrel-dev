@@ -7,17 +7,17 @@ import (
 	"squirrel-dev/internal/squ-apiserver/handler/application/res"
 	"squirrel-dev/internal/squ-apiserver/model"
 
-	applicationModel "squirrel-dev/internal/squ-apiserver/model/application"
+	appRepository "squirrel-dev/internal/squ-apiserver/repository/application"
 )
 
 type Application struct {
-	Config      *config.Config
-	ModelClient applicationModel.Repository
+	Config     *config.Config
+	Repository appRepository.Repository
 }
 
 func (a *Application) List() response.Response {
 	var applications []res.Application
-	daoApps, err := a.ModelClient.List()
+	daoApps, err := a.Repository.List()
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -37,7 +37,7 @@ func (a *Application) List() response.Response {
 
 func (a *Application) Get(id uint) response.Response {
 	var appRes res.Application
-	daoA, err := a.ModelClient.Get(id)
+	daoA, err := a.Repository.Get(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -55,7 +55,7 @@ func (a *Application) Get(id uint) response.Response {
 }
 
 func (a *Application) Delete(id uint) response.Response {
-	err := a.ModelClient.Delete(id)
+	err := a.Repository.Delete(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -64,7 +64,7 @@ func (a *Application) Delete(id uint) response.Response {
 }
 
 func (a *Application) Add(request req.Application) response.Response {
-	modelReq := applicationModel.Application{
+	modelReq := model.Application{
 		Name:        request.Name,
 		Description: request.Description,
 		Type:        request.Type,
@@ -73,7 +73,7 @@ func (a *Application) Add(request req.Application) response.Response {
 		Version:     request.Version,
 	}
 
-	err := a.ModelClient.Add(&modelReq)
+	err := a.Repository.Add(&modelReq)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -82,7 +82,7 @@ func (a *Application) Add(request req.Application) response.Response {
 }
 
 func (a *Application) Update(request req.Application) response.Response {
-	modelReq := applicationModel.Application{
+	modelReq := model.Application{
 		Name:        request.Name,
 		Description: request.Description,
 		Type:        request.Type,
@@ -91,7 +91,7 @@ func (a *Application) Update(request req.Application) response.Response {
 		Version:     request.Version,
 	}
 	modelReq.ID = request.ID
-	err := a.ModelClient.Update(&modelReq)
+	err := a.Repository.Update(&modelReq)
 
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
@@ -99,4 +99,3 @@ func (a *Application) Update(request req.Application) response.Response {
 
 	return response.Success("success")
 }
-

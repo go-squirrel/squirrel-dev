@@ -1,14 +1,18 @@
 // The model is written using APIs to facilitate the creation of mock data during service testing.
 package config
 
-import "gorm.io/gorm"
+import (
+	"squirrel-dev/internal/squ-apiserver/model"
+
+	"gorm.io/gorm"
+)
 
 type Repository interface {
-	List() (configs []Config, err error)
-	Get(id uint) (config Config, err error)
+	List() (configs []model.Config, err error)
+	Get(id uint) (config model.Config, err error)
 	Delete(id uint) (err error)
-	Add(req *Config) (err error)
-	Update(req *Config) (err error)
+	Add(req *model.Config) (err error)
+	Update(req *model.Config) (err error)
 }
 
 func New(db *gorm.DB) Repository {

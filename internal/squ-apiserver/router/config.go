@@ -7,13 +7,13 @@ import (
 	sysConfig "squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/config"
 
-	configModel "squirrel-dev/internal/squ-apiserver/model/config"
+	configRepository "squirrel-dev/internal/squ-apiserver/repository/config"
 )
 
 func Config(group *gin.RouterGroup, conf *sysConfig.Config, db database.DB) {
 	service := config.Config{
-		Config:      conf,
-		ModelClient: configModel.New(db.GetDB()),
+		Config:     conf,
+		Repository: configRepository.New(db.GetDB()),
 	}
 	group.GET("/config", config.ListHandler(&service))
 	group.GET("/config/:id", config.GetHandler(&service))

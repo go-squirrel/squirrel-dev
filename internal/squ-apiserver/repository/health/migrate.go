@@ -1,7 +1,8 @@
 package health
 
 import (
-	"squirrel-dev/internal/squ-apiserver/model/migration"
+	"squirrel-dev/internal/pkg/migration"
+	"squirrel-dev/internal/squ-apiserver/model"
 
 	"gorm.io/gorm"
 )
@@ -13,7 +14,7 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 		"健康检查",
 		// 升级函数
 		func(db *gorm.DB) error {
-			return db.AutoMigrate(&Health{})
+			return db.AutoMigrate(&model.Health{})
 		},
 		// 回滚函数
 		func(db *gorm.DB) error {

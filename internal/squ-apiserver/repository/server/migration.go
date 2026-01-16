@@ -2,7 +2,8 @@ package server
 
 import (
 	"os"
-	"squirrel-dev/internal/squ-apiserver/model/migration"
+	"squirrel-dev/internal/pkg/migration"
+	"squirrel-dev/internal/squ-apiserver/model"
 
 	"gorm.io/gorm"
 )
@@ -14,12 +15,12 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 		"初始化服务器",
 		// 升级函数
 		func(db *gorm.DB) error {
-			err := db.AutoMigrate(&Server{})
+			err := db.AutoMigrate(&model.Server{})
 			if err != nil {
 				return err
 			}
 			hostname, _ := os.Hostname()
-			server := &Server{
+			server := &model.Server{
 				Hostname:  hostname,
 				IpAddress: "127.0.0.1",
 			}

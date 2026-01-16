@@ -6,7 +6,7 @@ import (
 	"squirrel-dev/internal/squ-apiserver/handler/server"
 	serverRes "squirrel-dev/internal/squ-apiserver/handler/server/res"
 
-	serverModel "squirrel-dev/internal/squ-apiserver/model/server"
+	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,8 +14,8 @@ import (
 func Server(group *gin.RouterGroup, conf *config.Config, db database.DB) {
 	serverRes.RegisterCode()
 	service := server.Server{
-		Config:      conf,
-		ModelClient: serverModel.New(db.GetDB()),
+		Config:     conf,
+		Repository: serverRepository.New(db.GetDB()),
 	}
 	group.GET("/server", server.ListHandler(&service))
 	group.GET("/server/:id", server.GetHandler(&service))

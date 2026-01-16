@@ -8,17 +8,17 @@ import (
 	"squirrel-dev/internal/squ-apiserver/model"
 	"squirrel-dev/pkg/compose"
 
-	appStoreModel "squirrel-dev/internal/squ-apiserver/model/app_store"
+	appStoreRepository "squirrel-dev/internal/squ-apiserver/repository/app_store"
 )
 
 type AppStore struct {
-	Config      *config.Config
-	ModelClient appStoreModel.Repository
+	Config     *config.Config
+	Repository appStoreRepository.Repository
 }
 
 func (a *AppStore) List() response.Response {
 	var appStores []res.AppStore
-	daoAppStores, err := a.ModelClient.List()
+	daoAppStores, err := a.Repository.List()
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -46,7 +46,7 @@ func (a *AppStore) List() response.Response {
 
 func (a *AppStore) Get(id uint) response.Response {
 	var appStoreRes res.AppStore
-	daoA, err := a.ModelClient.Get(id)
+	daoA, err := a.Repository.Get(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -72,7 +72,7 @@ func (a *AppStore) Get(id uint) response.Response {
 }
 
 func (a *AppStore) Delete(id uint) response.Response {
-	err := a.ModelClient.Delete(id)
+	err := a.Repository.Delete(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -94,7 +94,7 @@ func (a *AppStore) Add(request req.AppStore) response.Response {
 		}
 	}
 
-	modelReq := appStoreModel.AppStore{
+	modelReq := model.AppStore{
 		Name:        request.Name,
 		Description: request.Description,
 		Type:        request.Type,
@@ -111,7 +111,7 @@ func (a *AppStore) Add(request req.AppStore) response.Response {
 		Status:      request.Status,
 	}
 
-	err := a.ModelClient.Add(&modelReq)
+	err := a.Repository.Add(&modelReq)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -133,7 +133,7 @@ func (a *AppStore) Update(request req.AppStore) response.Response {
 		}
 	}
 
-	modelReq := appStoreModel.AppStore{
+	modelReq := model.AppStore{
 		Name:        request.Name,
 		Description: request.Description,
 		Type:        request.Type,
@@ -150,7 +150,7 @@ func (a *AppStore) Update(request req.AppStore) response.Response {
 		Status:      request.Status,
 	}
 	modelReq.ID = request.ID
-	err := a.ModelClient.Update(&modelReq)
+	err := a.Repository.Update(&modelReq)
 
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))

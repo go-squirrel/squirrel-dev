@@ -8,15 +8,15 @@ import (
 	appStoreHandler "squirrel-dev/internal/squ-apiserver/handler/app_store"
 	appStoreRes "squirrel-dev/internal/squ-apiserver/handler/app_store/res"
 
-	appStoreModel "squirrel-dev/internal/squ-apiserver/model/app_store"
+	appStoreRepository "squirrel-dev/internal/squ-apiserver/repository/app_store"
 )
 
 func AppStore(group *gin.RouterGroup, conf *config.Config, db database.DB) {
 	appStoreRes.RegisterCode()
 
 	service := appStoreHandler.AppStore{
-		Config:      conf,
-		ModelClient: appStoreModel.New(db.GetDB()),
+		Config:     conf,
+		Repository: appStoreRepository.New(db.GetDB()),
 	}
 	group.GET("/app-store", appStoreHandler.ListHandler(&service))
 	group.GET("/app-store/:id", appStoreHandler.GetHandler(&service))

@@ -1,12 +1,6 @@
-package application
+package model
 
-import (
-	"gorm.io/gorm"
-)
-
-type Client struct {
-	DB *gorm.DB
-}
+import "gorm.io/gorm"
 
 type Application struct {
 	gorm.Model

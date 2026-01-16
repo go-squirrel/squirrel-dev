@@ -6,7 +6,7 @@ import (
 
 	"squirrel-dev/internal/squ-apiserver/handler/auth/req"
 	"squirrel-dev/internal/squ-apiserver/handler/auth/res"
-	authModel "squirrel-dev/internal/squ-apiserver/model/auth"
+	authRepository "squirrel-dev/internal/squ-apiserver/repository/auth"
 	"time"
 
 	"squirrel-dev/pkg/jwt"
@@ -15,13 +15,13 @@ import (
 )
 
 type Auth struct {
-	Config      *config.Config
-	ModelClient authModel.Repository
+	Config     *config.Config
+	Repository authRepository.Repository
 }
 
 func (a *Auth) Login(request req.Request) response.Response {
 
-	ok := a.ModelClient.Get(request.Username, request.Password)
+	ok := a.Repository.Get(request.Username, request.Password)
 	if !ok {
 		return response.Error(response.ErrUserOrPassword)
 	}

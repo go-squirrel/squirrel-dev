@@ -7,17 +7,17 @@ import (
 	"squirrel-dev/internal/squ-apiserver/handler/server/res"
 	"squirrel-dev/internal/squ-apiserver/model"
 
-	serverModel "squirrel-dev/internal/squ-apiserver/model/server"
+	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
 )
 
 type Server struct {
-	Config      *config.Config
-	ModelClient serverModel.Repository
+	Config     *config.Config
+	Repository serverRepository.Repository
 }
 
 func (s *Server) List() response.Response {
 	var servers []res.Server
-	daoServers, err := s.ModelClient.List()
+	daoServers, err := s.Repository.List()
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -37,7 +37,7 @@ func (s *Server) List() response.Response {
 
 func (s *Server) Get(id uint) response.Response {
 	var serverRes res.Server
-	daoS, err := s.ModelClient.Get(id)
+	daoS, err := s.Repository.Get(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -55,7 +55,7 @@ func (s *Server) Get(id uint) response.Response {
 }
 
 func (s *Server) Delete(id uint) response.Response {
-	err := s.ModelClient.Delete(id)
+	err := s.Repository.Delete(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -64,7 +64,7 @@ func (s *Server) Delete(id uint) response.Response {
 }
 
 func (s *Server) Add(request req.Server) response.Response {
-	modelReq := serverModel.Server{
+	modelReq := model.Server{
 		Hostname:    request.Hostname,
 		IpAddress:   request.IpAddress,
 		SshUsername: request.SshUsername,
@@ -73,7 +73,7 @@ func (s *Server) Add(request req.Server) response.Response {
 		Status:      request.Status,
 	}
 
-	err := s.ModelClient.Add(&modelReq)
+	err := s.Repository.Add(&modelReq)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -82,7 +82,7 @@ func (s *Server) Add(request req.Server) response.Response {
 }
 
 func (s *Server) Update(request req.Server) response.Response {
-	modelReq := serverModel.Server{
+	modelReq := model.Server{
 		IpAddress:   request.IpAddress,
 		SshUsername: request.SshUsername,
 		SshPort:     request.SshPort,
@@ -90,7 +90,7 @@ func (s *Server) Update(request req.Server) response.Response {
 		Status:      request.Status,
 	}
 	modelReq.ID = request.ID
-	err := s.ModelClient.Update(&modelReq)
+	err := s.Repository.Update(&modelReq)
 
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))

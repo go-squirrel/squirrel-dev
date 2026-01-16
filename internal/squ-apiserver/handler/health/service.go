@@ -1,16 +1,14 @@
 package health
 
 import (
-	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/config"
-	healthModel "squirrel-dev/internal/squ-apiserver/model/health"
+	healthRepository "squirrel-dev/internal/squ-apiserver/repository/health"
 )
 
 type Health struct {
-	Config            *config.Config
-	DB                database.DB
-	HealthModelClient healthModel.Client
+	Config     *config.Config
+	Repository healthRepository.Client
 }
 
 func (h *Health) Status() response.Response {

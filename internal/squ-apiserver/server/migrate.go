@@ -1,13 +1,13 @@
 package server
 
 import (
-	"squirrel-dev/internal/squ-apiserver/model/app_store"
-	"squirrel-dev/internal/squ-apiserver/model/application"
-	"squirrel-dev/internal/squ-apiserver/model/auth"
-	"squirrel-dev/internal/squ-apiserver/model/config"
-	"squirrel-dev/internal/squ-apiserver/model/health"
-	"squirrel-dev/internal/squ-apiserver/model/migration"
-	serverModel "squirrel-dev/internal/squ-apiserver/model/server"
+	"squirrel-dev/internal/pkg/migration"
+	"squirrel-dev/internal/squ-apiserver/repository/app_store"
+	"squirrel-dev/internal/squ-apiserver/repository/application"
+	"squirrel-dev/internal/squ-apiserver/repository/auth"
+	"squirrel-dev/internal/squ-apiserver/repository/config"
+	"squirrel-dev/internal/squ-apiserver/repository/health"
+	serverModel "squirrel-dev/internal/squ-apiserver/repository/server"
 
 	"go.uber.org/zap"
 )
