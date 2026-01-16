@@ -1,8 +1,8 @@
 package server
 
 import (
-	"squirrel-dev/internal/squ-agent/model/health"
-	"squirrel-dev/internal/squ-agent/model/migration"
+	"squirrel-dev/internal/pkg/migration"
+	"squirrel-dev/internal/squ-agent/repository/health"
 
 	"go.uber.org/zap"
 )
