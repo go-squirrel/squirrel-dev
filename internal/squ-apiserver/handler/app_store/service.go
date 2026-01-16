@@ -6,6 +6,7 @@ import (
 	"squirrel-dev/internal/squ-apiserver/handler/app_store/req"
 	"squirrel-dev/internal/squ-apiserver/handler/app_store/res"
 	"squirrel-dev/internal/squ-apiserver/model"
+	"squirrel-dev/pkg/compose"
 
 	appStoreModel "squirrel-dev/internal/squ-apiserver/model/app_store"
 )
@@ -80,6 +81,19 @@ func (a *AppStore) Delete(id uint) response.Response {
 }
 
 func (a *AppStore) Add(request req.AppStore) response.Response {
+	// 验证应用类型
+	if !compose.IsValidAppType(request.Type) {
+		return response.Error(res.ErrUnsupportedAppType)
+	}
+
+	// 如果是 compose 类型，验证 compose 内容
+	if request.Type == "compose" {
+		request.Content = compose.TrimSpaceContent(request.Content)
+		if err := compose.ValidateContent(request.Content); err != nil {
+			return response.ErrorUnknown(res.ErrInvalidComposeContent, err.Error())
+		}
+	}
+
 	modelReq := appStoreModel.AppStore{
 		Name:        request.Name,
 		Description: request.Description,
@@ -106,6 +120,19 @@ func (a *AppStore) Add(request req.AppStore) response.Response {
 }
 
 func (a *AppStore) Update(request req.AppStore) response.Response {
+	// 验证应用类型
+	if !compose.IsValidAppType(request.Type) {
+		return response.Error(res.ErrUnsupportedAppType)
+	}
+
+	// 如果是 compose 类型，验证 compose 内容
+	if request.Type == "compose" {
+		request.Content = compose.TrimSpaceContent(request.Content)
+		if err := compose.ValidateContent(request.Content); err != nil {
+			return response.ErrorUnknown(res.ErrInvalidComposeContent, err.Error())
+		}
+	}
+
 	modelReq := appStoreModel.AppStore{
 		Name:        request.Name,
 		Description: request.Description,
