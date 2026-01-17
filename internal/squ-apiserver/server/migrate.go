@@ -7,6 +7,7 @@ import (
 	"squirrel-dev/internal/squ-apiserver/repository/auth"
 	"squirrel-dev/internal/squ-apiserver/repository/config"
 	"squirrel-dev/internal/squ-apiserver/repository/health"
+	"squirrel-dev/internal/squ-apiserver/repository/script"
 	serverModel "squirrel-dev/internal/squ-apiserver/repository/server"
 
 	"go.uber.org/zap"
@@ -21,6 +22,7 @@ func (s *Server) migrate() {
 	config.RegisterMigrations(registry)
 	application.RegisterMigrations(registry)
 	app_store.RegisterMigrations(registry)
+	script.RegisterMigrations(registry)
 
 	if err := migration.RunMigrations(s.DB.GetDB(), registry); err != nil {
 		zap.S().Errorf("迁移失败: %v", err)
