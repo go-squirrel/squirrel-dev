@@ -1,0 +1,101 @@
+package application
+
+import (
+	"squirrel-dev/internal/pkg/response"
+	"squirrel-dev/internal/squ-agent/config"
+	"squirrel-dev/internal/squ-agent/handler/application/req"
+	"squirrel-dev/internal/squ-agent/handler/application/res"
+	"squirrel-dev/internal/squ-agent/model"
+
+	appRepository "squirrel-dev/internal/squ-agent/repository/application"
+)
+
+type Application struct {
+	Config     *config.Config
+	Repository appRepository.Repository
+}
+
+func (a *Application) List() response.Response {
+	var applications []res.Application
+	daoApps, err := a.Repository.List()
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+	for _, daoA := range daoApps {
+		applications = append(applications, res.Application{
+			ID:          daoA.ID,
+			Name:        daoA.Name,
+			Description: daoA.Description,
+			Type:        daoA.Type,
+			Status:      daoA.Status,
+			Content:     daoA.Content,
+			Version:     daoA.Version,
+		})
+	}
+	return response.Success(applications)
+}
+
+func (a *Application) Get(id uint) response.Response {
+	var appRes res.Application
+	daoA, err := a.Repository.Get(id)
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+	appRes = res.Application{
+		ID:          daoA.ID,
+		Name:        daoA.Name,
+		Description: daoA.Description,
+		Type:        daoA.Type,
+		Status:      daoA.Status,
+		Content:     daoA.Content,
+		Version:     daoA.Version,
+	}
+
+	return response.Success(appRes)
+}
+
+func (a *Application) Delete(id uint) response.Response {
+	err := a.Repository.Delete(id)
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	return response.Success("success")
+}
+
+func (a *Application) Add(request req.Application) response.Response {
+	modelReq := model.Application{
+		Name:        request.Name,
+		Description: request.Description,
+		Type:        request.Type,
+		Status:      request.Status,
+		Content:     request.Content,
+		Version:     request.Version,
+	}
+
+	err := a.Repository.Add(&modelReq)
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	return response.Success("success")
+}
+
+func (a *Application) Update(request req.Application) response.Response {
+	modelReq := model.Application{
+		Name:        request.Name,
+		Description: request.Description,
+		Type:        request.Type,
+		Status:      request.Status,
+		Content:     request.Content,
+		Version:     request.Version,
+	}
+	modelReq.ID = request.ID
+	err := a.Repository.Update(&modelReq)
+
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	return response.Success("success")
+}

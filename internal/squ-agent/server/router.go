@@ -13,6 +13,7 @@ func (s *Server) SetupRouter() {
 	v1Router := s.Gin.Group("/api/v1")
 	healthRouter(v1Router)
 	router.MonitorRouter(v1Router)
+	router.Application(v1Router, s.Config, s.AppDB)
 }
 
 func healthRouter(group *gin.RouterGroup) {

@@ -16,8 +16,9 @@ type Server struct {
 	Config *config.Config
 	Gin    *gin.Engine
 	// 导入日志
-	Log *log.Client
-	DB  database.DB
+	Log       *log.Client
+	AppDB     database.DB
+	MonitorDB database.DB
 }
 
 func NewServer() *Server {

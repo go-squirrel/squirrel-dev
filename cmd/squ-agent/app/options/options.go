@@ -5,10 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"squirrel-dev/internal/squ-agent/config"
-	"squirrel-dev/internal/squ-agent/server"
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/pkg/middleware/log"
+	"squirrel-dev/internal/squ-agent/config"
+	"squirrel-dev/internal/squ-agent/server"
 )
 
 type AppOptions struct {
@@ -34,7 +34,8 @@ func (o *AppOptions) NewServer() (*server.Server, error) {
 	)
 
 	if o.Config.DB.Type == "sqlite" {
-		s.DB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.FilePath, database.WithMigrate(true))
+		s.AppDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.AppFilePath, database.WithMigrate(true))
+		s.MonitorDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.MonitorFilePath, database.WithMigrate(true))
 		return s, nil
 	} else {
 		Connect := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
@@ -43,7 +44,8 @@ func (o *AppOptions) NewServer() (*server.Server, error) {
 			o.Config.DB.Mysql.Host,
 			o.Config.DB.Mysql.Port,
 			o.Config.DB.Mysql.DbName)
-		s.DB = database.New(o.Config.DB.Type, Connect, database.WithMigrate(true))
+		s.AppDB = database.New(o.Config.DB.Type, Connect, database.WithMigrate(true))
+		s.MonitorDB = s.AppDB
 	}
 
 	return s, nil

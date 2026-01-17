@@ -1,7 +1,7 @@
 package config
 
 type DB struct {
-	Type string
+	Type  string
 	Mysql struct {
 		DbName   string
 		Password string
@@ -10,6 +10,7 @@ type DB struct {
 		Host     string
 	}
 	Sqlite struct {
-		FilePath string
+		AppFilePath     string
+		MonitorFilePath string
 	}
 }
