@@ -8,6 +8,7 @@ import (
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/pkg/middleware/log"
 	"squirrel-dev/internal/squ-agent/config"
+	"squirrel-dev/internal/squ-agent/cron"
 	"squirrel-dev/internal/squ-agent/server"
 )
 
@@ -48,6 +49,7 @@ func (o *AppOptions) NewServer() (*server.Server, error) {
 		s.MonitorDB = s.AppDB
 	}
 
+	s.Cron = cron.New(s.AppDB)
 	return s, nil
 }
 

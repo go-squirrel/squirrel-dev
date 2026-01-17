@@ -10,6 +10,7 @@ import (
 	"squirrel-dev/internal/pkg/middleware/cors"
 	"squirrel-dev/internal/pkg/middleware/log"
 	"squirrel-dev/internal/squ-agent/config"
+	"squirrel-dev/internal/squ-agent/cron"
 )
 
 type Server struct {
@@ -19,6 +20,7 @@ type Server struct {
 	Log       *log.Client
 	AppDB     database.DB
 	MonitorDB database.DB
+	Cron      *cron.Cron
 }
 
 func NewServer() *Server {
@@ -45,6 +47,8 @@ func (s *Server) Run() {
 	s.migrate()
 
 	s.SetupRouter()
+
+	s.Cron.Start()
 
 	err := s.Gin.Run(s.Config.Server.Bind + ":" + s.Config.Server.Port)
 	if err != nil {
