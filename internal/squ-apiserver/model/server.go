@@ -1,9 +1,7 @@
 package model
 
-import "gorm.io/gorm"
-
 type Server struct {
-	gorm.Model
+	BaseModel
 	Hostname      string  `gorm:"column:hostname;type:varchar(100);not null;unique;comment:主机名" `
 	IpAddress     string  `gorm:"column:ip_address;type:varchar(45);not null;index:idx_ip_address;comment:IP地址（支持IPv6）" `
 	AgentPort     int     `gorm:"column:agent_port;type:int(5);default:10750;comment:agent端口" `

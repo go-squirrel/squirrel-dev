@@ -1,9 +1,7 @@
 package model
 
-import "gorm.io/gorm"
-
 type Application struct {
-	gorm.Model
+	BaseModel
 	Name        string
 	Description string
 	Type        string // compose and manifest

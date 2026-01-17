@@ -1,11 +1,7 @@
 package model
 
-import (
-	"gorm.io/gorm"
-)
-
 type AppStore struct {
-	gorm.Model
+	BaseModel
 	Name        string  `gorm:"column:name;type:varchar(100);not null;unique;comment:模板名称"`
 	Description string  `gorm:"column:description;type:text;comment:模板描述"`
 	Type        string  `gorm:"column:type;type:varchar(50);not null;comment:类型(compose/k8s_manifest/helm_chart)"`

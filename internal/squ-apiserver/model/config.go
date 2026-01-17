@@ -1,9 +1,7 @@
 package model
 
-import "gorm.io/gorm"
-
 type Config struct {
-	gorm.Model
+	BaseModel
 	Key   string
 	Value string
 }
