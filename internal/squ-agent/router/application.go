@@ -6,11 +6,14 @@ import (
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/squ-agent/config"
 	"squirrel-dev/internal/squ-agent/handler/application"
+	"squirrel-dev/internal/squ-agent/handler/application/res"
 
 	applicationRepository "squirrel-dev/internal/squ-agent/repository/application"
 )
 
 func Application(group *gin.RouterGroup, conf *config.Config, db database.DB) {
+	res.RegisterCode()
+
 	service := application.Application{
 		Config:     conf,
 		Repository: applicationRepository.New(db.GetDB()),

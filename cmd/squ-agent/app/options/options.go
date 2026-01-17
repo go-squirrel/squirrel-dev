@@ -37,7 +37,6 @@ func (o *AppOptions) NewServer() (*server.Server, error) {
 	if o.Config.DB.Type == "sqlite" {
 		s.AppDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.AppFilePath, database.WithMigrate(true))
 		s.MonitorDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.MonitorFilePath, database.WithMigrate(true))
-		return s, nil
 	} else {
 		Connect := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 			o.Config.DB.Mysql.Username,

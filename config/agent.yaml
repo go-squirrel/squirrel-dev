@@ -27,3 +27,7 @@ log:
   maxBackups: 5
   maxAge: 10
   level: info
+# 通用配置
+common:
+  # docker-compose 文件存储路径，如果为空则使用当前目录
+  composePath: ./compose

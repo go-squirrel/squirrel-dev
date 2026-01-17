@@ -1,0 +1,7 @@
+{
+    "name": "mysql",
+    "description": "MySQL 8.0 database server with persistence",
+    "type": "compose",
+    "content": "version: '3'\nservices:\n  mysql:\n    image: mysql:8.0\n    container_name: mysql-server\n    restart: always\n    environment:\n      MYSQL_ROOT_PASSWORD: root1234\n      MYSQL_DATABASE: app_db\n      MYSQL_USER: app_user\n      MYSQL_PASSWORD: app_pass\n    ports:\n      - \"3306:3306\"\n    volumes:\n      - mysql_data:/var/lib/mysql\n    command: --default-authentication-plugin=mysql_native_password\n\nvolumes:\n  mysql_data:",
+    "version": "8.0.0"
+}

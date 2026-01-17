@@ -13,6 +13,7 @@ type Cron struct {
 }
 
 func New(appDB database.DB) *Cron {
+
 	c := cronV3.New(cronV3.WithParser(cronV3.NewParser(
 		cronV3.SecondOptional | cronV3.Minute | cronV3.Hour | cronV3.Dom | cronV3.Month | cronV3.Dow | cronV3.Descriptor,
 	)))

@@ -1,0 +1,29 @@
+### get all applications
+GET   {{url}}/api/v1/application
+content-type: application/json
+
+### get application by id
+GET   {{url}}/api/v1/application/1
+content-type: application/json
+
+### delete application
+DELETE    {{url}}/api/v1/application/1
+content-type: application/json
+
+### create application - deploy mysql
+POST    {{url}}/api/v1/application
+content-type: application/json
+
+< json/create-mysql.json
+
+### create application - deploy nginx
+POST    {{url}}/api/v1/application
+content-type: application/json
+
+< json/create-nginx.json
+
+### update application
+POST    {{url}}/api/v1/application/1
+content-type: application/json
+
+< json/update.json

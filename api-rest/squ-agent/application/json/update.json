@@ -1,0 +1,7 @@
+{
+    "name": "mysql-updated",
+    "description": "MySQL 8.0 database server - updated version",
+    "type": "compose",
+    "content": "version: '3'\nservices:\n  mysql:\n    image: mysql:8.0\n    container_name: mysql-server\n    restart: always\n    environment:\n      MYSQL_ROOT_PASSWORD: newpassword123\n      MYSQL_DATABASE: new_app_db\n      MYSQL_USER: new_app_user\n      MYSQL_PASSWORD: new_app_pass\n    ports:\n      - \"3307:3306\"\n    volumes:\n      - mysql_data:/var/lib/mysql\n    command: --default-authentication-plugin=mysql_native_password\nvolumes:\n  mysql_data:",
+    "version": "8.0.0"
+}
