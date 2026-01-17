@@ -1,0 +1,41 @@
+# get all scripts
+GET   {{url}}/api/v1/scripts
+content-type: application/json
+
+### get script by id
+
+GET   {{url}}/api/v1/scripts/1
+content-type: application/json
+
+### delete script
+
+DELETE    {{url}}/api/v1/scripts/1
+content-type: application/json
+
+### create script - success
+
+POST    {{url}}/api/v1/scripts
+content-type: application/json
+
+< json/create.json
+
+### create script - error (no shebang)
+
+POST    {{url}}/api/v1/scripts
+content-type: application/json
+
+< json/create-err-no-shebang.json
+
+### create script - error (empty content)
+
+POST    {{url}}/api/v1/scripts
+content-type: application/json
+
+< json/create-err-empty.json
+
+### update script
+
+POST    {{url}}/api/v1/scripts/1
+content-type: application/json
+
+< json/update.json

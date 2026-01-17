@@ -53,6 +53,7 @@ func (s *Script) Get(id uint) response.Response {
 func (s *Script) Delete(id uint) response.Response {
 	err := s.Repository.Delete(id)
 	if err != nil {
+		zap.S().Error(err)
 		return response.Error(model.ReturnErrCode(err))
 	}
 

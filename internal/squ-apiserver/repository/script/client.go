@@ -8,10 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var (
-	ErrScriptNotFound = errors.New("script not found")
-)
-
 // Client 脚本仓库客户端实现
 type Client struct {
 	DB *gorm.DB
@@ -27,9 +23,6 @@ func (c *Client) List() (scripts []model.Script, err error) {
 func (c *Client) Get(id uint) (script model.Script, err error) {
 	err = c.DB.Where("id = ?", id).First(&script).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return script, ErrScriptNotFound
-		}
 		return script, err
 	}
 	return script, nil
@@ -39,9 +32,6 @@ func (c *Client) Get(id uint) (script model.Script, err error) {
 func (c *Client) GetByName(name string) (script model.Script, err error) {
 	err = c.DB.Where("name = ?", name).First(&script).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return script, ErrScriptNotFound
-		}
 		return script, err
 	}
 	return script, nil
@@ -53,9 +43,6 @@ func (c *Client) Delete(id uint) (err error) {
 	var script model.Script
 	result := c.DB.First(&script, id)
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return ErrScriptNotFound
-		}
 		return result.Error
 	}
 	return c.DB.Delete(&script).Error
@@ -81,9 +68,6 @@ func (c *Client) Update(req *model.Script) (err error) {
 	var existingScript model.Script
 	result := c.DB.First(&existingScript, req.ID)
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return ErrScriptNotFound
-		}
 		return result.Error
 	}
 

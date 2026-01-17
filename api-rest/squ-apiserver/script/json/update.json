@@ -1,0 +1,4 @@
+{
+    "name": "install-docker-compose",
+    "content": "#!/bin/bash\n#\n# 安装 Docker 和 Docker Compose 脚本 - 更新版本\n# 支持 Ubuntu/Debian 和 CentOS/RHEL 系统\n#\n\nset -e\n\necho 'This is an updated version of the Docker installation script'"
+}

@@ -1,0 +1,4 @@
+{
+    "name": "invalid-script",
+    "content": "echo 'This script does not start with shebang'"
+}
