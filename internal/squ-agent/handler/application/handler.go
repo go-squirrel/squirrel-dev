@@ -80,3 +80,32 @@ func UpdateHandler(service *Application) func(c *gin.Context) {
 		c.JSON(http.StatusOK, res)
 	}
 }
+
+func StopHandler(service *Application) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		idUint, err := utils.StringToUint(id)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.Stop(idUint)
+		c.JSON(http.StatusOK, res)
+	}
+}
+
+func StartHandler(service *Application) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		idUint, err := utils.StringToUint(id)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.Start(idUint)
+		c.JSON(http.StatusOK, res)
+	}
+}
+

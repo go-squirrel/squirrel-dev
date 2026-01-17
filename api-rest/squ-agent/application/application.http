@@ -27,3 +27,11 @@ POST    {{url}}/api/v1/application/1
 content-type: application/json
 
 < json/update.json
+
+### stop application
+POST    {{url}}/api/v1/application/1/stop
+content-type: application/json
+
+### start application
+POST    {{url}}/api/v1/application/1/start
+content-type: application/json
