@@ -9,6 +9,8 @@ import (
 	"squirrel-dev/pkg/compose"
 
 	appStoreRepository "squirrel-dev/internal/squ-apiserver/repository/app_store"
+
+	"go.uber.org/zap"
 )
 
 type AppStore struct {
@@ -89,8 +91,9 @@ func (a *AppStore) Add(request req.AppStore) response.Response {
 	// 如果是 compose 类型，验证 compose 内容
 	if request.Type == "compose" {
 		request.Content = compose.TrimSpaceContent(request.Content)
-		if err := compose.ValidateContent(request.Content); err != nil {
-			return response.ErrorUnknown(res.ErrInvalidComposeContent, err.Error())
+		if err := compose.ValidateContent(request.Name, request.Content); err != nil {
+			zap.S().Error(err)
+			return response.Error(res.ErrInvalidComposeContent)
 		}
 	}
 
@@ -128,8 +131,9 @@ func (a *AppStore) Update(request req.AppStore) response.Response {
 	// 如果是 compose 类型，验证 compose 内容
 	if request.Type == "compose" {
 		request.Content = compose.TrimSpaceContent(request.Content)
-		if err := compose.ValidateContent(request.Content); err != nil {
-			return response.ErrorUnknown(res.ErrInvalidComposeContent, err.Error())
+		if err := compose.ValidateContent(request.Name, request.Content); err != nil {
+			zap.S().Error(err)
+			return response.Error(res.ErrInvalidComposeContent)
 		}
 	}
 

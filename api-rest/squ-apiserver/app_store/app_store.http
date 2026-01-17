@@ -1,22 +1,30 @@
+# get all list
 GET   {{url}}/api/v1/app-store
 content-type: application/json
 
-###
+### get id 
 
 GET   {{url}}/api/v1/app-store/1
 content-type: application/json
 
-###
+### delete id 
 
 DELETE    {{url}}/api/v1/app-store/1
 content-type: application/json
 
-###
+### create success
 
 POST    {{url}}/api/v1/app-store
 content-type: application/json
 
 < json/create.json
+
+### create error
+
+POST    {{url}}/api/v1/app-store
+content-type: application/json
+
+< json/create-err.json
 
 ###
 
