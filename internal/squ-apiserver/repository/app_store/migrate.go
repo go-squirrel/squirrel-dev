@@ -26,6 +26,19 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 			// 预置应用模板
 			apps := []model.AppStore{
 				{
+					Name:        "Nginx",
+					Description: "web server.",
+					Type:        TypeCompose,
+					Category:    CategoryWeb,
+					Version:     "1.28.0",
+					Author:      "Elastic",
+					HomepageUrl: strPtr("https://nginx.org/"),
+					RepoUrl:     strPtr("https://github.com/nginx/nginx"),
+					IsOfficial:  true,
+					Downloads:   0,
+					Status:      StatusActive,
+				},
+				{
 					Name:        "MySQL",
 					Description: "MySQL 8.0 with persistence, monitoring and exporter. Open-source relational database.",
 					Type:        TypeCompose,
@@ -78,6 +91,8 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 					content, err = readFile("redis-compose.yml")
 				case "Elasticsearch":
 					content, err = readFile("elasticsearch-compose.yml")
+				case "Nginx":
+					content, err = readFile("nginx-compose.yml")
 				}
 
 				if err != nil {

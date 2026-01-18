@@ -1,0 +1,12 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx-server
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - nginx_html:/usr/share/nginx/html
+volumes:
+  nginx_html:
