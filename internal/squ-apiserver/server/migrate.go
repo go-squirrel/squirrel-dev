@@ -4,6 +4,7 @@ import (
 	"squirrel-dev/internal/pkg/migration"
 	"squirrel-dev/internal/squ-apiserver/repository/app_store"
 	"squirrel-dev/internal/squ-apiserver/repository/application"
+	"squirrel-dev/internal/squ-apiserver/repository/application_server"
 	"squirrel-dev/internal/squ-apiserver/repository/auth"
 	"squirrel-dev/internal/squ-apiserver/repository/config"
 	"squirrel-dev/internal/squ-apiserver/repository/health"
@@ -21,6 +22,7 @@ func (s *Server) migrate() {
 	serverModel.RegisterMigrations(registry)
 	config.RegisterMigrations(registry)
 	application.RegisterMigrations(registry)
+	application_server.RegisterMigrations(registry)
 	app_store.RegisterMigrations(registry)
 	script.RegisterMigrations(registry)
 

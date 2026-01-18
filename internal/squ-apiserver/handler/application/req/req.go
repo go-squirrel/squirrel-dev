@@ -10,3 +10,10 @@ type Application struct {
 	Version     string `json:"version"`
 }
 
+// DeployApplication 部署应用请求
+type DeployApplication struct {
+	ApplicationID uint `json:"-"` // 从路径参数获取
+	ServerID      uint `json:"server_id"`
+}
+
+

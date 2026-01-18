@@ -1,0 +1,8 @@
+package application_server
+
+import "gorm.io/gorm"
+
+type Client struct {
+	DB *gorm.DB
+}
+

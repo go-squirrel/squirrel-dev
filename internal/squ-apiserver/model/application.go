@@ -9,3 +9,9 @@ type Application struct {
 	Content     string
 	Version     string
 }
+
+type ApplicationServer struct {
+	BaseModel
+	ServerID      uint
+	ApplicationID uint
+}

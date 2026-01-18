@@ -81,3 +81,25 @@ func UpdateHandler(service *Application) func(c *gin.Context) {
 	}
 }
 
+func DeployHandler(service *Application) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		idUint, err := utils.StringToUint(id)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		request := req.DeployApplication{}
+		err = c.ShouldBindJSON(&request)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		request.ApplicationID = idUint
+		res := service.Deploy(request)
+		c.JSON(http.StatusOK, res)
+	}
+}
+

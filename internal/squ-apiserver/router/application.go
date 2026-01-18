@@ -6,18 +6,26 @@ import (
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/application"
+	"squirrel-dev/internal/squ-apiserver/handler/application/res"
 
 	applicationRepository "squirrel-dev/internal/squ-apiserver/repository/application"
+	appServerRepository "squirrel-dev/internal/squ-apiserver/repository/application_server"
+	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
 )
 
 func Application(group *gin.RouterGroup, conf *config.Config, db database.DB) {
-	service := application.Application{
-		Config:     conf,
-		Repository: applicationRepository.New(db.GetDB()),
-	}
-	group.GET("/application", application.ListHandler(&service))
-	group.GET("/application/:id", application.GetHandler(&service))
-	group.DELETE("/application/:id", application.DeleteHandler(&service))
-	group.POST("/application", application.AddHandler(&service))
-	group.POST("/application/:id", application.UpdateHandler(&service))
+	res.RegisterCode()
+
+	service := application.New(
+		conf,
+		applicationRepository.New(db.GetDB()),
+		appServerRepository.New(db.GetDB()),
+		serverRepository.New(db.GetDB()),
+	)
+	group.GET("/application", application.ListHandler(service))
+	group.GET("/application/:id", application.GetHandler(service))
+	group.DELETE("/application/:id", application.DeleteHandler(service))
+	group.POST("/application", application.AddHandler(service))
+	group.POST("/application/:id", application.UpdateHandler(service))
+	group.POST("/application/deploy/:id", application.DeployHandler(service))
 }
