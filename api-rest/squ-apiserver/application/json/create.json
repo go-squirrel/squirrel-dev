@@ -2,7 +2,6 @@
     "name": "nginx",
     "description": "Nginx web server",
     "type": "compose",
-    "status": "active",
-    "content": "version: '3'\nservices:\n  nginx:\n    image: nginx:latest\n    ports:\n      - '80:80'",
-    "version": "1.0.0"
+    "content": "version: '3'\nservices:\n  nginx:\n    image: nginx:latest\n    container_name: nginx-server\n    restart: always\n    ports:\n      - \"80:80\"\n    volumes:\n      - nginx_html:/usr/share/nginx/html\nvolumes:\n  nginx_html:",
+    "version": "1.25.0"
 }
