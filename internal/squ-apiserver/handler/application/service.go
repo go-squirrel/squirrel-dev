@@ -1,7 +1,11 @@
 package application
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"time"
 
 	"squirrel-dev/internal/pkg/response"
@@ -9,11 +13,12 @@ import (
 	"squirrel-dev/internal/squ-apiserver/handler/application/req"
 	"squirrel-dev/internal/squ-apiserver/handler/application/res"
 	"squirrel-dev/internal/squ-apiserver/model"
-	"squirrel-dev/pkg/http"
 
 	appRepository "squirrel-dev/internal/squ-apiserver/repository/application"
 	appServerRepository "squirrel-dev/internal/squ-apiserver/repository/application_server"
 	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
+
+	"go.uber.org/zap"
 )
 
 type Application struct {
@@ -30,8 +35,40 @@ func New(config *config.Config, appRepo appRepository.Repository, appServerRepo 
 		Repository:    appRepo,
 		AppServerRepo: appServerRepo,
 		ServerRepo:    serverRepo,
-		HTTPClient:    http.NewClient(30 * time.Second),
+		HTTPClient:    &http.Client{Timeout: 30 * time.Second},
 	}
+}
+
+// postJSON 发送 JSON POST 请求
+func (a *Application) postJSON(url string, body interface{}) ([]byte, error) {
+	jsonData, err := json.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("marshal request body failed: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("create request failed: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := a.HTTPClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("send request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read response body failed: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return respBody, fmt.Errorf("http status code: %d", resp.StatusCode)
+	}
+
+	return respBody, nil
 }
 
 func (a *Application) List() response.Response {
@@ -74,7 +111,18 @@ func (a *Application) Get(id uint) response.Response {
 }
 
 func (a *Application) Delete(id uint) response.Response {
-	err := a.Repository.Delete(id)
+	// 先删除应用服务器关联记录
+	err := a.AppServerRepo.DeleteByApplicationID(id)
+	if err != nil {
+		zap.L().Error("删除应用服务器关联记录失败",
+			zap.Uint("application_id", id),
+			zap.Error(err),
+		)
+		// 不返回错误，继续删除应用记录
+	}
+
+	// 删除应用记录
+	err = a.Repository.Delete(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -153,8 +201,31 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 		Version:     app.Version,
 	}
 
-	_, err = a.HTTPClient.Post(agentURL, agentReq, nil)
+	respBody, err := a.postJSON(agentURL, agentReq)
 	if err != nil {
+		zap.L().Error("部署请求发送失败",
+			zap.String("url", agentURL),
+			zap.Error(err),
+		)
+		return response.Error(res.ErrDeployFailed)
+	}
+
+	// 解析响应，检查是否部署成功
+	var agentResp response.Response
+	if err := json.Unmarshal(respBody, &agentResp); err != nil {
+		zap.L().Error("解析 Agent 响应失败",
+			zap.String("url", agentURL),
+			zap.Error(err),
+		)
+		return response.Error(res.ErrDeployFailed)
+	}
+
+	if agentResp.Code != 200 {
+		zap.L().Error("Agent 部署失败",
+			zap.String("url", agentURL),
+			zap.Int("code", agentResp.Code),
+			zap.String("message", agentResp.Message),
+		)
 		return response.Error(res.ErrDeployFailed)
 	}
 
@@ -166,9 +237,129 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 
 	err = a.AppServerRepo.Add(&appServer)
 	if err != nil {
+		zap.L().Error("创建应用服务器关联记录失败",
+			zap.Uint("server_id", request.ServerID),
+			zap.Uint("application_id", request.ApplicationID),
+			zap.Error(err),
+		)
+
+		// 回滚：尝试调用 Agent 删除已部署的应用
+		agentDeleteURL := fmt.Sprintf("http://%s:%d/api/v1/application/delete_by_name", server.IpAddress, server.AgentPort)
+		zap.L().Info("回滚：尝试删除 Agent 端已部署的应用",
+			zap.String("url", agentDeleteURL),
+		)
+
+		// 需要发送 POST 请求来删除应用（因为 DeleteByNameHandler 需要请求体）
+		deleteReqBody := map[string]string{"name": app.Name}
+		_, rollbackErr := a.postJSON(agentDeleteURL, deleteReqBody)
+		if rollbackErr != nil {
+			zap.L().Error("回滚失败：删除 Agent 端应用失败",
+				zap.String("url", agentDeleteURL),
+				zap.Error(rollbackErr),
+			)
+		}
+
 		return response.Error(model.ReturnErrCode(err))
 	}
 
 	return response.Success("deploy success")
+}
+
+// ListServers 查询应用部署的服务器列表
+func (a *Application) ListServers(applicationID uint) response.Response {
+	// 检查应用是否存在
+	_, err := a.Repository.Get(applicationID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(res.ErrApplicationNotFound)
+		}
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	// 查询应用服务器关联记录
+	appServers, err := a.AppServerRepo.List(applicationID)
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	// 构建服务器列表响应
+	type ServerInfo struct {
+		ServerID      uint   `json:"server_id"`
+		IpAddress     string `json:"ip_address"`
+		AgentPort     int    `json:"agent_port"`
+		DeployedAt    string `json:"deployed_at"`
+	}
+
+	var servers []ServerInfo
+	for _, appServer := range appServers {
+		server, err := a.ServerRepo.Get(appServer.ServerID)
+		if err != nil {
+			zap.L().Warn("获取服务器信息失败",
+				zap.Uint("server_id", appServer.ServerID),
+				zap.Error(err),
+			)
+			continue
+		}
+
+		servers = append(servers, ServerInfo{
+			ServerID:      server.ID,
+			IpAddress:     server.IpAddress,
+			AgentPort:     server.AgentPort,
+			DeployedAt:    appServer.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return response.Success(servers)
+}
+
+// Undeploy 取消部署应用
+func (a *Application) Undeploy(applicationID, serverID uint) response.Response {
+	// 1. 检查应用是否存在
+	app, err := a.Repository.Get(applicationID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(res.ErrApplicationNotFound)
+		}
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	// 2. 检查服务器是否存在
+	server, err := a.ServerRepo.Get(serverID)
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	// 3. 检查是否已部署
+	appServer, err := a.AppServerRepo.GetByServerAndApp(serverID, applicationID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(res.ErrApplicationNotDeployed)
+		}
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	// 4. 调用 Agent 删除应用
+	agentDeleteURL := fmt.Sprintf("http://%s:%d/api/v1/application/delete_by_name", server.IpAddress, server.AgentPort)
+	deleteReqBody := map[string]string{"name": app.Name}
+	_, err = a.postJSON(agentDeleteURL, deleteReqBody)
+	if err != nil {
+		zap.L().Error("调用 Agent 删除应用失败",
+			zap.String("url", agentDeleteURL),
+			zap.Error(err),
+		)
+		return response.Error(res.ErrDeployFailed)
+	}
+
+	// 5. 删除应用服务器关联记录
+	err = a.AppServerRepo.Delete(appServer.ID)
+	if err != nil {
+		zap.L().Error("删除应用服务器关联记录失败",
+			zap.Uint("id", appServer.ID),
+			zap.Error(err),
+		)
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	return response.Success("undeploy success")
 }
 

@@ -109,3 +109,21 @@ func StartHandler(service *Application) func(c *gin.Context) {
 	}
 }
 
+// DeleteByNameHandler 根据名称删除应用（用于回滚）
+func DeleteByNameHandler(service *Application) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		type DeleteByNameRequest struct {
+			Name string `json:"name" binding:"required"`
+		}
+		request := DeleteByNameRequest{}
+		err := c.ShouldBindJSON(&request)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.DeleteByName(request.Name)
+		c.JSON(http.StatusOK, res)
+	}
+}
+

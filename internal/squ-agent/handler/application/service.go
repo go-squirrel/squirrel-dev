@@ -85,6 +85,47 @@ func (a *Application) Delete(id uint) response.Response {
 	return response.Success("success")
 }
 
+// DeleteByName 根据应用名称删除应用（用于回滚）
+func (a *Application) DeleteByName(name string) response.Response {
+	// 先获取应用信息
+	apps, err := a.Repository.List()
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	var targetApp *model.Application
+	for i := range apps {
+		if apps[i].Name == name {
+			targetApp = &apps[i]
+			break
+		}
+	}
+
+	if targetApp == nil {
+		// 应用不存在，视为成功（幂等性）
+		return response.Success("application not found, skip delete")
+	}
+
+	// 如果应用正在运行，先停止服务
+	if targetApp.Status == "running" {
+		stopRes := a.Stop(targetApp.ID)
+		if stopRes.Code != 200 {
+			zap.L().Warn("回滚时停止应用失败，继续删除",
+				zap.Uint("id", targetApp.ID),
+				zap.String("name", name),
+			)
+		}
+	}
+
+	// 删除数据库记录
+	err = a.Repository.DeleteByName(name)
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	return response.Success("success")
+}
+
 func (a *Application) Add(request req.Application) response.Response {
 	// 1. 检测 Docker 是否已安装
 	if !checkDockerInstalled() {
@@ -115,6 +156,21 @@ func (a *Application) Add(request req.Application) response.Response {
 	composeFileName := fmt.Sprintf("docker-compose-%s.yml", request.Name)
 	composeFilePath := filepath.Join(composePath, composeFileName)
 
+	// 如果文件已存在，先删除（支持重试）
+	if _, err := os.Stat(composeFilePath); err == nil {
+		zap.L().Info("docker-compose 文件已存在，先删除",
+			zap.String("path", composeFilePath),
+			zap.String("name", request.Name),
+		)
+		if err := os.Remove(composeFilePath); err != nil {
+			zap.L().Error("删除已存在的 docker-compose 文件失败",
+				zap.String("path", composeFilePath),
+				zap.Error(err),
+			)
+			return response.Error(res.ErrDockerComposeCreate)
+		}
+	}
+
 	if err := os.WriteFile(composeFilePath, []byte(request.Content), 0644); err != nil {
 		zap.L().Error("创建 docker-compose 文件失败",
 			zap.String("path", composeFilePath),
@@ -135,15 +191,21 @@ func (a *Application) Add(request req.Application) response.Response {
 			zap.String("file", composeFileName),
 			zap.Error(err),
 		)
-		// 启动失败也保存到数据库，状态设置为 "failed"
-		request.Status = "failed"
-	} else {
-		// 启动成功，状态设置为 "running"
-		request.Status = "running"
-		zap.L().Info("docker-compose 启动成功",
-			zap.String("name", request.Name),
-		)
+		// 启动失败，清理已创建的文件
+		if removeErr := os.Remove(composeFilePath); removeErr != nil {
+			zap.L().Error("启动失败后清理文件失败",
+				zap.String("path", composeFilePath),
+				zap.Error(removeErr),
+			)
+		}
+		return response.Error(res.ErrDockerComposeStart)
 	}
+
+	// 启动成功，状态设置为 "running"
+	request.Status = "running"
+	zap.L().Info("docker-compose 启动成功",
+		zap.String("name", request.Name),
+	)
 
 	// 6. 保存到数据库
 	modelReq := model.Application{

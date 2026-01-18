@@ -24,6 +24,10 @@ func (c *Client) Delete(id uint) (err error) {
 	return c.DB.Delete(&model.Application{}, id).Error
 }
 
+func (c *Client) DeleteByName(name string) (err error) {
+	return c.DB.Where("name = ?", name).Delete(&model.Application{}).Error
+}
+
 func (c *Client) Add(req *model.Application) (err error) {
 	return c.DB.Create(req).Error
 }
