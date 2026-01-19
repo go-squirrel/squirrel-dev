@@ -220,7 +220,7 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 		return response.Error(res.ErrDeployFailed)
 	}
 
-	if agentResp.Code != 200 {
+	if agentResp.Code != 0 {
 		zap.L().Error("Agent 部署失败",
 			zap.String("url", agentURL),
 			zap.Int("code", agentResp.Code),
