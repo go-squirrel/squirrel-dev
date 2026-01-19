@@ -27,7 +27,7 @@ func Command(command string, args ...string) (string, error) {
 // 引入template模版，渲染字段
 // command: //go:embed 引入的文本字符串
 // data: 需要被渲染的数值
-func TemplateCommandBash(command string, data interface{}) (string, error) {
+func TemplateCommandBash(command string, data any) (string, error) {
 	// 解析模板内容
 	tmpl, err := template.New("example").Parse(command)
 	if err != nil {

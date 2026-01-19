@@ -24,7 +24,7 @@ func ErrorUnknown(code int, data string) Response {
 }
 
 // Success 回调正确信息
-func Success(data interface{}) Response {
+func Success(data any) Response {
 	return Response{
 		Code:    CodeSuccess,
 		Message: getMessage(CodeSuccess),

@@ -22,11 +22,11 @@ import (
 )
 
 type Application struct {
-	Config            *config.Config
-	Repository        appRepository.Repository
-	AppServerRepo     appServerRepository.Repository
-	ServerRepo        serverRepository.Repository
-	HTTPClient        *http.Client
+	Config        *config.Config
+	Repository    appRepository.Repository
+	AppServerRepo appServerRepository.Repository
+	ServerRepo    serverRepository.Repository
+	HTTPClient    *http.Client
 }
 
 func New(config *config.Config, appRepo appRepository.Repository, appServerRepo appServerRepository.Repository, serverRepo serverRepository.Repository) *Application {
@@ -40,7 +40,7 @@ func New(config *config.Config, appRepo appRepository.Repository, appServerRepo 
 }
 
 // postJSON 发送 JSON POST 请求
-func (a *Application) postJSON(url string, body interface{}) ([]byte, error) {
+func (a *Application) postJSON(url string, body any) ([]byte, error) {
 	jsonData, err := json.Marshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("marshal request body failed: %w", err)
@@ -284,10 +284,10 @@ func (a *Application) ListServers(applicationID uint) response.Response {
 
 	// 构建服务器列表响应
 	type ServerInfo struct {
-		ServerID      uint   `json:"server_id"`
-		IpAddress     string `json:"ip_address"`
-		AgentPort     int    `json:"agent_port"`
-		DeployedAt    string `json:"deployed_at"`
+		ServerID   uint   `json:"server_id"`
+		IpAddress  string `json:"ip_address"`
+		AgentPort  int    `json:"agent_port"`
+		DeployedAt string `json:"deployed_at"`
 	}
 
 	var servers []ServerInfo
@@ -302,10 +302,10 @@ func (a *Application) ListServers(applicationID uint) response.Response {
 		}
 
 		servers = append(servers, ServerInfo{
-			ServerID:      server.ID,
-			IpAddress:     server.IpAddress,
-			AgentPort:     server.AgentPort,
-			DeployedAt:    appServer.CreatedAt.Format("2006-01-02 15:04:05"),
+			ServerID:   server.ID,
+			IpAddress:  server.IpAddress,
+			AgentPort:  server.AgentPort,
+			DeployedAt: appServer.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
 	}
 
@@ -362,4 +362,3 @@ func (a *Application) Undeploy(applicationID, serverID uint) response.Response {
 
 	return response.Success("undeploy success")
 }
-

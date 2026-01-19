@@ -41,7 +41,7 @@ func (j *JWT) GenToken(username string, expireDuration time.Duration) (string, e
 
 func (j *JWT) ParseToken(tokenString string) (*CustomClaims, error) {
 
-	token, err := jwtgo.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwtgo.Token) (i interface{}, err error) {
+	token, err := jwtgo.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwtgo.Token) (i any, err error) {
 		return j.SigningKey, nil
 	})
 	if err != nil {
@@ -57,7 +57,7 @@ func (j *JWT) ParseToken(tokenString string) (*CustomClaims, error) {
 func IsTokenExpired(tokenString string, signingKey string) (bool, error) {
 	secretKey := []byte(signingKey)
 
-	token, err := jwtgo.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwtgo.Token) (interface{}, error) {
+	token, err := jwtgo.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwtgo.Token) (any, error) {
 
 		if _, ok := token.Method.(*jwtgo.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])

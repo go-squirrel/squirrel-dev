@@ -24,7 +24,7 @@ func NewClient(timeout time.Duration) *Client {
 }
 
 // Post 发送POST请求
-func (c *Client) Post(url string, body interface{}, headers map[string]string) ([]byte, error) {
+func (c *Client) Post(url string, body any, headers map[string]string) ([]byte, error) {
 	jsonData, err := json.Marshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("marshal request body failed: %w", err)
