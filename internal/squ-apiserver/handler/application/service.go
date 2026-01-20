@@ -244,14 +244,12 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 		)
 
 		// 回滚：尝试调用 Agent 删除已部署的应用
-		agentDeleteURL := fmt.Sprintf("http://%s:%d/api/v1/application/delete_by_name", server.IpAddress, server.AgentPort)
+		agentDeleteURL := fmt.Sprintf("http://%s:%d/api/v1/application/delete/%s", server.IpAddress, server.AgentPort, app.Name)
 		zap.L().Info("回滚：尝试删除 Agent 端已部署的应用",
 			zap.String("url", agentDeleteURL),
 		)
 
-		// 需要发送 POST 请求来删除应用（因为 DeleteByNameHandler 需要请求体）
-		deleteReqBody := map[string]string{"name": app.Name}
-		_, rollbackErr := a.postJSON(agentDeleteURL, deleteReqBody)
+		_, rollbackErr := a.postJSON(agentDeleteURL, nil)
 		if rollbackErr != nil {
 			zap.L().Error("回滚失败：删除 Agent 端应用失败",
 				zap.String("url", agentDeleteURL),
@@ -339,9 +337,9 @@ func (a *Application) Undeploy(applicationID, serverID uint) response.Response {
 	}
 
 	// 4. 调用 Agent 删除应用
-	agentDeleteURL := fmt.Sprintf("http://%s:%d/api/v1/application/delete_by_name", server.IpAddress, server.AgentPort)
-	deleteReqBody := map[string]string{"name": app.Name}
-	_, err = a.postJSON(agentDeleteURL, deleteReqBody)
+	agentDeleteURL := fmt.Sprintf("http://%s:%d/api/v1/application/delete/%s", server.IpAddress, server.AgentPort, app.Name)
+
+	_, err = a.postJSON(agentDeleteURL, nil)
 	if err != nil {
 		zap.L().Error("调用 Agent 删除应用失败",
 			zap.String("url", agentDeleteURL),
