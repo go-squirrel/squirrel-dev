@@ -2,6 +2,7 @@ package options
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 
@@ -53,6 +54,11 @@ func (o *AppOptions) loadConfig(configFile string) {
 	if o.Config.Log.Path == "" {
 		o.Config.Log.Path = "./log"
 	}
-	o.Config.Log.ErrorFilePath = o.Config.Log.Path + "/" + o.Config.Log.ErrorFilename
-	o.Config.Log.InfoFilePath = o.Config.Log.Path + "/" + o.Config.Log.InfoFilename
+	absPath, err := filepath.Abs(o.Config.Log.Path)
+	if err != nil {
+		fmt.Printf("转换失败: %v\n", err)
+		absPath = o.Config.Log.Path
+	}
+	o.Config.Log.ErrorFilePath = absPath + "/" + o.Config.Log.ErrorFilename
+	o.Config.Log.InfoFilePath = absPath + "/" + o.Config.Log.InfoFilename
 }
