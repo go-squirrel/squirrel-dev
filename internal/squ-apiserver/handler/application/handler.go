@@ -141,3 +141,51 @@ func UndeployHandler(service *Application) func(c *gin.Context) {
 	}
 }
 
+func StopHandler(service *Application) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		serverID := c.Param("serverId")
+
+		idUint, err := utils.StringToUint(id)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+
+		serverIDUint, err := utils.StringToUint(serverID)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+
+		res := service.Stop(idUint, serverIDUint)
+		c.JSON(http.StatusOK, res)
+	}
+}
+
+func StartHandler(service *Application) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		serverID := c.Param("serverId")
+
+		idUint, err := utils.StringToUint(id)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+
+		serverIDUint, err := utils.StringToUint(serverID)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+
+		res := service.Start(idUint, serverIDUint)
+		c.JSON(http.StatusOK, res)
+	}
+}
+

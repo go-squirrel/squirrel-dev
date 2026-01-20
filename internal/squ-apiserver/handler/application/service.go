@@ -360,3 +360,123 @@ func (a *Application) Undeploy(applicationID, serverID uint) response.Response {
 
 	return response.Success("undeploy success")
 }
+
+// Stop 停止应用
+func (a *Application) Stop(applicationID, serverID uint) response.Response {
+	// 1. 检查应用是否存在
+	app, err := a.Repository.Get(applicationID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(res.ErrApplicationNotFound)
+		}
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	// 2. 检查服务器是否存在
+	server, err := a.ServerRepo.Get(serverID)
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	// 3. 检查是否已部署
+	_, err = a.AppServerRepo.GetByServerAndApp(serverID, applicationID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(res.ErrApplicationNotDeployed)
+		}
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	// 4. 调用 Agent 停止应用
+	agentURL := fmt.Sprintf("http://%s:%d/api/v1/application/stop/%s", server.IpAddress, server.AgentPort, app.Name)
+
+	respBody, err := a.postJSON(agentURL, nil)
+	if err != nil {
+		zap.L().Error("调用 Agent 停止应用失败",
+			zap.String("url", agentURL),
+			zap.Error(err),
+		)
+		return response.Error(res.ErrDeployFailed)
+	}
+
+	// 解析响应，检查是否停止成功
+	var agentResp response.Response
+	if err := json.Unmarshal(respBody, &agentResp); err != nil {
+		zap.L().Error("解析 Agent 响应失败",
+			zap.String("url", agentURL),
+			zap.Error(err),
+		)
+		return response.Error(res.ErrDeployFailed)
+	}
+
+	if agentResp.Code != 0 {
+		zap.L().Error("Agent 停止失败",
+			zap.String("url", agentURL),
+			zap.Int("code", agentResp.Code),
+			zap.String("message", agentResp.Message),
+		)
+		return response.Error(res.ErrDeployFailed)
+	}
+
+	return response.Success("stop success")
+}
+
+// Start 启动应用
+func (a *Application) Start(applicationID, serverID uint) response.Response {
+	// 1. 检查应用是否存在
+	app, err := a.Repository.Get(applicationID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(res.ErrApplicationNotFound)
+		}
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	// 2. 检查服务器是否存在
+	server, err := a.ServerRepo.Get(serverID)
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	// 3. 检查是否已部署
+	_, err = a.AppServerRepo.GetByServerAndApp(serverID, applicationID)
+	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(res.ErrApplicationNotDeployed)
+		}
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	// 4. 调用 Agent 启动应用
+	agentURL := fmt.Sprintf("http://%s:%d/api/v1/application/start/%s", server.IpAddress, server.AgentPort, app.Name)
+
+	respBody, err := a.postJSON(agentURL, nil)
+	if err != nil {
+		zap.L().Error("调用 Agent 启动应用失败",
+			zap.String("url", agentURL),
+			zap.Error(err),
+		)
+		return response.Error(res.ErrDeployFailed)
+	}
+
+	// 解析响应，检查是否启动成功
+	var agentResp response.Response
+	if err := json.Unmarshal(respBody, &agentResp); err != nil {
+		zap.L().Error("解析 Agent 响应失败",
+			zap.String("url", agentURL),
+			zap.Error(err),
+		)
+		return response.Error(res.ErrDeployFailed)
+	}
+
+	if agentResp.Code != 0 {
+		zap.L().Error("Agent 启动失败",
+			zap.String("url", agentURL),
+			zap.Int("code", agentResp.Code),
+			zap.String("message", agentResp.Message),
+		)
+		return response.Error(res.ErrDeployFailed)
+	}
+
+	return response.Success("start success")
+}
