@@ -184,35 +184,12 @@ func (a *Application) Add(request req.Application) response.Response {
 		zap.String("name", request.Name),
 	)
 
-	// 5. 执行 docker-compose up -d 命令启动容器
-	if err := runDockerComposeUp(composePath, composeFileName); err != nil {
-		zap.L().Error("启动 docker-compose 失败",
-			zap.String("path", composePath),
-			zap.String("file", composeFileName),
-			zap.Error(err),
-		)
-		// 启动失败，清理已创建的文件
-		if removeErr := os.Remove(composeFilePath); removeErr != nil {
-			zap.L().Error("启动失败后清理文件失败",
-				zap.String("path", composeFilePath),
-				zap.Error(removeErr),
-			)
-		}
-		return response.Error(res.ErrDockerComposeStart)
-	}
-
-	// 启动成功，状态设置为 "running"
-	request.Status = "running"
-	zap.L().Info("docker-compose 启动成功",
-		zap.String("name", request.Name),
-	)
-
-	// 6. 保存到数据库
+	// 5. 先保存到数据库，状态设置为 "starting"（启动中）
 	modelReq := model.Application{
 		Name:        request.Name,
 		Description: request.Description,
 		Type:        request.Type,
-		Status:      request.Status,
+		Status:      "starting",
 		Content:     request.Content,
 		Version:     request.Version,
 	}
@@ -222,7 +199,57 @@ func (a *Application) Add(request req.Application) response.Response {
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	return response.Success("success")
+	// 6. 在协程中异步启动应用
+	go func(appName, composePath, composeFileName string) {
+		zap.L().Info("开始异步启动应用",
+			zap.String("name", appName),
+		)
+
+		// 执行 docker-compose up -d 命令启动容器
+		if err := runDockerComposeUp(composePath, composeFileName); err != nil {
+			zap.L().Error("启动 docker-compose 失败",
+				zap.String("path", composePath),
+				zap.String("file", composeFileName),
+				zap.Error(err),
+			)
+			// 启动失败，清理已创建的文件
+			composeFilePath := filepath.Join(composePath, composeFileName)
+			if removeErr := os.Remove(composeFilePath); removeErr != nil {
+				zap.L().Error("启动失败后清理文件失败",
+					zap.String("path", composeFilePath),
+					zap.Error(removeErr),
+				)
+			}
+			// 更新数据库状态为 "failed"
+			apps, err := a.Repository.List()
+			if err != nil {
+				zap.L().Error("获取应用列表失败", zap.Error(err))
+				return
+			}
+			for i := range apps {
+				if apps[i].Name == appName {
+					apps[i].Status = "failed"
+					if updateErr := a.Repository.Update(&apps[i]); updateErr != nil {
+						zap.L().Error("更新应用状态为 failed 失败", zap.Error(updateErr))
+					}
+					break
+				}
+			}
+			return
+		}
+
+		zap.L().Info("docker-compose up 命令执行成功",
+			zap.String("name", appName),
+		)
+		// 启动命令执行成功，但不立即更新数据库
+		// 由 cron 定时任务 checkApplicationStatus 检测实际容器状态并更新
+	}(request.Name, composePath, composeFileName)
+
+	zap.L().Info("应用添加成功，正在后台启动",
+		zap.String("name", request.Name),
+	)
+
+	return response.Success("应用添加成功，正在后台启动")
 }
 
 // getComposePath 获取 docker-compose 文件存储路径
@@ -477,18 +504,8 @@ func (a *Application) Start(id uint) response.Response {
 		return response.Error(res.ErrDockerComposeStart)
 	}
 
-	// 执行 docker-compose start 命令
-	if err := runDockerComposeStart(composePath, composeFileName); err != nil {
-		zap.L().Error("启动 docker-compose 失败",
-			zap.String("path", composePath),
-			zap.String("file", composeFileName),
-			zap.Error(err),
-		)
-		return response.Error(res.ErrDockerComposeStart)
-	}
-
-	// 更新数据库状态
-	app.Status = "running"
+	// 更新数据库状态为 "starting"（启动中）
+	app.Status = "starting"
 	err = a.Repository.Update(&app)
 	if err != nil {
 		zap.L().Error("更新应用状态失败",
@@ -498,12 +515,50 @@ func (a *Application) Start(id uint) response.Response {
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	zap.L().Info("应用已启动",
+	// 在协程中异步启动应用
+	go func(appName, composePath, composeFileName string) {
+		zap.L().Info("开始异步启动应用",
+			zap.String("name", appName),
+		)
+
+		// 执行 docker-compose start 命令
+		if err := runDockerComposeStart(composePath, composeFileName); err != nil {
+			zap.L().Error("启动 docker-compose 失败",
+				zap.String("path", composePath),
+				zap.String("file", composeFileName),
+				zap.Error(err),
+			)
+			// 启动失败，更新数据库状态
+			apps, err := a.Repository.List()
+			if err != nil {
+				zap.L().Error("获取应用列表失败", zap.Error(err))
+				return
+			}
+			for i := range apps {
+				if apps[i].Name == appName {
+					apps[i].Status = "failed"
+					if updateErr := a.Repository.Update(&apps[i]); updateErr != nil {
+						zap.L().Error("更新应用状态为 failed 失败", zap.Error(updateErr))
+					}
+					break
+				}
+			}
+			return
+		}
+
+		zap.L().Info("docker-compose start 命令执行成功",
+			zap.String("name", appName),
+		)
+		// 启动命令执行成功，但不立即更新数据库
+		// 由 cron 定时任务 checkApplicationStatus 检测实际容器状态并更新
+	}(app.Name, composePath, composeFileName)
+
+	zap.L().Info("启动请求已提交，正在后台处理",
 		zap.Uint("id", id),
 		zap.String("name", app.Name),
 	)
 
-	return response.Success("success")
+	return response.Success("启动请求已提交，正在后台处理")
 }
 
 // runDockerComposeStart 执行 docker-compose start 命令

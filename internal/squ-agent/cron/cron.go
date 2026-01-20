@@ -14,15 +14,20 @@ type Cron struct {
 
 func New(appDB database.DB) *Cron {
 
-	c := cronV3.New(cronV3.WithParser(cronV3.NewParser(
-		cronV3.SecondOptional | cronV3.Minute | cronV3.Hour | cronV3.Dom | cronV3.Month | cronV3.Dow | cronV3.Descriptor,
-	)))
+	c := cronV3.New(cronV3.WithSeconds())
 	return &Cron{
 		Cron:          c,
 		AppRepository: appRepository.New(appDB.GetDB()),
 	}
 }
 
-func (c *Cron) Start() {
-	c.startApp()
+func (c *Cron) Start() error {
+	err := c.startApp()
+	if err != nil {
+		return err
+	}
+	// 关键：启动 cron 定时器
+	c.Cron.Start()
+	return nil
+
 }

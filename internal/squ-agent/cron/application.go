@@ -11,10 +11,14 @@ import (
 
 // startApp 启动应用状态检测定时任务
 // 每 30 秒检测一次应用容器状态
-func (c *Cron) startApp() {
-	c.Cron.AddFunc("*/30 * * * *", func() {
+func (c *Cron) startApp() error {
+	_, err := c.Cron.AddFunc("*/30 * * * * *", func() {
 		c.checkApplicationStatus()
 	})
+	if err != nil {
+		zap.L().Error(err.Error())
+	}
+	return err
 }
 
 // checkApplicationStatus 检查所有应用的容器状态
@@ -30,8 +34,11 @@ func (c *Cron) checkApplicationStatus() {
 	for _, app := range applications {
 		status := c.getContainerStatus(app.Name)
 
-		// 如果状态发生变化，更新数据库
-		if app.Status != status {
+		// 对于 "starting" 状态，无论检测结果如何，都更新数据库
+		// 对于 "failed" 状态，也需要重新检测
+		// 对于其他稳定状态，只有状态发生变化时才更新
+		shouldUpdate := app.Status != status || app.Status == "starting" || app.Status == "failed"
+		if shouldUpdate {
 			updatedApp := app
 			updatedApp.Status = status
 			err := c.AppRepository.Update(&updatedApp)
@@ -47,7 +54,8 @@ func (c *Cron) checkApplicationStatus() {
 				zap.L().Info("应用状态已更新",
 					zap.Uint("id", app.ID),
 					zap.String("name", app.Name),
-					zap.String("status", status),
+					zap.String("old_status", app.Status),
+					zap.String("new_status", status),
 				)
 			}
 		}
@@ -128,4 +136,3 @@ func (c *Cron) getContainerStatus(appName string) string {
 	// 没有找到容器
 	return "not_deployed"
 }
-
