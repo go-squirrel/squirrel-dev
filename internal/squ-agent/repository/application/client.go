@@ -20,6 +20,11 @@ func (c *Client) Get(id uint) (application model.Application, err error) {
 	return application, err
 }
 
+func (c *Client) GetByName(name string) (application model.Application, err error) {
+	err = c.DB.Where("name = ?", name).First(&application).Error
+	return application, err
+}
+
 func (c *Client) Delete(id uint) (err error) {
 	return c.DB.Delete(&model.Application{}, id).Error
 }

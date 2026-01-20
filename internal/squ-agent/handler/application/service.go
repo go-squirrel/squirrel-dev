@@ -70,7 +70,7 @@ func (a *Application) Delete(id uint) response.Response {
 
 	// 如果应用正在运行，先停止服务
 	if app.Status == "running" {
-		stopRes := a.Stop(id)
+		stopRes := a.Stop(app.Name)
 		if stopRes.Code != 200 {
 			return stopRes
 		}
@@ -108,7 +108,7 @@ func (a *Application) DeleteByName(name string) response.Response {
 
 	// 如果应用正在运行，先停止服务
 	if targetApp.Status == "running" {
-		stopRes := a.Stop(targetApp.ID)
+		stopRes := a.Stop(targetApp.Name)
 		if stopRes.Code != 200 {
 			zap.L().Warn("回滚时停止应用失败，继续删除",
 				zap.Uint("id", targetApp.ID),
@@ -360,9 +360,9 @@ func (a *Application) Update(request req.Application) response.Response {
 	return response.Success("success")
 }
 
-func (a *Application) Stop(id uint) response.Response {
+func (a *Application) Stop(name string) response.Response {
 	// 获取应用信息
-	app, err := a.Repository.Get(id)
+	app, err := a.Repository.GetByName(name)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -370,7 +370,7 @@ func (a *Application) Stop(id uint) response.Response {
 	// 检查应用状态
 	if app.Status != "running" {
 		zap.L().Warn("应用未在运行中",
-			zap.Uint("id", id),
+			zap.String("name", name),
 			zap.String("status", app.Status),
 		)
 		return response.Error(res.ErrDockerComposeStop)
@@ -407,14 +407,14 @@ func (a *Application) Stop(id uint) response.Response {
 	err = a.Repository.Update(&app)
 	if err != nil {
 		zap.L().Error("更新应用状态失败",
-			zap.Uint("id", id),
+			zap.String("name", name),
 			zap.Error(err),
 		)
 		return response.Error(model.ReturnErrCode(err))
 	}
 
 	zap.L().Info("应用已停止",
-		zap.Uint("id", id),
+		zap.String("name", name),
 		zap.String("name", app.Name),
 	)
 
@@ -472,9 +472,9 @@ func runDockerComposeStop(workDir, composeFile string) error {
 	return nil
 }
 
-func (a *Application) Start(id uint) response.Response {
+func (a *Application) Start(name string) response.Response {
 	// 获取应用信息
-	app, err := a.Repository.Get(id)
+	app, err := a.Repository.GetByName(name)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -482,7 +482,7 @@ func (a *Application) Start(id uint) response.Response {
 	// 检查应用状态
 	if app.Status != "stopped" {
 		zap.L().Warn("应用未处于停止状态",
-			zap.Uint("id", id),
+			zap.String("name", name),
 			zap.String("status", app.Status),
 		)
 		return response.Error(res.ErrDockerComposeStart)
@@ -509,7 +509,7 @@ func (a *Application) Start(id uint) response.Response {
 	err = a.Repository.Update(&app)
 	if err != nil {
 		zap.L().Error("更新应用状态失败",
-			zap.Uint("id", id),
+			zap.String("name", name),
 			zap.Error(err),
 		)
 		return response.Error(model.ReturnErrCode(err))
@@ -554,7 +554,7 @@ func (a *Application) Start(id uint) response.Response {
 	}(app.Name, composePath, composeFileName)
 
 	zap.L().Info("启动请求已提交，正在后台处理",
-		zap.Uint("id", id),
+		zap.String("name", name),
 		zap.String("name", app.Name),
 	)
 
@@ -611,4 +611,3 @@ func runDockerComposeStart(workDir, composeFile string) error {
 
 	return nil
 }
-
