@@ -1,11 +1,11 @@
-package http
+package httpclient
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	"net/http" // Import textproto for CanonicalMIMEHeaderKey if needed internally
 	"time"
 )
 
@@ -24,7 +24,8 @@ func NewClient(timeout time.Duration) *Client {
 }
 
 // Post 发送POST请求
-func (c *Client) Post(url string, body any, headers map[string]string) ([]byte, error) {
+// headers 参数现在使用自定义的 httpclient.Header 类型
+func (c *Client) Post(url string, body any, headers Header) ([]byte, error) {
 	jsonData, err := json.Marshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("marshal request body failed: %w", err)
@@ -36,9 +37,19 @@ func (c *Client) Post(url string, body any, headers map[string]string) ([]byte, 
 	}
 
 	// 设置headers
+	// 先设置 Content-Type
 	req.Header.Set("Content-Type", "application/json")
-	for key, value := range headers {
-		req.Header.Set(key, value)
+	// 然后遍历自定义 Header 类型的实例，将其值复制到 *http.Request 的 Header 中
+	// 由于我们的 Header 类型实现了 Set, Get, Add, Del 等方法，这里的 h 是 map[string][]string
+	// 需要遍历每个键值对
+	for key, values := range headers {
+		// 遍历该键对应的所有值
+		for _, value := range values {
+			// req.Header 是 http.Header 类型，即 map[string][]string
+			// 它的 Add 方法会追加值，Set 方法会覆盖值
+			// 这里使用 Add 更符合我们自定义 Header 的多值特性
+			req.Header.Add(key, value)
+		}
 	}
 
 	resp, err := c.client.Do(req)
@@ -60,15 +71,19 @@ func (c *Client) Post(url string, body any, headers map[string]string) ([]byte, 
 }
 
 // Get 发送GET请求
-func (c *Client) Get(url string, headers map[string]string) ([]byte, error) {
+// headers 参数现在使用自定义的 httpclient.Header 类型
+func (c *Client) Get(url string, headers Header) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("create request failed: %w", err)
 	}
 
 	// 设置headers
-	for key, value := range headers {
-		req.Header.Set(key, value)
+	// 遍历自定义 Header 类型的实例
+	for key, values := range headers {
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
 	}
 
 	resp, err := c.client.Do(req)
@@ -90,15 +105,18 @@ func (c *Client) Get(url string, headers map[string]string) ([]byte, error) {
 }
 
 // Delete 发送DELETE请求
-func (c *Client) Delete(url string, headers map[string]string) ([]byte, error) {
+// headers 参数现在使用自定义的 httpclient.Header 类型
+func (c *Client) Delete(url string, headers Header) ([]byte, error) {
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("create request failed: %w", err)
 	}
 
 	// 设置headers
-	for key, value := range headers {
-		req.Header.Set(key, value)
+	for key, values := range headers {
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
 	}
 
 	resp, err := c.client.Do(req)
