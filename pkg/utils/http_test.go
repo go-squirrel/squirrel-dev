@@ -2,7 +2,8 @@ package utils_test
 
 import (
 	"fmt"
-	"squirrel-dev/internal/squ-apiserver/utils"
+	"squirrel-dev/pkg/utils"
+
 	"testing"
 )
 

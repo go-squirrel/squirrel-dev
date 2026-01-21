@@ -10,8 +10,8 @@ import (
 	"squirrel-dev/internal/squ-apiserver/handler/application/req"
 	"squirrel-dev/internal/squ-apiserver/handler/application/res"
 	"squirrel-dev/internal/squ-apiserver/model"
-	"squirrel-dev/internal/squ-apiserver/utils"
 	"squirrel-dev/pkg/httpclient"
+	"squirrel-dev/pkg/utils"
 
 	appRepository "squirrel-dev/internal/squ-apiserver/repository/application"
 	appServerRepository "squirrel-dev/internal/squ-apiserver/repository/application_server"
