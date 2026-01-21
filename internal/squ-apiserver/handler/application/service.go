@@ -280,15 +280,7 @@ func (a *Application) ListServers(applicationID uint) response.Response {
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	// 构建服务器列表响应
-	type ServerInfo struct {
-		ServerID   uint   `json:"server_id"`
-		IpAddress  string `json:"ip_address"`
-		AgentPort  int    `json:"agent_port"`
-		DeployedAt string `json:"deployed_at"`
-	}
-
-	var servers []ServerInfo
+	var servers []res.ServerInfo
 	for _, appServer := range appServers {
 		server, err := a.ServerRepo.Get(appServer.ServerID)
 		if err != nil {
@@ -299,7 +291,7 @@ func (a *Application) ListServers(applicationID uint) response.Response {
 			continue
 		}
 
-		servers = append(servers, ServerInfo{
+		servers = append(servers, res.ServerInfo{
 			ServerID:   server.ID,
 			IpAddress:  server.IpAddress,
 			AgentPort:  server.AgentPort,
