@@ -14,7 +14,16 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 		"监控列表",
 		// 升级函数
 		func(db *gorm.DB) error {
-			return db.AutoMigrate(&model.Monitor{})
+			err := db.AutoMigrate(&model.BaseMonitor{})
+			if err != nil {
+				return err
+			}
+			err = db.AutoMigrate(&model.NetworkMonitor{})
+			if err != nil {
+				return err
+			}
+			err = db.AutoMigrate(&model.DiskIOMonitor{})
+			return err
 		},
 		// 回滚函数
 		func(db *gorm.DB) error {
