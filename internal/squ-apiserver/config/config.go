@@ -33,6 +33,7 @@ type Config struct {
 	Log    Log
 	Server Server
 	Auth   Auth
+	Agent  Agent
 }
 
 // 获取文件绝对路径

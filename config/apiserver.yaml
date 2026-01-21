@@ -26,3 +26,7 @@ log:
   maxBackups: 5
   maxAge: 10
   level: info
+agent:
+  http:
+    scheme: http
+    baseUrl: /api/v1

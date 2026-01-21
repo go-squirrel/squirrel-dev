@@ -1,11 +1,8 @@
 package application
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"time"
 
 	"squirrel-dev/internal/pkg/response"
@@ -13,6 +10,8 @@ import (
 	"squirrel-dev/internal/squ-apiserver/handler/application/req"
 	"squirrel-dev/internal/squ-apiserver/handler/application/res"
 	"squirrel-dev/internal/squ-apiserver/model"
+	"squirrel-dev/internal/squ-apiserver/utils"
+	"squirrel-dev/pkg/httpclient"
 
 	appRepository "squirrel-dev/internal/squ-apiserver/repository/application"
 	appServerRepository "squirrel-dev/internal/squ-apiserver/repository/application_server"
@@ -26,49 +25,18 @@ type Application struct {
 	Repository    appRepository.Repository
 	AppServerRepo appServerRepository.Repository
 	ServerRepo    serverRepository.Repository
-	HTTPClient    *http.Client
+	HTTPClient    *httpclient.Client
 }
 
 func New(config *config.Config, appRepo appRepository.Repository, appServerRepo appServerRepository.Repository, serverRepo serverRepository.Repository) *Application {
+	hc := httpclient.NewClient(30 * time.Second)
 	return &Application{
 		Config:        config,
 		Repository:    appRepo,
 		AppServerRepo: appServerRepo,
 		ServerRepo:    serverRepo,
-		HTTPClient:    &http.Client{Timeout: 30 * time.Second},
+		HTTPClient:    hc,
 	}
-}
-
-// postJSON 发送 JSON POST 请求
-func (a *Application) postJSON(url string, body any) ([]byte, error) {
-	jsonData, err := json.Marshal(body)
-	if err != nil {
-		return nil, fmt.Errorf("marshal request body failed: %w", err)
-	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("create request failed: %w", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := a.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("send request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("read response body failed: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return respBody, fmt.Errorf("http status code: %d", resp.StatusCode)
-	}
-
-	return respBody, nil
 }
 
 func (a *Application) List() response.Response {
@@ -191,7 +159,11 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 	}
 
 	// 4. 发送部署请求到 agent
-	agentURL := fmt.Sprintf("http://%s:%d/api/v1/application", server.IpAddress, server.AgentPort)
+	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
+		server.IpAddress,
+		server.AgentPort,
+		a.Config.Agent.Http.BaseUrl,
+		"application")
 	agentReq := req.Application{
 		Name:        app.Name,
 		Description: app.Description,
@@ -200,8 +172,7 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 		Content:     app.Content,
 		Version:     app.Version,
 	}
-
-	respBody, err := a.postJSON(agentURL, agentReq)
+	respBody, err := a.HTTPClient.Post(agentURL, agentReq, nil)
 	if err != nil {
 		zap.L().Error("部署请求发送失败",
 			zap.String("url", agentURL),
@@ -244,16 +215,22 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 		)
 
 		// 回滚：尝试调用 Agent 删除已部署的应用
-		agentDeleteURL := fmt.Sprintf("http://%s:%d/api/v1/application/delete/%s", server.IpAddress, server.AgentPort, app.Name)
+		deleteUrl := fmt.Sprintf("application/delete/%s", app.Name)
+
+		agentDeleteURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
+			server.IpAddress,
+			server.AgentPort,
+			a.Config.Agent.Http.BaseUrl,
+			deleteUrl)
+
 		zap.L().Info("回滚：尝试删除 Agent 端已部署的应用",
 			zap.String("url", agentDeleteURL),
 		)
-
-		_, rollbackErr := a.postJSON(agentDeleteURL, nil)
-		if rollbackErr != nil {
+		_, err = a.HTTPClient.Post(agentDeleteURL, nil, nil)
+		if err != nil {
 			zap.L().Error("回滚失败：删除 Agent 端应用失败",
 				zap.String("url", agentDeleteURL),
-				zap.Error(rollbackErr),
+				zap.Error(err),
 			)
 		}
 
@@ -329,9 +306,15 @@ func (a *Application) Undeploy(applicationID, serverID uint) response.Response {
 	}
 
 	// 4. 调用 Agent 删除应用
-	agentDeleteURL := fmt.Sprintf("http://%s:%d/api/v1/application/delete/%s", server.IpAddress, server.AgentPort, app.Name)
 
-	_, err = a.postJSON(agentDeleteURL, nil)
+	deleteUrl := fmt.Sprintf("application/delete/%s", app.Name)
+
+	agentDeleteURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
+		server.IpAddress,
+		server.AgentPort,
+		a.Config.Agent.Http.BaseUrl,
+		deleteUrl)
+	_, err = a.HTTPClient.Post(agentDeleteURL, nil, nil)
 	if err != nil {
 		zap.L().Error("调用 Agent 删除应用失败",
 			zap.String("url", agentDeleteURL),
@@ -380,9 +363,14 @@ func (a *Application) Stop(applicationID, serverID uint) response.Response {
 	}
 
 	// 4. 调用 Agent 停止应用
-	agentURL := fmt.Sprintf("http://%s:%d/api/v1/application/stop/%s", server.IpAddress, server.AgentPort, app.Name)
+	stopUrl := fmt.Sprintf("application/stop/%s", app.Name)
 
-	respBody, err := a.postJSON(agentURL, nil)
+	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
+		server.IpAddress,
+		server.AgentPort,
+		a.Config.Agent.Http.BaseUrl,
+		stopUrl)
+	respBody, err := a.HTTPClient.Post(agentURL, nil, nil)
 	if err != nil {
 		zap.L().Error("调用 Agent 停止应用失败",
 			zap.String("url", agentURL),
@@ -440,9 +428,14 @@ func (a *Application) Start(applicationID, serverID uint) response.Response {
 	}
 
 	// 4. 调用 Agent 启动应用
-	agentURL := fmt.Sprintf("http://%s:%d/api/v1/application/start/%s", server.IpAddress, server.AgentPort, app.Name)
+	stopUrl := fmt.Sprintf("application/start/%s", app.Name)
 
-	respBody, err := a.postJSON(agentURL, nil)
+	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
+		server.IpAddress,
+		server.AgentPort,
+		a.Config.Agent.Http.BaseUrl,
+		stopUrl)
+	respBody, err := a.HTTPClient.Post(agentURL, nil, nil)
 	if err != nil {
 		zap.L().Error("调用 Agent 启动应用失败",
 			zap.String("url", agentURL),
