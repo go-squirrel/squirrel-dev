@@ -10,7 +10,8 @@ type DB struct {
 		Host     string
 	}
 	Sqlite struct {
-		AppFilePath     string
-		MonitorFilePath string
+		AppFilePath          string
+		MonitorFilePath      string
+		ScriptTaskFilePath   string
 	}
 }

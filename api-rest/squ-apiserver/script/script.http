@@ -39,3 +39,16 @@ POST    {{url}}/api/v1/scripts/1
 content-type: application/json
 
 < json/update.json
+
+### execute script on server
+
+POST    {{url}}/api/v1/scripts/execute
+content-type: application/json
+
+< json/execute.json
+
+### get script execution results
+
+GET   {{url}}/api/v1/scripts/1/results
+content-type: application/json
+

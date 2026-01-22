@@ -80,3 +80,45 @@ func UpdateHandler(service *Script) func(c *gin.Context) {
 		c.JSON(http.StatusOK, res)
 	}
 }
+
+func ExecuteHandler(service *Script) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		request := req.ExecuteScript{}
+		err := c.ShouldBindJSON(&request)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.Execute(request)
+		c.JSON(http.StatusOK, res)
+	}
+}
+
+func ReceiveResultHandler(service *Script) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		request := req.ScriptResultReport{}
+		err := c.ShouldBindJSON(&request)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.ReceiveScriptResult(request)
+		c.JSON(http.StatusOK, res)
+	}
+}
+
+func GetResultsHandler(service *Script) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		idUint, err := utils.StringToUint(id)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.GetResults(idUint)
+		c.JSON(http.StatusOK, res)
+	}
+}

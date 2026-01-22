@@ -84,3 +84,23 @@ func (c *Client) Update(req *model.Script) (err error) {
 
 	return c.DB.Updates(req).Error
 }
+
+// AddScriptResult 添加脚本执行结果
+func (c *Client) AddScriptResult(result *model.ScriptResult) (err error) {
+	return c.DB.Create(result).Error
+}
+
+// GetScriptResults 获取脚本执行结果
+func (c *Client) GetScriptResults(scriptID uint) ([]model.ScriptResult, error) {
+	var results []model.ScriptResult
+	err := c.DB.Where("script_id = ?", scriptID).Order("created_at DESC").Find(&results).Error
+	return results, err
+}
+
+// GetLatestScriptResult 获取最新的脚本执行结果
+func (c *Client) GetLatestScriptResult(scriptID, serverID uint) (result model.ScriptResult, err error) {
+	err = c.DB.Where("script_id = ? AND server_id = ?", scriptID, serverID).
+		Order("created_at DESC").
+		First(&result).Error
+	return result, err
+}

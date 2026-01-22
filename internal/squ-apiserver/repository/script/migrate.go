@@ -26,7 +26,7 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 			// 预置脚本
 			scripts := []model.Script{
 				{
-					Name:    "install-docker-compose",
+					Name:    "test-loop",
 					Content: "",
 				},
 			}
@@ -37,8 +37,8 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 				var err error
 
 				switch scripts[i].Name {
-				case "install-docker-compose":
-					content, err = readFile("install-docker-compose.sh")
+				case "test-loop":
+					content, err = readFile("test-loop.sh")
 				}
 
 				if err != nil {
@@ -52,6 +52,19 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 		// 回滚函数
 		func(db *gorm.DB) error {
 			return db.Migrator().DropTable("scripts")
+		},
+	)
+
+	registry.Register(
+		"1.0.1",
+		"脚本执行结果表",
+		// 升级函数
+		func(db *gorm.DB) error {
+			return db.AutoMigrate(&model.ScriptResult{})
+		},
+		// 回滚函数
+		func(db *gorm.DB) error {
+			return db.Migrator().DropTable("script_results")
 		},
 	)
 }

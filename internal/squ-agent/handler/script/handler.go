@@ -1,0 +1,24 @@
+package script
+
+import (
+	"net/http"
+	scriptReq "squirrel-dev/internal/squ-agent/handler/script/req"
+	"squirrel-dev/internal/pkg/response"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+)
+
+func ExecuteHandler(service *Script) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		request := scriptReq.Script{}
+		err := c.ShouldBindJSON(&request)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.Execute(request)
+		c.JSON(http.StatusOK, res)
+	}
+}

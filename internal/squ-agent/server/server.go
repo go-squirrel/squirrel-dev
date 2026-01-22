@@ -14,13 +14,14 @@ import (
 )
 
 type Server struct {
-	Config *config.Config
-	Gin    *gin.Engine
+	Config        *config.Config
+	Gin           *gin.Engine
 	// 导入日志
-	Log       *log.Client
-	AppDB     database.DB
-	MonitorDB database.DB
-	Cron      *cron.Cron
+	Log            *log.Client
+	AppDB          database.DB
+	MonitorDB      database.DB
+	ScriptTaskDB   database.DB
+	Cron           *cron.Cron
 }
 
 func NewServer() *Server {
