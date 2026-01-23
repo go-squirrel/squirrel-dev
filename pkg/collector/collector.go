@@ -28,3 +28,18 @@ type MemoryCollector interface {
 type DiskCollector interface {
 	CollectDisk() (*DiskInfo, error)
 }
+
+// IOCollector IO收集器接口
+type IOCollector interface {
+	CollectDiskIO(device string) (*DiskIOStats, error)
+	CollectAllDiskIO() ([]DiskIOStats, error)
+	CollectNetIO(interfaceName string) (*NetIOStats, error)
+	CollectAllNetIO() ([]NetIOStats, error)
+}
+
+// ProcessCollector 进程收集器接口
+type ProcessCollector interface {
+	CollectTopCPU(limit int) ([]ProcessStats, error)
+	CollectTopMemory(limit int) ([]ProcessStats, error)
+	CollectAllProcesses() ([]ProcessStats, error)
+}

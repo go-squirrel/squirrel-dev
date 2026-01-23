@@ -1,0 +1,19 @@
+### get system stats
+GET   {{url}}/api/v1/monitor/stats
+content-type: application/json
+
+### get single disk io - sda3
+GET   {{url}}/api/v1/monitor/stats/io/sda3
+content-type: application/json
+
+### get all disk io
+GET   {{url}}/api/v1/monitor/stats/io/all
+content-type: application/json
+
+### get single network io - ens33
+GET   {{url}}/api/v1/monitor/stats/net/ens33
+content-type: application/json
+
+### get all network io
+GET   {{url}}/api/v1/monitor/stats/net/all
+content-type: application/json

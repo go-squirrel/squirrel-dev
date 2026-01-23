@@ -66,6 +66,26 @@ func (f *CollectorFactory) CollectAll() (*HostInfo, error) {
 	return hostInfo, nil
 }
 
+// GetIOCollector 获取IO收集器
+func (f *CollectorFactory) GetIOCollector() IOCollector {
+	if collector := f.getCollector("io"); collector != nil {
+		if io, ok := collector.(IOCollector); ok {
+			return io
+		}
+	}
+	return nil
+}
+
+// GetProcessCollector 获取进程收集器
+func (f *CollectorFactory) GetProcessCollector() ProcessCollector {
+	if collector := f.getCollector("process"); collector != nil {
+		if proc, ok := collector.(ProcessCollector); ok {
+			return proc
+		}
+	}
+	return nil
+}
+
 func (f *CollectorFactory) getCollector(name string) Collector {
 	for _, collector := range f.collectors {
 		if collector.Name() == name {
