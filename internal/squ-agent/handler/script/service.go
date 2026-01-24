@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"squirrel-dev/internal/pkg/response"
+	"squirrel-dev/internal/squ-agent/config"
 	scriptReq "squirrel-dev/internal/squ-agent/handler/script/req"
 	scriptRes "squirrel-dev/internal/squ-agent/handler/script/res"
-	"squirrel-dev/internal/squ-agent/config"
 	"squirrel-dev/internal/squ-agent/model"
 
 	scriptTaskRepo "squirrel-dev/internal/squ-agent/repository/script_task"
@@ -18,8 +18,8 @@ import (
 )
 
 type Script struct {
-	Config     *config.Config
-	TaskRepo   scriptTaskRepo.Repository
+	Config   *config.Config
+	TaskRepo scriptTaskRepo.Repository
 }
 
 func New(config *config.Config, taskRepo scriptTaskRepo.Repository) *Script {
@@ -43,11 +43,11 @@ func (s *Script) Execute(request scriptReq.Script) response.Response {
 
 	// 2. 创建任务记录
 	task := model.ScriptExecutionTask{
-		ScriptID:  request.ID,
-		Name:      request.Name,
-		Content:   request.Content,
-		Status:    "pending",
-		Reported:  false,
+		ScriptID: request.ID,
+		Name:     request.Name,
+		Content:  request.Content,
+		Status:   "pending",
+		Reported: false,
 	}
 
 	err = s.TaskRepo.Add(&task)

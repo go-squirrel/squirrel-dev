@@ -2,8 +2,8 @@ package script
 
 import (
 	"net/http"
-	scriptReq "squirrel-dev/internal/squ-agent/handler/script/req"
 	"squirrel-dev/internal/pkg/response"
+	scriptReq "squirrel-dev/internal/squ-agent/handler/script/req"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

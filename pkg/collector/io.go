@@ -19,22 +19,22 @@ type IOStats struct {
 
 // DiskIOStats 磁盘IO统计
 type DiskIOStats struct {
-	Device   string  `json:"device"`
-	IOCounters IOStats `json:"ioCounters"`
+	Device        string  `json:"device"`
+	IOCounters    IOStats `json:"ioCounters"`
 	IOUtilization float64 `json:"ioUtilization"` // IO利用率
 }
 
 // NetIOStats 网络IO统计
 type NetIOStats struct {
-	Name      string  `json:"name"`
-	BytesSent uint64  `json:"bytesSent"`
-	BytesRecv uint64  `json:"bytesRecv"`
+	Name        string `json:"name"`
+	BytesSent   uint64 `json:"bytesSent"`
+	BytesRecv   uint64 `json:"bytesRecv"`
 	PacketsSent uint64 `json:"packetsSent"`
 	PacketsRecv uint64 `json:"packetsRecv"`
-	Errin     uint64 `json:"errin"`
-	Errout    uint64 `json:"errout"`
-	Dropin    uint64 `json:"dropin"`
-	Dropout   uint64 `json:"dropout"`
+	Errin       uint64 `json:"errin"`
+	Errout      uint64 `json:"errout"`
+	Dropin      uint64 `json:"dropin"`
+	Dropout     uint64 `json:"dropout"`
 }
 
 type IO struct {
@@ -46,8 +46,8 @@ type IO struct {
 func NewIOCollector() *IO {
 	return &IO{
 		BaseCollector: BaseCollector{name: "io"},
-		prevDiskIO:   make(map[string]disk.IOCountersStat),
-		prevNetIO:    make(map[string]net.IOCountersStat),
+		prevDiskIO:    make(map[string]disk.IOCountersStat),
+		prevNetIO:     make(map[string]net.IOCountersStat),
 	}
 }
 

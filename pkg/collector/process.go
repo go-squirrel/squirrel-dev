@@ -9,14 +9,14 @@ import (
 
 // ProcessStats 进程统计信息
 type ProcessStats struct {
-	PID        int32   `json:"pid"`
-	Name       string  `json:"name"`
-	CPUPercent float64 `json:"cpuPercent"`
-	MemoryMB   float64 `json:"memoryMB"`
+	PID           int32   `json:"pid"`
+	Name          string  `json:"name"`
+	CPUPercent    float64 `json:"cpuPercent"`
+	MemoryMB      float64 `json:"memoryMB"`
 	MemoryPercent float32 `json:"memoryPercent"`
-	Status     string  `json:"status"`
-	CreateTime int64   `json:"createTime"`
-	Cmdline    string  `json:"cmdline,omitempty"`
+	Status        string  `json:"status"`
+	CreateTime    int64   `json:"createTime"`
+	Cmdline       string  `json:"cmdline,omitempty"`
 }
 
 type Process struct {
