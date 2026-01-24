@@ -8,6 +8,7 @@ type Script struct {
 
 type ScriptResult struct {
 	ID           uint   `json:"id"`
+	TaskID       uint64 `json:"task_id"`
 	ScriptID     uint   `json:"script_id"`
 	ServerID     uint   `json:"server_id"`
 	ServerIP     string `json:"server_ip"`

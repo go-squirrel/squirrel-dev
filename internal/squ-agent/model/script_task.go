@@ -6,6 +6,7 @@ import "time"
 type ScriptExecutionTask struct {
 	BaseModel
 	ScriptID   uint       `json:"script_id"`
+	TaskID     uint       `json:"task_id"` // APIServer 分配的任务ID
 	Name       string     `json:"name"`
 	Content    string     `gorm:"type:text" json:"content"`
 	Status     string     `json:"status"` // pending, running, success, failed

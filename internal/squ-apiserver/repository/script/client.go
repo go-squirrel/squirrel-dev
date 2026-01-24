@@ -105,8 +105,7 @@ func (c *Client) GetLatestScriptResult(scriptID, serverID uint) (result model.Sc
 	return result, err
 }
 
-// UpdateScriptResult 更新脚本执行结果
-func (c *Client) UpdateScriptResult(id uint, result *model.ScriptResult) (err error) {
-	result.ID = id
-	return c.DB.Updates(result).Error
+// UpdateScriptResultByTaskID 根据 TaskID 更新脚本执行结果
+func (c *Client) UpdateScriptResultByTaskID(taskID uint64, result *model.ScriptResult) (err error) {
+	return c.DB.Model(&model.ScriptResult{}).Where("task_id = ?", taskID).Updates(result).Error
 }

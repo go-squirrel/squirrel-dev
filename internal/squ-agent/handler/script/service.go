@@ -41,9 +41,10 @@ func (s *Script) Execute(request scriptReq.Script) response.Response {
 		return response.Error(scriptRes.ErrScriptAlreadyRunning)
 	}
 
-	// 2. 创建任务记录
+	// 2. 创建任务记录（TaskID 由 APIServer 分配）
 	task := model.ScriptExecutionTask{
 		ScriptID: request.ID,
+		TaskID:   request.TaskID, // 保存 APIServer 分配的 TaskID
 		Name:     request.Name,
 		Content:  request.Content,
 		Status:   "pending",
