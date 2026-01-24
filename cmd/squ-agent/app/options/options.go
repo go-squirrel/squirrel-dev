@@ -53,7 +53,7 @@ func (o *AppOptions) NewServer() (*server.Server, error) {
 		s.ScriptTaskDB = s.AgentDB
 	}
 
-	s.Cron = cron.New(s.AppDB, s.ScriptTaskDB)
+	s.Cron = cron.New(s.AgentDB, s.AppDB, s.ScriptTaskDB, s.MonitorDB)
 	return s, nil
 }
 

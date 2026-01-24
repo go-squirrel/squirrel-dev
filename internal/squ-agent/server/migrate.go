@@ -4,6 +4,7 @@ import (
 	"squirrel-dev/internal/pkg/migration"
 	"squirrel-dev/internal/squ-agent/repository/application"
 	"squirrel-dev/internal/squ-agent/repository/config"
+	"squirrel-dev/internal/squ-agent/repository/monitor"
 	"squirrel-dev/internal/squ-agent/repository/script_task"
 
 	"go.uber.org/zap"
@@ -39,5 +40,13 @@ func (s *Server) migrate() {
 	} else {
 		zap.S().Infof("ScriptTaskDB 迁移成功完成")
 	}
+	// 迁移 MonitorDB
+	monitorRegistry := migration.NewMigrationRegistry()
+	monitor.RegisterMigrations(monitorRegistry)
 
+	if err := migration.RunMigrations(s.MonitorDB.GetDB(), monitorRegistry); err != nil {
+		zap.S().Errorf("MonitorDB 迁移失败: %v", err)
+	} else {
+		zap.S().Infof("MonitorDB 迁移成功完成")
+	}
 }
