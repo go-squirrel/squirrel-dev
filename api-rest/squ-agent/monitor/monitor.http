@@ -17,3 +17,15 @@ content-type: application/json
 ### get all network io
 GET   {{url}}/api/v1/monitor/stats/net/all
 content-type: application/json
+
+### 
+GET   {{url}}/api/v1/monitor/base/1/5
+content-type: application/json
+
+### get all network io
+GET   {{url}}/api/v1/monitor/disk/1/5
+content-type: application/json
+
+### get all network io
+GET   {{url}}/api/v1/monitor/net/1/5
+content-type: application/json

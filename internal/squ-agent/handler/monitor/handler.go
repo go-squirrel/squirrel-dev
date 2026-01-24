@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"net/http"
+	"strconv"
 
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-agent/handler/monitor/res"
@@ -76,6 +77,105 @@ func NetIOHandler(service *Monitor) func(c *gin.Context) {
 func AllNetIOHandler(service *Monitor) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		resp, err := service.GetAllNetIO()
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusInternalServerError, response.Error(res.ErrCodeSystem))
+			return
+		}
+		c.JSON(http.StatusOK, resp)
+	}
+}
+
+// BaseMonitorPageHandler 查询基础监控数据分页
+func BaseMonitorPageHandler(service *Monitor) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		pageStr := c.Param("page")
+		countStr := c.Param("count")
+
+		if pageStr == "" || countStr == "" {
+			c.JSON(http.StatusBadRequest, response.Error(res.ErrCodeParameter))
+			return
+		}
+
+		page, err := strconv.Atoi(pageStr)
+		if err != nil || page < 1 {
+			c.JSON(http.StatusBadRequest, response.Error(res.ErrCodeParameter))
+			return
+		}
+
+		count, err := strconv.Atoi(countStr)
+		if err != nil || count < 1 || count > 100 {
+			c.JSON(http.StatusBadRequest, response.Error(res.ErrCodeParameter))
+			return
+		}
+
+		resp, err := service.GetBaseMonitorPage(page, count)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusInternalServerError, response.Error(res.ErrCodeSystem))
+			return
+		}
+		c.JSON(http.StatusOK, resp)
+	}
+}
+
+// DiskIOMonitorPageHandler 查询磁盘IO监控数据分页
+func DiskIOMonitorPageHandler(service *Monitor) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		pageStr := c.Param("page")
+		countStr := c.Param("count")
+
+		if pageStr == "" || countStr == "" {
+			c.JSON(http.StatusBadRequest, response.Error(res.ErrCodeParameter))
+			return
+		}
+
+		page, err := strconv.Atoi(pageStr)
+		if err != nil || page < 1 {
+			c.JSON(http.StatusBadRequest, response.Error(res.ErrCodeParameter))
+			return
+		}
+
+		count, err := strconv.Atoi(countStr)
+		if err != nil || count < 1 || count > 100 {
+			c.JSON(http.StatusBadRequest, response.Error(res.ErrCodeParameter))
+			return
+		}
+
+		resp, err := service.GetDiskIOMonitorPage(page, count)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusInternalServerError, response.Error(res.ErrCodeSystem))
+			return
+		}
+		c.JSON(http.StatusOK, resp)
+	}
+}
+
+// NetworkMonitorPageHandler 查询网卡流量监控数据分页
+func NetworkMonitorPageHandler(service *Monitor) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		pageStr := c.Param("page")
+		countStr := c.Param("count")
+
+		if pageStr == "" || countStr == "" {
+			c.JSON(http.StatusBadRequest, response.Error(res.ErrCodeParameter))
+			return
+		}
+
+		page, err := strconv.Atoi(pageStr)
+		if err != nil || page < 1 {
+			c.JSON(http.StatusBadRequest, response.Error(res.ErrCodeParameter))
+			return
+		}
+
+		count, err := strconv.Atoi(countStr)
+		if err != nil || count < 1 || count > 100 {
+			c.JSON(http.StatusBadRequest, response.Error(res.ErrCodeParameter))
+			return
+		}
+
+		resp, err := service.GetNetworkMonitorPage(page, count)
 		if err != nil {
 			zap.S().Warn(err)
 			c.JSON(http.StatusInternalServerError, response.Error(res.ErrCodeSystem))
