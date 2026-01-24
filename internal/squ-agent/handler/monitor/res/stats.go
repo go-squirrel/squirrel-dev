@@ -75,7 +75,7 @@ type ProcStat struct {
 
 // DiskIOStats 磁盘IO统计
 type DiskIOStats struct {
-	Device   string `json:"device"`
+	Device     string `json:"device"`
 	ReadBytes  uint64 `json:"readBytes"`
 	WriteBytes uint64 `json:"writeBytes"`
 	ReadCount  uint64 `json:"readCount"`
@@ -95,4 +95,58 @@ type NetIOStats struct {
 	Errout      uint64 `json:"errout"`
 	Dropin      uint64 `json:"dropin"`
 	Dropout     uint64 `json:"dropout"`
+}
+
+// BaseMonitorResponse 基础监控响应
+type BaseMonitorResponse struct {
+	ID          uint      `json:"id"`
+	CPUUsage    float64   `json:"cpu_usage"`
+	MemoryUsage float64   `json:"memory_usage"`
+	MemoryTotal uint64    `json:"memory_total"`
+	MemoryUsed  uint64    `json:"memory_used"`
+	DiskUsage   float64   `json:"disk_usage"`
+	DiskTotal   uint64    `json:"disk_total"`
+	DiskUsed    uint64    `json:"disk_used"`
+	CollectTime time.Time `json:"collect_time"`
+}
+
+// DiskIOMonitorResponse 磁盘IO监控响应
+type DiskIOMonitorResponse struct {
+	ID            uint      `json:"id"`
+	DiskName      string    `json:"disk_name"`
+	ReadCount     uint64    `json:"read_count"`
+	WriteCount    uint64    `json:"write_count"`
+	ReadBytes     uint64    `json:"read_bytes"`
+	WriteBytes    uint64    `json:"write_bytes"`
+	ReadTime      uint64    `json:"read_time"`
+	WriteTime     uint64    `json:"write_time"`
+	IoTime        uint64    `json:"io_time"`
+	WeightedIoTime uint64    `json:"weighted_io_time"`
+	IopsInProgress uint64    `json:"iops_in_progress"`
+	CollectTime   time.Time `json:"collect_time"`
+}
+
+// NetworkMonitorResponse 网卡流量监控响应
+type NetworkMonitorResponse struct {
+	ID            uint      `json:"id"`
+	InterfaceName string    `json:"interface_name"`
+	BytesSent     uint64    `json:"bytes_sent"`
+	BytesRecv     uint64    `json:"bytes_recv"`
+	PacketsSent   uint64    `json:"packets_sent"`
+	PacketsRecv   uint64    `json:"packets_recv"`
+	ErrIn         uint64    `json:"err_in"`
+	ErrOut        uint64    `json:"err_out"`
+	DropIn        uint64    `json:"drop_in"`
+	DropOut       uint64    `json:"drop_out"`
+	FIFOIn        uint64    `json:"fifo_in"`
+	FIFOOut       uint64    `json:"fifo_out"`
+	CollectTime   time.Time `json:"collect_time"`
+}
+
+// PageData 分页数据
+type PageData struct {
+	List  interface{} `json:"list"`
+	Total int64       `json:"total"`
+	Page  int         `json:"page"`
+	Size  int         `json:"size"`
 }

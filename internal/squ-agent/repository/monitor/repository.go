@@ -13,6 +13,9 @@ type Repository interface {
 	CreateDiskIOMonitor(data *model.DiskIOMonitor) error
 	CreateNetworkMonitor(data *model.NetworkMonitor) error
 	DeleteBeforeTime(beforeTime time.Time) error
+	GetBaseMonitorPage(page, pageSize int) ([]model.BaseMonitor, int64, error)
+	GetDiskIOMonitorPage(page, pageSize int) ([]model.DiskIOMonitor, int64, error)
+	GetNetworkMonitorPage(page, pageSize int) ([]model.NetworkMonitor, int64, error)
 }
 
 func New(db *gorm.DB) Repository {
@@ -53,4 +56,67 @@ func (c *Client) DeleteBeforeTime(beforeTime time.Time) error {
 	}
 
 	return nil
+}
+
+func (c *Client) GetBaseMonitorPage(page, pageSize int) ([]model.BaseMonitor, int64, error) {
+	var monitors []model.BaseMonitor
+	var total int64
+
+	offset := (page - 1) * pageSize
+
+	// 获取总数
+	err := c.DB.Model(&model.BaseMonitor{}).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 获取分页数据
+	err = c.DB.Order("collect_time DESC").Limit(pageSize).Offset(offset).Find(&monitors).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return monitors, total, nil
+}
+
+func (c *Client) GetDiskIOMonitorPage(page, pageSize int) ([]model.DiskIOMonitor, int64, error) {
+	var monitors []model.DiskIOMonitor
+	var total int64
+
+	offset := (page - 1) * pageSize
+
+	// 获取总数
+	err := c.DB.Model(&model.DiskIOMonitor{}).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 获取分页数据
+	err = c.DB.Order("collect_time DESC").Limit(pageSize).Offset(offset).Find(&monitors).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return monitors, total, nil
+}
+
+func (c *Client) GetNetworkMonitorPage(page, pageSize int) ([]model.NetworkMonitor, int64, error) {
+	var monitors []model.NetworkMonitor
+	var total int64
+
+	offset := (page - 1) * pageSize
+
+	// 获取总数
+	err := c.DB.Model(&model.NetworkMonitor{}).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 获取分页数据
+	err = c.DB.Order("collect_time DESC").Limit(pageSize).Offset(offset).Find(&monitors).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return monitors, total, nil
 }
