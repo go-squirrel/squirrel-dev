@@ -3,6 +3,7 @@ package cron
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"squirrel-dev/internal/squ-agent/model"
@@ -66,6 +67,21 @@ func (c *Cron) collectAndSaveMonitorData(configRepo configRepo.Repository, monit
 		return
 	}
 
+	// 收集磁盘IO信息
+	ioCollector := collector.NewIOCollector()
+	diskIOStats, err := ioCollector.CollectAllDiskIO()
+	if err != nil {
+		zap.L().Error("收集磁盘IO信息失败", zap.Error(err))
+		return
+	}
+
+	// 收集网卡流量信息
+	netIOStats, err := ioCollector.CollectAllNetIO()
+	if err != nil {
+		zap.L().Error("收集网卡流量信息失败", zap.Error(err))
+		return
+	}
+
 	// 构建基础监控数据
 	baseMonitor := &model.BaseMonitor{
 		CPUUsage:    cpuInfo.Usage,
@@ -90,6 +106,67 @@ func (c *Cron) collectAndSaveMonitorData(configRepo configRepo.Repository, monit
 		zap.Float64("memory_usage", memInfo.Usage),
 		zap.Float64("disk_usage", diskInfo.Usage),
 	)
+
+	// 保存磁盘IO监控数据
+	collectTime := time.Now()
+	for _, diskIO := range diskIOStats {
+		// 跳过虚拟设备
+		if c.shouldSkipDisk(diskIO.Device) {
+			continue
+		}
+
+		diskIOMonitor := &model.DiskIOMonitor{
+			DiskName:       diskIO.Device,
+			ReadCount:      diskIO.IOCounters.ReadCount,
+			WriteCount:     diskIO.IOCounters.WriteCount,
+			ReadBytes:      diskIO.IOCounters.ReadBytes,
+			WriteBytes:     diskIO.IOCounters.WriteBytes,
+			ReadTime:       diskIO.IOCounters.ReadTime,
+			WriteTime:      diskIO.IOCounters.WriteTime,
+			CollectTime:    collectTime,
+		}
+
+		err = monitorRepo.CreateDiskIOMonitor(diskIOMonitor)
+		if err != nil {
+			zap.L().Error("保存磁盘IO监控数据失败",
+				zap.String("disk_name", diskIO.Device),
+				zap.Error(err))
+		}
+	}
+
+	zap.L().Info("磁盘IO监控数据保存成功", zap.Int("count", len(diskIOStats)))
+
+	// 保存网卡流量监控数据
+	for _, netIO := range netIOStats {
+		// 跳过虚拟网卡
+		if c.shouldSkipInterface(netIO.Name) {
+			continue
+		}
+
+		networkMonitor := &model.NetworkMonitor{
+			InterfaceName: netIO.Name,
+			BytesSent:     netIO.BytesSent,
+			BytesRecv:     netIO.BytesRecv,
+			PacketsSent:   netIO.PacketsSent,
+			PacketsRecv:   netIO.PacketsRecv,
+			ErrIn:         netIO.Errin,
+			ErrOut:        netIO.Errout,
+			DropIn:        netIO.Dropin,
+			DropOut:       netIO.Dropout,
+			FIFOIn:        0, // gopsutil 不提供 FIFO 队列数据
+			FIFOOut:       0,
+			CollectTime:   collectTime,
+		}
+
+		err = monitorRepo.CreateNetworkMonitor(networkMonitor)
+		if err != nil {
+			zap.L().Error("保存网卡流量监控数据失败",
+				zap.String("interface_name", netIO.Name),
+				zap.Error(err))
+		}
+	}
+
+	zap.L().Info("网卡流量监控数据保存成功", zap.Int("count", len(netIOStats)))
 
 	// 删除过期的监控数据
 	c.deleteExpiredMonitorData(configRepo, monitorRepo)
@@ -118,6 +195,42 @@ func (c *Cron) deleteExpiredMonitorData(configRepo configRepo.Repository, monito
 		zap.Int("expired_seconds", expiredSeconds),
 		zap.Time("expired_time", expiredTime),
 	)
+}
+
+// shouldSkipDisk 判断是否跳过磁盘设备
+func (c *Cron) shouldSkipDisk(device string) bool {
+	// 跳过 loop 设备
+	if strings.HasPrefix(device, "loop") {
+		return true
+	}
+	// 跳过 zram 设备
+	if strings.HasPrefix(device, "zram") {
+		return true
+	}
+	// 跳过 dm- 设备（逻辑卷）
+	if strings.HasPrefix(device, "dm-") {
+		return true
+	}
+	return false
+}
+
+// shouldSkipInterface 判断是否跳过网络接口
+func (c *Cron) shouldSkipInterface(name string) bool {
+	virtualPrefixes := []string{
+		"docker", "k8s", "kube", "flannel", "cni", "calico",
+		"veth", "virbr", "tun", "tap", "vif", "vni",
+		"br-", "ovs", "vxlan", "geneve", "gre",
+		"ip_vti", "ip6tnl", "sit", "ip6gre", "lo",
+	}
+
+	nameLower := strings.ToLower(name)
+	for _, prefix := range virtualPrefixes {
+		if strings.HasPrefix(nameLower, prefix) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // getMonitorInterval 从配置中获取监控间隔时间
