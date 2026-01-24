@@ -15,9 +15,6 @@ type ExecuteScript struct {
 type ScriptResultReport struct {
 	TaskID       uint   `json:"task_id"`       // 任务ID，用于定位对应的执行记录
 	ScriptID     uint   `json:"script_id"`
-	ServerID     uint   `json:"server_id"`
-	ServerIP     string `json:"server_ip"`
-	AgentPort    int    `json:"agent_port"`
 	Output       string `json:"output"`
 	Status       string `json:"status"`
 	ErrorMessage string `json:"error_message"`

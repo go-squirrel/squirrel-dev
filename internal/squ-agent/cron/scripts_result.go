@@ -45,8 +45,6 @@ func (c *Cron) reportScriptResults() {
 		reportRequest := map[string]any{
 			"task_id":       task.TaskID, // 使用 APIServer 分配的 TaskID
 			"script_id":     task.ScriptID,
-			"server_ip":     "127.0.0.1", // TODO: 需要从配置中获取
-			"agent_port":    9527,        // TODO: 需要从配置中获取
 			"output":        task.Output,
 			"status":        task.Status,
 			"error_message": task.ErrorMsg,
