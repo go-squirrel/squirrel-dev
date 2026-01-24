@@ -29,10 +29,11 @@ func New(loadPath string) *Config {
 
 // Config 配置文件
 type Config struct {
-	DB     DB
-	Log    Log
-	Server Server
-	Common Common
+	DB        DB
+	Log       Log
+	Server    Server
+	Common    Common
+	Apiserver Apiserver
 }
 
 // 获取文件绝对路径

@@ -2,8 +2,9 @@ package cron
 
 import (
 	"squirrel-dev/internal/pkg/database"
+	"squirrel-dev/internal/squ-agent/config"
 	appRepository "squirrel-dev/internal/squ-agent/repository/application"
-	"squirrel-dev/internal/squ-agent/repository/config"
+	confRepository "squirrel-dev/internal/squ-agent/repository/config"
 	"squirrel-dev/internal/squ-agent/repository/monitor"
 	scriptTaskRepo "squirrel-dev/internal/squ-agent/repository/script_task"
 
@@ -11,10 +12,11 @@ import (
 )
 
 type Cron struct {
+	Config         *config.Config
 	Cron           *cronV3.Cron
 	AppRepository  appRepository.Repository
 	ScriptTaskRepo scriptTaskRepo.Repository
-	ConfigRepo     config.Repository
+	ConfigRepo     confRepository.Repository
 	MonitorRepo    monitor.Repository
 }
 
@@ -25,7 +27,7 @@ func New(agentDB, appDB, scriptTaskDB, monitorDB database.DB) *Cron {
 		Cron:           c,
 		AppRepository:  appRepository.New(appDB.GetDB()),
 		ScriptTaskRepo: scriptTaskRepo.New(scriptTaskDB.GetDB()),
-		ConfigRepo:     config.New(agentDB.GetDB()),
+		ConfigRepo:     confRepository.New(agentDB.GetDB()),
 		MonitorRepo:    monitor.New(monitorDB.GetDB()),
 	}
 }
