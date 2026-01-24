@@ -36,6 +36,7 @@ func (o *AppOptions) NewServer() (*server.Server, error) {
 	)
 
 	if o.Config.DB.Type == "sqlite" {
+		s.AgentDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.AgentFilePath, database.WithMigrate(true))
 		s.AppDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.AppFilePath, database.WithMigrate(true))
 		s.MonitorDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.MonitorFilePath, database.WithMigrate(true))
 		s.ScriptTaskDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.ScriptTaskFilePath, database.WithMigrate(true))
@@ -46,9 +47,10 @@ func (o *AppOptions) NewServer() (*server.Server, error) {
 			o.Config.DB.Mysql.Host,
 			o.Config.DB.Mysql.Port,
 			o.Config.DB.Mysql.DbName)
-		s.AppDB = database.New(o.Config.DB.Type, Connect, database.WithMigrate(true))
-		s.MonitorDB = s.AppDB
-		s.ScriptTaskDB = s.AppDB
+		s.AgentDB = database.New(o.Config.DB.Type, Connect, database.WithMigrate(true))
+		s.AppDB = s.AgentDB
+		s.MonitorDB = s.AgentDB
+		s.ScriptTaskDB = s.AgentDB
 	}
 
 	s.Cron = cron.New(s.AppDB, s.ScriptTaskDB)
