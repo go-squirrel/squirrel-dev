@@ -23,6 +23,10 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 					Key:   "monitor_interval",
 					Value: "300",
 				},
+				{
+					Key:   "monitor_expired",
+					Value: "604800",
+				},
 			}
 
 			return db.Create(&c).Error
