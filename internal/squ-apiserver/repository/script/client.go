@@ -104,3 +104,9 @@ func (c *Client) GetLatestScriptResult(scriptID, serverID uint) (result model.Sc
 		First(&result).Error
 	return result, err
 }
+
+// UpdateScriptResult 更新脚本执行结果
+func (c *Client) UpdateScriptResult(id uint, result *model.ScriptResult) (err error) {
+	result.ID = id
+	return c.DB.Updates(result).Error
+}

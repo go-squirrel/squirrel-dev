@@ -166,7 +166,24 @@ func (s *Script) Execute(request req.ExecuteScript) response.Response {
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	// 3. 构建发送给 Agent 的请求
+	// 3. 先在数据库中创建执行记录，状态为 running
+	result := model.ScriptResult{
+		ScriptID:  request.ScriptID,
+		ServerID:  request.ServerID,
+		ServerIP:  server.IpAddress,
+		AgentPort: server.AgentPort,
+		Status:    "running",
+	}
+	if err := s.Repository.AddScriptResult(&result); err != nil {
+		zap.L().Error("创建脚本执行记录失败",
+			zap.Uint("script_id", request.ScriptID),
+			zap.Uint("server_id", request.ServerID),
+			zap.Error(err),
+		)
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	// 4. 构建发送给 Agent 的请求
 	agentURL := utils.GenAgentUrl(s.Config.Agent.Http.Scheme,
 		server.IpAddress,
 		server.AgentPort,
@@ -184,6 +201,10 @@ func (s *Script) Execute(request req.ExecuteScript) response.Response {
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
+		// 更新执行记录状态为 failed
+		result.Status = "failed"
+		result.ErrorMessage = "发送执行请求失败: " + err.Error()
+		s.Repository.UpdateScriptResult(result.ID, &result)
 		return response.Error(res.ErrScriptExecutionFailed)
 	}
 
@@ -194,6 +215,10 @@ func (s *Script) Execute(request req.ExecuteScript) response.Response {
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
+		// 更新执行记录状态为 failed
+		result.Status = "failed"
+		result.ErrorMessage = "解析响应失败: " + err.Error()
+		s.Repository.UpdateScriptResult(result.ID, &result)
 		return response.Error(res.ErrScriptExecutionFailed)
 	}
 
@@ -203,6 +228,10 @@ func (s *Script) Execute(request req.ExecuteScript) response.Response {
 			zap.Int("code", agentResp.Code),
 			zap.String("message", agentResp.Message),
 		)
+		// 更新执行记录状态为 failed
+		result.Status = "failed"
+		result.ErrorMessage = "Agent 返回错误: " + agentResp.Message
+		s.Repository.UpdateScriptResult(result.ID, &result)
 		return response.Error(res.ErrScriptExecutionFailed)
 	}
 
@@ -220,21 +249,10 @@ func (s *Script) ReceiveScriptResult(request req.ScriptResultReport) response.Re
 		// 继续执行，不返回错误
 	}
 
-	// 2. 构建数据库记录
-	result := model.ScriptResult{
-		ScriptID:     request.ScriptID,
-		ServerID:     request.ServerID,
-		ServerIP:     request.ServerIP,
-		AgentPort:    request.AgentPort,
-		Output:       request.Output,
-		Status:       request.Status,
-		ErrorMessage: request.ErrorMessage,
-	}
-
-	// 3. 保存到数据库
-	err = s.Repository.AddScriptResult(&result)
+	// 2. 查找最新的执行记录
+	latestResult, err := s.Repository.GetLatestScriptResult(request.ScriptID, request.ServerID)
 	if err != nil {
-		zap.L().Error("保存脚本执行结果失败",
+		zap.L().Error("查找脚本执行记录失败",
 			zap.Uint("script_id", request.ScriptID),
 			zap.Uint("server_id", request.ServerID),
 			zap.Error(err),
@@ -242,9 +260,26 @@ func (s *Script) ReceiveScriptResult(request req.ScriptResultReport) response.Re
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	zap.L().Info("脚本执行结果已保存",
+	// 3. 更新执行记录
+	result := model.ScriptResult{
+		Output:       request.Output,
+		Status:       request.Status,
+		ErrorMessage: request.ErrorMessage,
+	}
+	if err := s.Repository.UpdateScriptResult(latestResult.ID, &result); err != nil {
+		zap.L().Error("更新脚本执行结果失败",
+			zap.Uint("script_id", request.ScriptID),
+			zap.Uint("server_id", request.ServerID),
+			zap.Uint("result_id", latestResult.ID),
+			zap.Error(err),
+		)
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	zap.L().Info("脚本执行结果已更新",
 		zap.Uint("script_id", request.ScriptID),
 		zap.Uint("server_id", request.ServerID),
+		zap.Uint("result_id", latestResult.ID),
 		zap.String("status", request.Status),
 	)
 

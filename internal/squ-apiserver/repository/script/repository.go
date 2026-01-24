@@ -34,6 +34,9 @@ type ScriptRepository interface {
 
 	// GetLatestScriptResult 获取最新的脚本执行结果
 	GetLatestScriptResult(scriptID uint, serverID uint) (result model.ScriptResult, err error)
+
+	// UpdateScriptResult 更新脚本执行结果
+	UpdateScriptResult(id uint, result *model.ScriptResult) (err error)
 }
 
 // New 创建新的脚本仓库实例
