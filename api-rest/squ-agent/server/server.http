@@ -1,0 +1,3 @@
+### get server info
+GET   {{url}}/api/v1/server/info
+content-type: application/json

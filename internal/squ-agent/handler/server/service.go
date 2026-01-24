@@ -1,0 +1,54 @@
+package server
+
+import (
+	"squirrel-dev/internal/pkg/response"
+	"squirrel-dev/internal/squ-agent/config"
+	"squirrel-dev/internal/squ-agent/handler/server/res"
+	"squirrel-dev/internal/squ-agent/model"
+	"squirrel-dev/pkg/collector"
+)
+
+type Server struct {
+	Config  *config.Config
+	Factory *collector.CollectorFactory
+}
+
+func (s *Server) GetInfo() (response.Response, error) {
+	if s.Factory == nil {
+		return response.Error(model.ReturnErrCode(nil)), nil
+	}
+
+	hostCollector := s.Factory.GetHostCollector()
+	if hostCollector == nil {
+		return response.Error(model.ReturnErrCode(nil)), nil
+	}
+
+	hostInfo, err := hostCollector.CollectHostInfo()
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err)), nil
+	}
+
+	// 转换响应格式
+	var netAddrs []res.NetAddr
+	for _, addr := range hostInfo.IPAddresses {
+		netAddrs = append(netAddrs, res.NetAddr{
+			Name: addr.Name,
+			IPv4: addr.IPv4,
+			IPv6: addr.IPv6,
+		})
+	}
+
+	info := res.ServerInfo{
+		Hostname:        hostInfo.Hostname,
+		OS:              hostInfo.OS,
+		Platform:        hostInfo.Platform,
+		PlatformVersion: hostInfo.PlatformVersion,
+		KernelVersion:   hostInfo.KernelVersion,
+		Architecture:    hostInfo.Architecture,
+		Uptime:          hostInfo.Uptime,
+		UptimeStr:       hostInfo.UptimeStr,
+		IPAddresses:     netAddrs,
+	}
+
+	return response.Success(info), nil
+}

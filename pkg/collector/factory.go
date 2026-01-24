@@ -86,6 +86,16 @@ func (f *CollectorFactory) GetProcessCollector() ProcessCollector {
 	return nil
 }
 
+// GetHostCollector 获取主机收集器
+func (f *CollectorFactory) GetHostCollector() HostCollector {
+	if collector := f.getCollector("host"); collector != nil {
+		if host, ok := collector.(HostCollector); ok {
+			return host
+		}
+	}
+	return nil
+}
+
 func (f *CollectorFactory) getCollector(name string) Collector {
 	for _, collector := range f.collectors {
 		if collector.Name() == name {

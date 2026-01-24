@@ -43,3 +43,8 @@ type ProcessCollector interface {
 	CollectTopMemory(limit int) ([]ProcessStats, error)
 	CollectAllProcesses() ([]ProcessStats, error)
 }
+
+// HostCollector 主机收集器接口
+type HostCollector interface {
+	CollectHostInfo() (*HostInfoDetail, error)
+}
