@@ -20,10 +20,11 @@ type Cron struct {
 	MonitorRepo    monitor.Repository
 }
 
-func New(agentDB, appDB, scriptTaskDB, monitorDB database.DB) *Cron {
+func New(config *config.Config, agentDB, appDB, scriptTaskDB, monitorDB database.DB) *Cron {
 
 	c := cronV3.New(cronV3.WithSeconds())
 	return &Cron{
+		Config:         config,
 		Cron:           c,
 		AppRepository:  appRepository.New(appDB.GetDB()),
 		ScriptTaskRepo: scriptTaskRepo.New(scriptTaskDB.GetDB()),

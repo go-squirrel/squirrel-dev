@@ -3,7 +3,6 @@ package script
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"time"
 
 	"squirrel-dev/internal/pkg/response"
@@ -11,6 +10,7 @@ import (
 	scriptReq "squirrel-dev/internal/squ-agent/handler/script/req"
 	scriptRes "squirrel-dev/internal/squ-agent/handler/script/res"
 	"squirrel-dev/internal/squ-agent/model"
+	"squirrel-dev/pkg/execute"
 
 	scriptTaskRepo "squirrel-dev/internal/squ-agent/repository/script_task"
 
@@ -102,11 +102,16 @@ func (s *Script) executeScriptAsync(taskID uint, content string) {
 	defer os.Remove(tmpFile)
 
 	// 执行脚本
-	cmd := exec.Command("bash", tmpFile)
-	output, err := cmd.CombinedOutput()
-
+	output, err := execute.Command("bash", tmpFile)
+	if err != nil {
+		task.Status = "failed"
+		task.ErrorMsg = err.Error()
+		zap.L().Error("脚本执行失败",
+			zap.Uint("task_id", taskID),
+			zap.String("error", err.Error()),
+		)
+	}
 	// 更新任务结果
-	task, _ = s.TaskRepo.Get(taskID)
 	task.Output = string(output)
 	task.Status = "success"
 	task.Reported = false

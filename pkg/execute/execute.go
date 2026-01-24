@@ -13,7 +13,7 @@ import (
 
 func Command(command string, args ...string) (string, error) {
 	cmd := exec.Command(command, args...)
-	out, err := cmd.Output()
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err
 	}

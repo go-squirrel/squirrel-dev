@@ -33,6 +33,7 @@ log:
 common:
   # docker-compose 文件存储路径，如果为空则使用当前目录
   composePath: ./compose
+  scriptsPath: ./scripts
 
 apiserver:
   Url: "http://127.0.0.1:10700"

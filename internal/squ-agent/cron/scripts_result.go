@@ -10,6 +10,18 @@ import (
 	"go.uber.org/zap"
 )
 
+// startScriptResultReporter 启动脚本执行结果上报定时任务
+// 每 5 秒上报一次未上报的执行结果
+func (c *Cron) startScriptResultReporter() error {
+	_, err := c.Cron.AddFunc("*/5 * * * * *", func() {
+		c.reportScriptResults()
+	})
+	if err != nil {
+		zap.L().Error("启动脚本结果上报定时任务失败", zap.Error(err))
+	}
+	return err
+}
+
 // reportScriptResults 上报脚本执行结果到 API Server
 func (c *Cron) reportScriptResults() {
 	// 获取未上报的任务
@@ -24,7 +36,6 @@ func (c *Cron) reportScriptResults() {
 	}
 
 	zap.L().Info("开始上报脚本执行结果", zap.Int("count", len(tasks)))
-
 	// TODO: 从配置中获取 API Server 的地址
 	// 这里暂时使用示例地址，需要根据实际情况修改
 	apiServerURL := fmt.Sprintf("%s%s", c.Config.Apiserver.Url, uriScriptResults)

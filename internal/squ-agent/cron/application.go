@@ -136,15 +136,3 @@ func (c *Cron) getContainerStatus(appName string) string {
 	// 没有找到容器
 	return "not_deployed"
 }
-
-// startScriptResultReporter 启动脚本执行结果上报定时任务
-// 每 5 秒上报一次未上报的执行结果
-func (c *Cron) startScriptResultReporter() error {
-	_, err := c.Cron.AddFunc("*/5 * * * * *", func() {
-		c.reportScriptResults()
-	})
-	if err != nil {
-		zap.L().Error("启动脚本结果上报定时任务失败", zap.Error(err))
-	}
-	return err
-}
