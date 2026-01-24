@@ -7,6 +7,8 @@ import (
 	confRepository "squirrel-dev/internal/squ-agent/repository/config"
 	"squirrel-dev/internal/squ-agent/repository/monitor"
 	scriptTaskRepo "squirrel-dev/internal/squ-agent/repository/script_task"
+	"squirrel-dev/pkg/httpclient"
+	"time"
 
 	cronV3 "github.com/robfig/cron/v3"
 )
@@ -18,6 +20,7 @@ type Cron struct {
 	ScriptTaskRepo scriptTaskRepo.Repository
 	ConfigRepo     confRepository.Repository
 	MonitorRepo    monitor.Repository
+	HTTPClient     *httpclient.Client
 }
 
 func New(config *config.Config, agentDB, appDB, scriptTaskDB, monitorDB database.DB) *Cron {
@@ -30,6 +33,7 @@ func New(config *config.Config, agentDB, appDB, scriptTaskDB, monitorDB database
 		ScriptTaskRepo: scriptTaskRepo.New(scriptTaskDB.GetDB()),
 		ConfigRepo:     confRepository.New(agentDB.GetDB()),
 		MonitorRepo:    monitor.New(monitorDB.GetDB()),
+		HTTPClient:     httpclient.NewClient(10 * time.Second),
 	}
 }
 

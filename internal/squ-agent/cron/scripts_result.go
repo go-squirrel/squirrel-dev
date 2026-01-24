@@ -1,11 +1,10 @@
 package cron
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"time"
+
+	"squirrel-dev/internal/pkg/response"
 
 	"go.uber.org/zap"
 )
@@ -51,46 +50,57 @@ func (c *Cron) reportScriptResults() {
 		}
 
 		// 发送请求到 API Server
-		jsonData, _ := json.Marshal(reportRequest)
-		req, err := http.NewRequest("POST", apiServerURL, bytes.NewBuffer(jsonData))
-		if err != nil {
-			zap.L().Error("创建上报请求失败",
-				zap.Uint("task_id", task.ID),
-				zap.Error(err),
-			)
-			continue
-		}
-
-		req.Header.Set("Content-Type", "application/json")
-		client := &http.Client{Timeout: 10 * time.Second}
-		resp, err := client.Do(req)
+		respBody, err := c.HTTPClient.Post(apiServerURL, reportRequest, nil)
 		if err != nil {
 			zap.L().Error("上报脚本执行结果失败",
 				zap.Uint("task_id", task.ID),
 				zap.Error(err),
 			)
+			// 上报失败，不标记为已上报，下次继续尝试
 			continue
 		}
-		resp.Body.Close()
 
-		// 如果上报成功，标记任务为已上报
-		if resp.StatusCode == http.StatusOK {
-			err := c.ScriptTaskRepo.MarkAsReported(task.ID)
-			if err != nil {
-				zap.L().Error("标记任务为已上报失败",
-					zap.Uint("task_id", task.ID),
-					zap.Error(err),
-				)
+		// 解析响应
+		var apiResp response.Response
+		if err := json.Unmarshal(respBody, &apiResp); err != nil {
+			zap.L().Error("解析 API Server 响应失败",
+				zap.Uint("task_id", task.ID),
+				zap.Error(err),
+			)
+			// 解析失败，不标记为已上报，下次继续尝试
+			continue
+		}
+
+		// 检查响应码，Code=0 表示成功
+		if apiResp.Code == 0 {
+			// 只有 success 状态且上报成功时，才标记为已上报
+			if task.Status == "success" {
+				err := c.ScriptTaskRepo.MarkAsReported(task.ID)
+				if err != nil {
+					zap.L().Error("标记任务为已上报失败",
+						zap.Uint("task_id", task.ID),
+						zap.Error(err),
+					)
+				} else {
+					zap.L().Info("脚本执行结果上报成功",
+						zap.Uint("task_id", task.ID),
+						zap.Uint("task_id_assigned", task.TaskID),
+						zap.String("status", task.Status),
+					)
+				}
 			} else {
-				zap.L().Info("脚本执行结果上报成功",
+				// 非 success 状态，虽然上报成功但不标记，继续上报以保持状态同步
+				zap.L().Info("脚本执行结果已上报（非success状态，继续上报）",
 					zap.Uint("task_id", task.ID),
+					zap.Uint("task_id_assigned", task.TaskID),
 					zap.String("status", task.Status),
 				)
 			}
 		} else {
-			zap.L().Error("上报脚本执行结果失败",
+			zap.L().Error("API Server 返回错误",
 				zap.Uint("task_id", task.ID),
-				zap.Int("status_code", resp.StatusCode),
+				zap.Int("code", apiResp.Code),
+				zap.String("message", apiResp.Message),
 			)
 		}
 	}
