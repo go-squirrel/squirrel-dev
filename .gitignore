@@ -3,3 +3,4 @@ apiserver.db
 db
 output
 compose
+squirrel

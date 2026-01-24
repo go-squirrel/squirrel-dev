@@ -3,7 +3,7 @@ SHORT_COMMIT  := $(shell git rev-parse --short HEAD)
 VERSION       := $(BRANCH) $(SHORT_COMMIT)
 
 OUTPUT_DIR := squirrel
-TAR_NAME := squirrel-$(BRANCH)-$(SHORT_COMMIT).tar.gz
+TAR_NAME := squirrel-$(BRANCH).tar.gz
 
 GOOS ?= linux
 GOARCH ?= amd64
@@ -18,6 +18,7 @@ all: $(BINS) $(CONFIGS)
 
 package: all
 	tar -czf $(TAR_NAME) -C $(OUTPUT_DIR) .
+	mv $(TAR_NAME) $(OUTPUT_DIR)
 
 $(CMDS): %: $(OUTPUT_DIR)/%
 
@@ -32,4 +33,4 @@ $(OUTPUT_DIR)/config/%.yaml: config/%.yaml
 	cp -f $< $@
 
 clean:
-	rm -rf $(OUTPUT_DIR) $(TAR_NAME)
+	rm -rf $(OUTPUT_DIR)
