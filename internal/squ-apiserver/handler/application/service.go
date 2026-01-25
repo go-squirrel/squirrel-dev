@@ -48,7 +48,6 @@ func (a *Application) List() response.Response {
 			Name:        daoA.Name,
 			Description: daoA.Description,
 			Type:        daoA.Type,
-			Status:      daoA.Status,
 			Content:     daoA.Content,
 			Version:     daoA.Version,
 		})
@@ -67,7 +66,6 @@ func (a *Application) Get(id uint) response.Response {
 		Name:        daoA.Name,
 		Description: daoA.Description,
 		Type:        daoA.Type,
-		Status:      daoA.Status,
 		Content:     daoA.Content,
 		Version:     daoA.Version,
 	}
@@ -100,7 +98,6 @@ func (a *Application) Add(request req.Application) response.Response {
 		Name:        request.Name,
 		Description: request.Description,
 		Type:        request.Type,
-		Status:      request.Status,
 		Content:     request.Content,
 		Version:     request.Version,
 	}
@@ -118,7 +115,6 @@ func (a *Application) Update(request req.Application) response.Response {
 		Name:        request.Name,
 		Description: request.Description,
 		Type:        request.Type,
-		Status:      request.Status,
 		Content:     request.Content,
 		Version:     request.Version,
 	}
@@ -128,6 +124,39 @@ func (a *Application) Update(request req.Application) response.Response {
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
+
+	return response.Success("success")
+}
+
+func (a *Application) ReportStatus(request req.ReportApplicationStatus) response.Response {
+	// 验证应用服务器关联记录是否存在
+	_, err := a.AppServerRepo.GetByServerAndApp(request.ServerID, request.ApplicationID)
+	if err != nil {
+		zap.L().Error("应用服务器关联记录不存在",
+			zap.Uint("server_id", request.ServerID),
+			zap.Uint("application_id", request.ApplicationID),
+			zap.Error(err),
+		)
+		return response.Error(response.ErrCodeParameter)
+	}
+
+	// 更新状态
+	err = a.AppServerRepo.UpdateStatus(request.ServerID, request.ApplicationID, request.Status)
+	if err != nil {
+		zap.L().Error("更新应用状态失败",
+			zap.Uint("server_id", request.ServerID),
+			zap.Uint("application_id", request.ApplicationID),
+			zap.String("status", request.Status),
+			zap.Error(err),
+		)
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	zap.L().Info("应用状态已更新",
+		zap.Uint("server_id", request.ServerID),
+		zap.Uint("application_id", request.ApplicationID),
+		zap.String("status", request.Status),
+	)
 
 	return response.Success("success")
 }

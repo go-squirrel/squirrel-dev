@@ -45,7 +45,6 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 		Name:        app.Name,
 		Description: app.Description,
 		Type:        app.Type,
-		Status:      app.Status,
 		Content:     app.Content,
 		Version:     app.Version,
 	}

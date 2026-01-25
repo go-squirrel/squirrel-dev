@@ -5,7 +5,6 @@ type Application struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Type        string `json:"type"`
-	Status      string `json:"status"`
 	Content     string `json:"content"`
 	Version     string `json:"version"`
 }
@@ -16,4 +15,9 @@ type DeployApplication struct {
 	ServerID      uint `json:"server_id"`
 }
 
-
+// ReportApplicationStatus agent汇报应用状态请求
+type ReportApplicationStatus struct {
+	ApplicationID uint   `json:"application_id"`
+	ServerID      uint   `json:"server_id"`
+	Status        string `json:"status"` // running, stopped, error等
+}

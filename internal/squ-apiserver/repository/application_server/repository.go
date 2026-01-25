@@ -14,6 +14,7 @@ type Repository interface {
 	DeleteByApplicationID(applicationID uint) (err error)
 	Add(req *model.ApplicationServer) (err error)
 	Update(req *model.ApplicationServer) (err error)
+	UpdateStatus(serverID, applicationID uint, status string) (err error)
 }
 
 func New(db *gorm.DB) Repository {

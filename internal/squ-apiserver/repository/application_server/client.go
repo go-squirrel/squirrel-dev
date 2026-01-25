@@ -37,3 +37,9 @@ func (c *Client) Update(req *model.ApplicationServer) (err error) {
 	return c.DB.Updates(req).Error
 }
 
+func (c *Client) UpdateStatus(serverID, applicationID uint, status string) (err error) {
+	return c.DB.Model(&model.ApplicationServer{}).
+		Where("server_id = ? AND application_id = ?", serverID, applicationID).
+		Update("status", status).Error
+}
+

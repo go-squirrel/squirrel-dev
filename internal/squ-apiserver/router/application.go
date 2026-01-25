@@ -32,4 +32,5 @@ func Application(group *gin.RouterGroup, conf *config.Config, db database.DB) {
 	group.DELETE("/application/deploy/:id/:serverId", application.UndeployHandler(service))
 	group.POST("/application/stop/:id/:serverId", application.StopHandler(service))
 	group.POST("/application/start/:id/:serverId", application.StartHandler(service))
+	group.POST("/application/status/report", application.ReportStatusHandler(service))
 }

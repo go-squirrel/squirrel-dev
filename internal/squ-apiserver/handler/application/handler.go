@@ -184,8 +184,23 @@ func StartHandler(service *Application) func(c *gin.Context) {
 			return
 		}
 
-		res := service.Start(idUint, serverIDUint)
+	res := service.Start(idUint, serverIDUint)
+	c.JSON(http.StatusOK, res)
+	}
+}
+
+func ReportStatusHandler(service *Application) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		request := req.ReportApplicationStatus{}
+		err := c.ShouldBindJSON(&request)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.ReportStatus(request)
 		c.JSON(http.StatusOK, res)
 	}
 }
+
 
