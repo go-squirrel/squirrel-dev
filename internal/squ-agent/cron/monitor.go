@@ -116,14 +116,14 @@ func (c *Cron) collectAndSaveMonitorData(configRepo configRepo.Repository, monit
 		}
 
 		diskIOMonitor := &model.DiskIOMonitor{
-			DiskName:       diskIO.Device,
-			ReadCount:      diskIO.IOCounters.ReadCount,
-			WriteCount:     diskIO.IOCounters.WriteCount,
-			ReadBytes:      diskIO.IOCounters.ReadBytes,
-			WriteBytes:     diskIO.IOCounters.WriteBytes,
-			ReadTime:       diskIO.IOCounters.ReadTime,
-			WriteTime:      diskIO.IOCounters.WriteTime,
-			CollectTime:    collectTime,
+			DiskName:    diskIO.Device,
+			ReadCount:   diskIO.IOCounters.ReadCount,
+			WriteCount:  diskIO.IOCounters.WriteCount,
+			ReadBytes:   diskIO.IOCounters.ReadBytes,
+			WriteBytes:  diskIO.IOCounters.WriteBytes,
+			ReadTime:    diskIO.IOCounters.ReadTime,
+			WriteTime:   diskIO.IOCounters.WriteTime,
+			CollectTime: collectTime,
 		}
 
 		err = monitorRepo.CreateDiskIOMonitor(diskIOMonitor)
@@ -235,7 +235,7 @@ func (c *Cron) shouldSkipInterface(name string) bool {
 
 // getMonitorInterval 从配置中获取监控间隔时间
 func getMonitorInterval(repo configRepo.Repository) (int, error) {
-	value, err := repo.Get("monitor_interval")
+	value, err := repo.GetByKey("monitor_interval")
 	if err != nil {
 		return 300, err
 	}
@@ -244,7 +244,7 @@ func getMonitorInterval(repo configRepo.Repository) (int, error) {
 
 // getMonitorExpired 从配置中获取监控数据保留时长
 func getMonitorExpired(repo configRepo.Repository) (int, error) {
-	value, err := repo.Get("monitor_expired")
+	value, err := repo.GetByKey("monitor_expired")
 	if err != nil {
 		return 604800, err
 	}

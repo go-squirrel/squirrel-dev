@@ -8,20 +8,16 @@ import (
 )
 
 type Repository interface {
-	Get(key string) (string, error)
+	List() (configs []model.Config, err error)
+	Get(id uint) (config model.Config, err error)
+	Delete(id uint) (err error)
+	Add(req *model.Config) (err error)
+	Update(req *model.Config) (err error)
+	GetByKey(key string) (string, error)
 }
 
 func New(db *gorm.DB) Repository {
 	return &Client{
 		DB: db,
 	}
-}
-
-func (c *Client) Get(key string) (string, error) {
-	var config model.Config
-	err := c.DB.Where("key = ?", key).First(&config).Error
-	if err != nil {
-		return "", err
-	}
-	return config.Value, nil
 }
