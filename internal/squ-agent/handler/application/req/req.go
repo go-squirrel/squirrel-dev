@@ -8,5 +8,5 @@ type Application struct {
 	Status      string `json:"status"`
 	Content     string `json:"content"`
 	Version     string `json:"version"`
+	ServerID    uint   `json:"server_id"`
 }
-

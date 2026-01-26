@@ -32,6 +32,16 @@ func (c *Client) Update(req *model.Config) (err error) {
 	return c.DB.Updates(req).Error
 }
 
+func (c *Client) CreateOrUpdate(req *model.Config) (err error) {
+	var config model.Config
+	err = c.DB.Where("key = ?", req.Key).First(&config).Error
+	if err == gorm.ErrRecordNotFound {
+		return c.DB.Create(req).Error
+	}
+	req.ID = config.ID
+	return c.DB.Updates(req).Error
+}
+
 func (c *Client) GetByKey(key string) (string, error) {
 	var config model.Config
 	err := c.DB.Where("key = ?", key).First(&config).Error

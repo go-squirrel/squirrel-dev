@@ -41,12 +41,13 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 		server.AgentPort,
 		a.Config.Agent.Http.BaseUrl,
 		"application")
-	agentReq := req.Application{
+	agentReq := req.ApplicationAgent{
 		Name:        app.Name,
 		Description: app.Description,
 		Type:        app.Type,
 		Content:     app.Content,
 		Version:     app.Version,
+		ServerID:    request.ServerID,
 	}
 	respBody, err := a.HTTPClient.Post(agentURL, agentReq, nil)
 	if err != nil {

@@ -13,13 +13,15 @@ import (
 	"squirrel-dev/pkg/execute"
 
 	appRepository "squirrel-dev/internal/squ-agent/repository/application"
+	confRepository "squirrel-dev/internal/squ-agent/repository/config"
 
 	"go.uber.org/zap"
 )
 
 type Application struct {
-	Config     *config.Config
-	Repository appRepository.Repository
+	Config         *config.Config
+	Repository     appRepository.Repository
+	ConfRepository confRepository.Repository
 }
 
 func (a *Application) List() response.Response {
@@ -195,6 +197,15 @@ func (a *Application) Add(request req.Application) response.Response {
 	}
 
 	err := a.Repository.Add(&modelReq)
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	confModel := model.Config{
+		Key:   "server_id",
+		Value: fmt.Sprint(request.ServerID),
+	}
+	err = a.ConfRepository.CreateOrUpdate(&confModel)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}

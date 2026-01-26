@@ -21,3 +21,13 @@ type ReportApplicationStatus struct {
 	ServerID      uint   `json:"server_id"`
 	Status        string `json:"status"` // running, stopped, error等
 }
+
+type ApplicationAgent struct {
+	ID          uint   `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Type        string `json:"type"`
+	Content     string `json:"content"`
+	Version     string `json:"version"`
+	ServerID    uint   `json:"server_id"`
+}

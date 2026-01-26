@@ -9,14 +9,16 @@ import (
 	"squirrel-dev/internal/squ-agent/handler/application/res"
 
 	applicationRepository "squirrel-dev/internal/squ-agent/repository/application"
+	confRepository "squirrel-dev/internal/squ-agent/repository/config"
 )
 
-func Application(group *gin.RouterGroup, conf *config.Config, db database.DB) {
+func Application(group *gin.RouterGroup, conf *config.Config, db database.DB, confDB database.DB) {
 	res.RegisterCode()
 
 	service := application.Application{
-		Config:     conf,
-		Repository: applicationRepository.New(db.GetDB()),
+		Config:         conf,
+		Repository:     applicationRepository.New(db.GetDB()),
+		ConfRepository: confRepository.New(confDB.GetDB()),
 	}
 	group.GET("/application", application.ListHandler(&service))
 	group.GET("/application/:id", application.GetHandler(&service))
