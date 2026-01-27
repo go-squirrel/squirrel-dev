@@ -8,6 +8,7 @@ import (
 	"squirrel-dev/internal/squ-agent/repository/monitor"
 	scriptTaskRepo "squirrel-dev/internal/squ-agent/repository/script_task"
 	"squirrel-dev/pkg/httpclient"
+	"strconv"
 	"time"
 
 	cronV3 "github.com/robfig/cron/v3"
@@ -48,7 +49,7 @@ func (c *Cron) Start() error {
 		return err
 	}
 
-	err = c.startMonitor(c.ConfigRepo, c.MonitorRepo)
+	err = c.startMonitor()
 	if err != nil {
 		return err
 	}
@@ -57,4 +58,16 @@ func (c *Cron) Start() error {
 	c.Cron.Start()
 	return nil
 
+}
+
+func (c *Cron) getConfigByRepoToInt(key string) (int, error) {
+	value, err := c.ConfigRepo.GetByKey(key)
+	if err != nil {
+		return 0, err
+	}
+	return strconv.Atoi(value)
+}
+
+func (c *Cron) getConfigByRepo(key string) (string, error) {
+	return c.ConfigRepo.GetByKey(key)
 }
