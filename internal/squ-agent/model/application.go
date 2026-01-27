@@ -8,4 +8,5 @@ type Application struct {
 	Status      string
 	Content     string
 	Version     string
+	DeployID    uint64
 }

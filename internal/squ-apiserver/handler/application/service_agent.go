@@ -29,10 +29,12 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	// 3. 检查是否已经部署到该服务器
-	_, err = a.AppServerRepo.GetByServerAndApp(request.ServerID, request.ApplicationID)
-	if err == nil {
-		return response.Error(res.ErrAlreadyDeployed)
+	deployID, err := utils.IDGenerate()
+	if err != nil {
+		zap.L().Error("生成部署ID失败",
+			zap.Error(err),
+		)
+		return response.Error(res.ErrDeployFailed)
 	}
 
 	// 4. 发送部署请求到 agent
@@ -48,6 +50,7 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 		Content:     app.Content,
 		Version:     app.Version,
 		ServerID:    request.ServerID,
+		DeployID:    deployID,
 	}
 	respBody, err := a.HTTPClient.Post(agentURL, agentReq, nil)
 	if err != nil {
@@ -81,6 +84,7 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 	appServer := model.ApplicationServer{
 		ServerID:      request.ServerID,
 		ApplicationID: request.ApplicationID,
+		DeployID:      deployID,
 	}
 
 	err = a.AppServerRepo.Add(&appServer)

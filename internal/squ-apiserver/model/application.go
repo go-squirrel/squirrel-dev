@@ -8,10 +8,3 @@ type Application struct {
 	Content     string
 	Version     string
 }
-
-type ApplicationServer struct {
-	BaseModel
-	ServerID      uint
-	ApplicationID uint
-	Status        string // 应用在该服务器上的状态: running, stopped, error等
-}

@@ -194,6 +194,7 @@ func (a *Application) Add(request req.Application) response.Response {
 		Status:      "starting",
 		Content:     request.Content,
 		Version:     request.Version,
+		DeployID:    request.DeployID,
 	}
 
 	err := a.Repository.Add(&modelReq)

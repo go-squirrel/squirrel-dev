@@ -9,4 +9,5 @@ type Application struct {
 	Content     string `json:"content"`
 	Version     string `json:"version"`
 	ServerID    uint   `json:"server_id"`
+	DeployID    uint64 `json:"deploy_id"`
 }
