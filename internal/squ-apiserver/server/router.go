@@ -15,6 +15,7 @@ func (s *Server) SetupRouter() {
 	router.Auth(v1Router, s.Config, s.DB)
 	router.Server(v1Router, s.Config, s.DB)
 	router.Application(v1Router, s.Config, s.DB)
+	router.Deployment(v1Router, s.Config, s.DB)
 	router.Config(v1Router, s.Config, s.DB)
 	router.AppStore(v1Router, s.Config, s.DB)
 	router.Script(v1Router, s.Config, s.DB)

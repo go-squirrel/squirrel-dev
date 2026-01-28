@@ -11,28 +11,23 @@ import (
 	"squirrel-dev/pkg/httpclient"
 
 	appRepository "squirrel-dev/internal/squ-apiserver/repository/application"
-	appServerRepository "squirrel-dev/internal/squ-apiserver/repository/application_server"
 	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
-
-	"go.uber.org/zap"
 )
 
 type Application struct {
-	Config        *config.Config
-	Repository    appRepository.Repository
-	AppServerRepo appServerRepository.Repository
-	ServerRepo    serverRepository.Repository
-	HTTPClient    *httpclient.Client
+	Config     *config.Config
+	Repository appRepository.Repository
+	ServerRepo serverRepository.Repository
+	HTTPClient *httpclient.Client
 }
 
-func New(config *config.Config, appRepo appRepository.Repository, appServerRepo appServerRepository.Repository, serverRepo serverRepository.Repository) *Application {
+func New(config *config.Config, appRepo appRepository.Repository, serverRepo serverRepository.Repository) *Application {
 	hc := httpclient.NewClient(30 * time.Second)
 	return &Application{
-		Config:        config,
-		Repository:    appRepo,
-		AppServerRepo: appServerRepo,
-		ServerRepo:    serverRepo,
-		HTTPClient:    hc,
+		Config:     config,
+		Repository: appRepo,
+		ServerRepo: serverRepo,
+		HTTPClient: hc,
 	}
 }
 
@@ -74,18 +69,9 @@ func (a *Application) Get(id uint) response.Response {
 }
 
 func (a *Application) Delete(id uint) response.Response {
-	// 先删除应用服务器关联记录
-	err := a.AppServerRepo.DeleteByApplicationID(id)
-	if err != nil {
-		zap.L().Error("删除应用服务器关联记录失败",
-			zap.Uint("application_id", id),
-			zap.Error(err),
-		)
-		// 不返回错误，继续删除应用记录
-	}
 
 	// 删除应用记录
-	err = a.Repository.Delete(id)
+	err := a.Repository.Delete(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -124,39 +110,6 @@ func (a *Application) Update(request req.Application) response.Response {
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
-
-	return response.Success("success")
-}
-
-func (a *Application) ReportStatus(request req.ReportApplicationStatus) response.Response {
-	// 验证应用服务器关联记录是否存在
-	_, err := a.AppServerRepo.GetByServerAndApp(request.ServerID, request.ApplicationID)
-	if err != nil {
-		zap.L().Error("应用服务器关联记录不存在",
-			zap.Uint("server_id", request.ServerID),
-			zap.Uint("application_id", request.ApplicationID),
-			zap.Error(err),
-		)
-		return response.Error(response.ErrCodeParameter)
-	}
-
-	// 更新状态
-	err = a.AppServerRepo.UpdateStatus(request.ServerID, request.ApplicationID, request.Status)
-	if err != nil {
-		zap.L().Error("更新应用状态失败",
-			zap.Uint("server_id", request.ServerID),
-			zap.Uint("application_id", request.ApplicationID),
-			zap.String("status", request.Status),
-			zap.Error(err),
-		)
-		return response.Error(model.ReturnErrCode(err))
-	}
-
-	zap.L().Info("应用状态已更新",
-		zap.Uint("server_id", request.ServerID),
-		zap.Uint("application_id", request.ApplicationID),
-		zap.String("status", request.Status),
-	)
 
 	return response.Success("success")
 }

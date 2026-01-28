@@ -9,7 +9,6 @@ import (
 	"squirrel-dev/internal/squ-apiserver/handler/application/res"
 
 	applicationRepository "squirrel-dev/internal/squ-apiserver/repository/application"
-	appServerRepository "squirrel-dev/internal/squ-apiserver/repository/application_server"
 	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
 )
 
@@ -19,7 +18,6 @@ func Application(group *gin.RouterGroup, conf *config.Config, db database.DB) {
 	service := application.New(
 		conf,
 		applicationRepository.New(db.GetDB()),
-		appServerRepository.New(db.GetDB()),
 		serverRepository.New(db.GetDB()),
 	)
 	group.GET("/application", application.ListHandler(service))
@@ -27,10 +25,4 @@ func Application(group *gin.RouterGroup, conf *config.Config, db database.DB) {
 	group.DELETE("/application/:id", application.DeleteHandler(service))
 	group.POST("/application", application.AddHandler(service))
 	group.POST("/application/:id", application.UpdateHandler(service))
-	group.POST("/application/deploy/:id", application.DeployHandler(service))
-	group.GET("/application/:id/servers", application.ListServersHandler(service))
-	group.DELETE("/application/deploy/:id/:serverId", application.UndeployHandler(service))
-	group.POST("/application/stop/:id/:serverId", application.StopHandler(service))
-	group.POST("/application/start/:id/:serverId", application.StartHandler(service))
-	group.POST("/application/status/report", application.ReportStatusHandler(service))
 }

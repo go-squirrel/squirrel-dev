@@ -24,19 +24,3 @@ POST    {{url}}/api/v1/application/1
 content-type: application/json
 
 < json/update.json
-
-###
-
-### deploy application to server
-POST    {{url}}/api/v1/application/deploy/1
-content-type: application/json
-
-< json/deploy.json
-
-### stop application
-POST    {{url}}/api/v1/application/stop/1/1
-content-type: application/json
-
-### start application
-POST    {{url}}/api/v1/application/start/1/1
-content-type: application/json

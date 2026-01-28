@@ -1,6 +1,6 @@
 package model
 
-type ApplicationServer struct {
+type Deployment struct {
 	BaseModel
 	ServerID      uint
 	ApplicationID uint

@@ -1,21 +1,45 @@
-package application
+package deployment
 
 import (
 	"encoding/json"
 	"fmt"
 	"squirrel-dev/internal/pkg/response"
+	"squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/application/req"
 	"squirrel-dev/internal/squ-apiserver/handler/application/res"
 	"squirrel-dev/internal/squ-apiserver/model"
+	appRepository "squirrel-dev/internal/squ-apiserver/repository/application"
+	deploymentRepository "squirrel-dev/internal/squ-apiserver/repository/deployment"
+	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
+	"squirrel-dev/pkg/httpclient"
 	"squirrel-dev/pkg/utils"
+	"time"
 
 	"go.uber.org/zap"
 )
 
-// Deploy 部署应用到指定服务器
-func (a *Application) Deploy(request req.DeployApplication) response.Response {
+type Deployment struct {
+	Config     *config.Config
+	Repository deploymentRepository.Repository
+	AppRepo    appRepository.Repository
+	ServerRepo serverRepository.Repository
+	HTTPClient *httpclient.Client
+}
+
+func New(config *config.Config, repo deploymentRepository.Repository, appRepo appRepository.Repository, serverRepo serverRepository.Repository) *Deployment {
+	hc := httpclient.NewClient(30 * time.Second)
+	return &Deployment{
+		Config:     config,
+		Repository: repo,
+		AppRepo:    appRepo,
+		ServerRepo: serverRepo,
+		HTTPClient: hc,
+	}
+}
+
+func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 	// 1. 检查应用是否存在
-	app, err := a.Repository.Get(request.ApplicationID)
+	app, err := a.AppRepo.Get(request.ApplicationID)
 	if err != nil {
 		if err.Error() == "record not found" {
 			return response.Error(res.ErrApplicationNotFound)
@@ -81,13 +105,13 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 	}
 
 	// 5. 创建应用服务器关联记录
-	appServer := model.ApplicationServer{
+	appServer := model.Deployment{
 		ServerID:      request.ServerID,
 		ApplicationID: request.ApplicationID,
 		DeployID:      deployID,
 	}
 
-	err = a.AppServerRepo.Add(&appServer)
+	err = a.Repository.Add(&appServer)
 	if err != nil {
 		zap.L().Error("创建应用服务器关联记录失败",
 			zap.Uint("server_id", request.ServerID),
@@ -122,9 +146,9 @@ func (a *Application) Deploy(request req.DeployApplication) response.Response {
 }
 
 // ListServers 查询应用部署的服务器列表
-func (a *Application) ListServers(applicationID uint) response.Response {
+func (a *Deployment) ListServers(applicationID uint) response.Response {
 	// 检查应用是否存在
-	_, err := a.Repository.Get(applicationID)
+	_, err := a.AppRepo.Get(applicationID)
 	if err != nil {
 		if err.Error() == "record not found" {
 			return response.Error(res.ErrApplicationNotFound)
@@ -133,7 +157,7 @@ func (a *Application) ListServers(applicationID uint) response.Response {
 	}
 
 	// 查询应用服务器关联记录
-	appServers, err := a.AppServerRepo.List(applicationID)
+	appServers, err := a.Repository.List(applicationID)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -161,9 +185,9 @@ func (a *Application) ListServers(applicationID uint) response.Response {
 }
 
 // Undeploy 取消部署应用
-func (a *Application) Undeploy(applicationID, serverID uint) response.Response {
+func (a *Deployment) Undeploy(applicationID, serverID uint) response.Response {
 	// 1. 检查应用是否存在
-	app, err := a.Repository.Get(applicationID)
+	app, err := a.AppRepo.Get(applicationID)
 	if err != nil {
 		if err.Error() == "record not found" {
 			return response.Error(res.ErrApplicationNotFound)
@@ -178,7 +202,7 @@ func (a *Application) Undeploy(applicationID, serverID uint) response.Response {
 	}
 
 	// 3. 检查是否已部署
-	appServer, err := a.AppServerRepo.GetByServerAndApp(serverID, applicationID)
+	appServer, err := a.Repository.GetByServerAndApp(serverID, applicationID)
 	if err != nil {
 		if err.Error() == "record not found" {
 			return response.Error(res.ErrApplicationNotDeployed)
@@ -205,7 +229,7 @@ func (a *Application) Undeploy(applicationID, serverID uint) response.Response {
 	}
 
 	// 5. 删除应用服务器关联记录
-	err = a.AppServerRepo.Delete(appServer.ID)
+	err = a.Repository.Delete(appServer.ID)
 	if err != nil {
 		zap.L().Error("删除应用服务器关联记录失败",
 			zap.Uint("id", appServer.ID),
@@ -217,132 +241,35 @@ func (a *Application) Undeploy(applicationID, serverID uint) response.Response {
 	return response.Success("undeploy success")
 }
 
-// Stop 停止应用
-func (a *Application) Stop(applicationID, serverID uint) response.Response {
-	// 1. 检查应用是否存在
-	app, err := a.Repository.Get(applicationID)
+func (a *Deployment) ReportStatus(request req.ReportApplicationStatus) response.Response {
+	// 验证应用服务器关联记录是否存在
+	_, err := a.Repository.GetByServerAndApp(request.ServerID, request.ApplicationID)
 	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrApplicationNotFound)
-		}
-		return response.Error(model.ReturnErrCode(err))
-	}
-
-	// 2. 检查服务器是否存在
-	server, err := a.ServerRepo.Get(serverID)
-	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
-	}
-
-	// 3. 检查是否已部署
-	_, err = a.AppServerRepo.GetByServerAndApp(serverID, applicationID)
-	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrApplicationNotDeployed)
-		}
-		return response.Error(model.ReturnErrCode(err))
-	}
-
-	// 4. 调用 Agent 停止应用
-	stopUrl := fmt.Sprintf("application/stop/%s", app.Name)
-
-	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
-		server.IpAddress,
-		server.AgentPort,
-		a.Config.Agent.Http.BaseUrl,
-		stopUrl)
-	respBody, err := a.HTTPClient.Post(agentURL, nil, nil)
-	if err != nil {
-		zap.L().Error("调用 Agent 停止应用失败",
-			zap.String("url", agentURL),
+		zap.L().Error("应用服务器关联记录不存在",
+			zap.Uint("server_id", request.ServerID),
+			zap.Uint("application_id", request.ApplicationID),
 			zap.Error(err),
 		)
-		return response.Error(res.ErrDeployFailed)
+		return response.Error(response.ErrCodeParameter)
 	}
 
-	// 解析响应，检查是否停止成功
-	var agentResp response.Response
-	if err := json.Unmarshal(respBody, &agentResp); err != nil {
-		zap.L().Error("解析 Agent 响应失败",
-			zap.String("url", agentURL),
+	// 更新状态
+	err = a.Repository.UpdateStatus(request.ServerID, request.ApplicationID, request.Status)
+	if err != nil {
+		zap.L().Error("更新应用状态失败",
+			zap.Uint("server_id", request.ServerID),
+			zap.Uint("application_id", request.ApplicationID),
+			zap.String("status", request.Status),
 			zap.Error(err),
 		)
-		return response.Error(res.ErrDeployFailed)
-	}
-
-	if agentResp.Code != 0 {
-		zap.L().Error("Agent 停止失败",
-			zap.String("url", agentURL),
-			zap.Int("code", agentResp.Code),
-			zap.String("message", agentResp.Message),
-		)
-		return response.Error(res.ErrDeployFailed)
-	}
-
-	return response.Success("stop success")
-}
-
-// Start 启动应用
-func (a *Application) Start(applicationID, serverID uint) response.Response {
-	// 1. 检查应用是否存在
-	app, err := a.Repository.Get(applicationID)
-	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrApplicationNotFound)
-		}
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	// 2. 检查服务器是否存在
-	server, err := a.ServerRepo.Get(serverID)
-	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
-	}
+	zap.L().Info("应用状态已更新",
+		zap.Uint("server_id", request.ServerID),
+		zap.Uint("application_id", request.ApplicationID),
+		zap.String("status", request.Status),
+	)
 
-	// 3. 检查是否已部署
-	_, err = a.AppServerRepo.GetByServerAndApp(serverID, applicationID)
-	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrApplicationNotDeployed)
-		}
-		return response.Error(model.ReturnErrCode(err))
-	}
-
-	// 4. 调用 Agent 启动应用
-	stopUrl := fmt.Sprintf("application/start/%s", app.Name)
-
-	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
-		server.IpAddress,
-		server.AgentPort,
-		a.Config.Agent.Http.BaseUrl,
-		stopUrl)
-	respBody, err := a.HTTPClient.Post(agentURL, nil, nil)
-	if err != nil {
-		zap.L().Error("调用 Agent 启动应用失败",
-			zap.String("url", agentURL),
-			zap.Error(err),
-		)
-		return response.Error(res.ErrDeployFailed)
-	}
-
-	// 解析响应，检查是否启动成功
-	var agentResp response.Response
-	if err := json.Unmarshal(respBody, &agentResp); err != nil {
-		zap.L().Error("解析 Agent 响应失败",
-			zap.String("url", agentURL),
-			zap.Error(err),
-		)
-		return response.Error(res.ErrDeployFailed)
-	}
-
-	if agentResp.Code != 0 {
-		zap.L().Error("Agent 启动失败",
-			zap.String("url", agentURL),
-			zap.Int("code", agentResp.Code),
-			zap.String("message", agentResp.Message),
-		)
-		return response.Error(res.ErrDeployFailed)
-	}
-
-	return response.Success("start success")
+	return response.Success("success")
 }

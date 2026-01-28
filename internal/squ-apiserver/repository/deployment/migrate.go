@@ -1,4 +1,4 @@
-package application_server
+package deployment
 
 import (
 	"squirrel-dev/internal/pkg/migration"
@@ -14,11 +14,11 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 		"应用服务器关联表",
 		// 升级函数
 		func(db *gorm.DB) error {
-			return db.AutoMigrate(&model.ApplicationServer{})
+			return db.AutoMigrate(&model.Deployment{})
 		},
 		// 回滚函数
 		func(db *gorm.DB) error {
-			return db.Migrator().DropTable("application_servers")
+			return db.Migrator().DropTable("deployments")
 		},
 	)
 }
