@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"squirrel-dev/internal/pkg/response"
-	"squirrel-dev/internal/squ-apiserver/handler/application/res"
+	"squirrel-dev/internal/squ-apiserver/handler/deployment/res"
 	"squirrel-dev/internal/squ-apiserver/model"
 	"squirrel-dev/pkg/utils"
 
@@ -12,33 +12,24 @@ import (
 )
 
 // Stop 停止应用
-func (a *Deployment) Stop(applicationID, serverID uint) response.Response {
-	// 1. 检查应用是否存在
-	app, err := a.AppRepo.Get(applicationID)
+func (a *Deployment) Stop(deploymentID uint) response.Response {
+	// 1. 根据deployment.ID查询部署记录
+	deployment, err := a.Repository.Get(deploymentID)
 	if err != nil {
 		if err.Error() == "record not found" {
-			return response.Error(res.ErrApplicationNotFound)
+			return response.Error(res.ErrDeploymentNotFound)
 		}
 		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 2. 检查服务器是否存在
-	server, err := a.ServerRepo.Get(serverID)
+	server, err := a.ServerRepo.Get(deployment.ServerID)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	// 3. 检查是否已部署
-	_, err = a.Repository.GetByServerAndApp(serverID, applicationID)
-	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrApplicationNotDeployed)
-		}
-		return response.Error(model.ReturnErrCode(err))
-	}
-
-	// 4. 调用 Agent 停止应用
-	stopUrl := fmt.Sprintf("application/stop/%s", app.Name)
+	// 3. 调用 Agent 停止应用，使用deployID
+	stopUrl := fmt.Sprintf("application/stop/%d", deployment.DeployID)
 
 	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
 		server.IpAddress,
@@ -77,39 +68,30 @@ func (a *Deployment) Stop(applicationID, serverID uint) response.Response {
 }
 
 // Start 启动应用
-func (a *Deployment) Start(applicationID, serverID uint) response.Response {
-	// 1. 检查应用是否存在
-	app, err := a.AppRepo.Get(applicationID)
+func (a *Deployment) Start(deploymentID uint) response.Response {
+	// 1. 根据deployment.ID查询部署记录
+	deployment, err := a.Repository.Get(deploymentID)
 	if err != nil {
 		if err.Error() == "record not found" {
-			return response.Error(res.ErrApplicationNotFound)
+			return response.Error(res.ErrDeploymentNotFound)
 		}
 		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 2. 检查服务器是否存在
-	server, err := a.ServerRepo.Get(serverID)
+	server, err := a.ServerRepo.Get(deployment.ServerID)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	// 3. 检查是否已部署
-	_, err = a.Repository.GetByServerAndApp(serverID, applicationID)
-	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrApplicationNotDeployed)
-		}
-		return response.Error(model.ReturnErrCode(err))
-	}
-
-	// 4. 调用 Agent 启动应用
-	stopUrl := fmt.Sprintf("application/start/%s", app.Name)
+	// 3. 调用 Agent 启动应用，使用deployID
+	startUrl := fmt.Sprintf("application/start/%d", deployment.DeployID)
 
 	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
 		server.IpAddress,
 		server.AgentPort,
 		a.Config.Agent.Http.BaseUrl,
-		stopUrl)
+		startUrl)
 	respBody, err := a.HTTPClient.Post(agentURL, nil, nil)
 	if err != nil {
 		zap.L().Error("调用 Agent 启动应用失败",

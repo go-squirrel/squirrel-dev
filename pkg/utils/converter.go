@@ -19,3 +19,12 @@ func StringToUint(s string) (uint, error) {
 
 	return uint(value), nil
 }
+
+func StringToUint64(s string) (uint64, error) {
+	value, err := strconv.ParseUint(s, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return value, nil
+}

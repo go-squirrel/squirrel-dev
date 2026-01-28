@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/config"
-	"squirrel-dev/internal/squ-apiserver/handler/application/req"
-	"squirrel-dev/internal/squ-apiserver/handler/application/res"
+	"squirrel-dev/internal/squ-apiserver/handler/deployment/req"
+	"squirrel-dev/internal/squ-apiserver/handler/deployment/res"
 	"squirrel-dev/internal/squ-apiserver/model"
 	appRepository "squirrel-dev/internal/squ-apiserver/repository/application"
 	deploymentRepository "squirrel-dev/internal/squ-apiserver/repository/deployment"
@@ -185,34 +185,24 @@ func (a *Deployment) ListServers(applicationID uint) response.Response {
 }
 
 // Undeploy 取消部署应用
-func (a *Deployment) Undeploy(applicationID, serverID uint) response.Response {
-	// 1. 检查应用是否存在
-	app, err := a.AppRepo.Get(applicationID)
+func (a *Deployment) Undeploy(deploymentID uint) response.Response {
+	// 1. 根据deployment.ID查询部署记录
+	deployment, err := a.Repository.Get(deploymentID)
 	if err != nil {
 		if err.Error() == "record not found" {
-			return response.Error(res.ErrApplicationNotFound)
+			return response.Error(res.ErrDeploymentNotFound)
 		}
 		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 2. 检查服务器是否存在
-	server, err := a.ServerRepo.Get(serverID)
+	server, err := a.ServerRepo.Get(deployment.ServerID)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	// 3. 检查是否已部署
-	appServer, err := a.Repository.GetByServerAndApp(serverID, applicationID)
-	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrApplicationNotDeployed)
-		}
-		return response.Error(model.ReturnErrCode(err))
-	}
-
-	// 4. 调用 Agent 删除应用
-
-	deleteUrl := fmt.Sprintf("application/delete/%s", app.Name)
+	// 3. 调用 Agent 删除应用，使用deployID
+	deleteUrl := fmt.Sprintf("application/delete/%d", deployment.DeployID)
 
 	agentDeleteURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
 		server.IpAddress,
@@ -228,11 +218,11 @@ func (a *Deployment) Undeploy(applicationID, serverID uint) response.Response {
 		return response.Error(res.ErrDeployFailed)
 	}
 
-	// 5. 删除应用服务器关联记录
-	err = a.Repository.Delete(appServer.ID)
+	// 4. 删除应用服务器关联记录
+	err = a.Repository.Delete(deployment.ID)
 	if err != nil {
 		zap.L().Error("删除应用服务器关联记录失败",
-			zap.Uint("id", appServer.ID),
+			zap.Uint("id", deployment.ID),
 			zap.Error(err),
 		)
 		return response.Error(model.ReturnErrCode(err))
@@ -242,23 +232,21 @@ func (a *Deployment) Undeploy(applicationID, serverID uint) response.Response {
 }
 
 func (a *Deployment) ReportStatus(request req.ReportApplicationStatus) response.Response {
-	// 验证应用服务器关联记录是否存在
-	_, err := a.Repository.GetByServerAndApp(request.ServerID, request.ApplicationID)
+	// 验证应用服务器关联记录是否存在，使用deployID
+	_, err := a.Repository.GetByDeployID(request.DeployID)
 	if err != nil {
 		zap.L().Error("应用服务器关联记录不存在",
-			zap.Uint("server_id", request.ServerID),
-			zap.Uint("application_id", request.ApplicationID),
+			zap.Uint64("deploy_id", request.DeployID),
 			zap.Error(err),
 		)
 		return response.Error(response.ErrCodeParameter)
 	}
 
-	// 更新状态
-	err = a.Repository.UpdateStatus(request.ServerID, request.ApplicationID, request.Status)
+	// 更新状态，使用deployID
+	err = a.Repository.UpdateStatus(request.DeployID, request.Status)
 	if err != nil {
 		zap.L().Error("更新应用状态失败",
-			zap.Uint("server_id", request.ServerID),
-			zap.Uint("application_id", request.ApplicationID),
+			zap.Uint64("deploy_id", request.DeployID),
 			zap.String("status", request.Status),
 			zap.Error(err),
 		)
@@ -266,10 +254,63 @@ func (a *Deployment) ReportStatus(request req.ReportApplicationStatus) response.
 	}
 
 	zap.L().Info("应用状态已更新",
-		zap.Uint("server_id", request.ServerID),
-		zap.Uint("application_id", request.ApplicationID),
+		zap.Uint64("deploy_id", request.DeployID),
 		zap.String("status", request.Status),
 	)
 
 	return response.Success("success")
+}
+
+// List 列出部署应用
+func (a *Deployment) List(serverID uint) response.Response {
+	// 查询部署列表
+	deployments, err := a.Repository.List(serverID)
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	// 构建响应数据
+	var result []map[string]interface{}
+	for _, deployment := range deployments {
+		// 获取应用信息
+		app, err := a.AppRepo.Get(deployment.ApplicationID)
+		if err != nil {
+			zap.L().Warn("获取应用信息失败",
+				zap.Uint("application_id", deployment.ApplicationID),
+				zap.Error(err),
+			)
+			continue
+		}
+
+		// 获取服务器信息
+		server, err := a.ServerRepo.Get(deployment.ServerID)
+		if err != nil {
+			zap.L().Warn("获取服务器信息失败",
+				zap.Uint("server_id", deployment.ServerID),
+				zap.Error(err),
+			)
+			continue
+		}
+
+		result = append(result, map[string]interface{}{
+			"id":        deployment.ID,
+			"deploy_id": deployment.DeployID,
+			"application": map[string]interface{}{
+				"id":          app.ID,
+				"name":        app.Name,
+				"description": app.Description,
+				"type":        app.Type,
+				"version":     app.Version,
+			},
+			"server": map[string]interface{}{
+				"id":         server.ID,
+				"ip_address": server.IpAddress,
+				"agent_port": server.AgentPort,
+			},
+			"status":      deployment.Status,
+			"deployed_at": deployment.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return response.Success(result)
 }
