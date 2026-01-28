@@ -174,10 +174,9 @@ func (a *Deployment) ListServers(applicationID uint) response.Response {
 		}
 
 		servers = append(servers, res.ServerInfo{
-			ServerID:   server.ID,
-			IpAddress:  server.IpAddress,
-			AgentPort:  server.AgentPort,
-			DeployedAt: appServer.CreatedAt.Format("2006-01-02 15:04:05"),
+			ID:        server.ID,
+			IpAddress: server.IpAddress,
+			AgentPort: server.AgentPort,
 		})
 	}
 
@@ -270,7 +269,7 @@ func (a *Deployment) List(serverID uint) response.Response {
 	}
 
 	// 构建响应数据
-	var result []map[string]interface{}
+	var result []res.Deployment
 	for _, deployment := range deployments {
 		// 获取应用信息
 		app, err := a.AppRepo.Get(deployment.ApplicationID)
@@ -292,23 +291,23 @@ func (a *Deployment) List(serverID uint) response.Response {
 			continue
 		}
 
-		result = append(result, map[string]interface{}{
-			"id":        deployment.ID,
-			"deploy_id": deployment.DeployID,
-			"application": map[string]interface{}{
-				"id":          app.ID,
-				"name":        app.Name,
-				"description": app.Description,
-				"type":        app.Type,
-				"version":     app.Version,
+		result = append(result, res.Deployment{
+			ID:       deployment.ID,
+			DeployID: deployment.DeployID,
+			Application: res.ApplicationInfo{
+				ID:          app.ID,
+				Name:        app.Name,
+				Description: app.Description,
+				Type:        app.Type,
+				Version:     app.Version,
 			},
-			"server": map[string]interface{}{
-				"id":         server.ID,
-				"ip_address": server.IpAddress,
-				"agent_port": server.AgentPort,
+			Server: res.ServerInfo{
+				ID:        server.ID,
+				IpAddress: server.IpAddress,
+				AgentPort: server.AgentPort,
 			},
-			"status":      deployment.Status,
-			"deployed_at": deployment.CreatedAt.Format("2006-01-02 15:04:05"),
+			Status:     deployment.Status,
+			DeployedAt: deployment.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
 	}
 
