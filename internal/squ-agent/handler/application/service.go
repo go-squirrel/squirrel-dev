@@ -72,7 +72,7 @@ func (a *Application) Delete(id uint) response.Response {
 
 	// 如果应用正在运行，先停止服务
 	if app.Status == "running" {
-		stopRes := a.Stop(app.Name)
+		stopRes := a.Stop(app.DeployID)
 		if stopRes.Code != 200 {
 			return stopRes
 		}
@@ -87,40 +87,32 @@ func (a *Application) Delete(id uint) response.Response {
 	return response.Success("success")
 }
 
-// DeleteByName 根据应用名称删除应用（用于回滚）
-func (a *Application) DeleteByName(name string) response.Response {
+// DeleteByDeployID 根据deployID删除应用
+func (a *Application) DeleteByDeployID(deployID uint64) response.Response {
 	// 先获取应用信息
-	apps, err := a.Repository.List()
+	app, err := a.Repository.GetByDeployID(deployID)
 	if err != nil {
+		if err.Error() == "record not found" {
+			// 应用不存在，视为成功（幂等性）
+			return response.Success("application not found, skip delete")
+		}
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	var targetApp *model.Application
-	for i := range apps {
-		if apps[i].Name == name {
-			targetApp = &apps[i]
-			break
-		}
-	}
-
-	if targetApp == nil {
-		// 应用不存在，视为成功（幂等性）
-		return response.Success("application not found, skip delete")
-	}
-
 	// 如果应用正在运行，先停止服务
-	if targetApp.Status == "running" {
-		stopRes := a.Stop(targetApp.Name)
+	if app.Status == "running" {
+		stopRes := a.Stop(deployID)
 		if stopRes.Code != 200 {
-			zap.L().Warn("回滚时停止应用失败，继续删除",
-				zap.Uint("id", targetApp.ID),
-				zap.String("name", name),
+			zap.L().Warn("删除时停止应用失败，继续删除",
+				zap.Uint("id", app.ID),
+				zap.String("name", app.Name),
+				zap.Uint64("deploy_id", deployID),
 			)
 		}
 	}
 
 	// 删除数据库记录
-	err = a.Repository.DeleteByName(name)
+	err = a.Repository.Delete(app.ID)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -372,9 +364,9 @@ func (a *Application) Update(request req.Application) response.Response {
 	return response.Success("success")
 }
 
-func (a *Application) Stop(name string) response.Response {
+func (a *Application) Stop(deployID uint64) response.Response {
 	// 获取应用信息
-	app, err := a.Repository.GetByName(name)
+	app, err := a.Repository.GetByDeployID(deployID)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -382,7 +374,8 @@ func (a *Application) Stop(name string) response.Response {
 	// 检查应用状态
 	if app.Status != "running" {
 		zap.L().Warn("应用未在运行中",
-			zap.String("name", name),
+			zap.String("name", app.Name),
+			zap.Uint64("deploy_id", deployID),
 			zap.String("status", app.Status),
 		)
 		return response.Error(res.ErrDockerComposeStop)
@@ -419,15 +412,16 @@ func (a *Application) Stop(name string) response.Response {
 	err = a.Repository.Update(&app)
 	if err != nil {
 		zap.L().Error("更新应用状态失败",
-			zap.String("name", name),
+			zap.String("name", app.Name),
+			zap.Uint64("deploy_id", deployID),
 			zap.Error(err),
 		)
 		return response.Error(model.ReturnErrCode(err))
 	}
 
 	zap.L().Info("应用已停止",
-		zap.String("name", name),
 		zap.String("name", app.Name),
+		zap.Uint64("deploy_id", deployID),
 	)
 
 	return response.Success("success")
@@ -484,9 +478,9 @@ func runDockerComposeStop(workDir, composeFile string) error {
 	return nil
 }
 
-func (a *Application) Start(name string) response.Response {
+func (a *Application) Start(deployID uint64) response.Response {
 	// 获取应用信息
-	app, err := a.Repository.GetByName(name)
+	app, err := a.Repository.GetByDeployID(deployID)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
@@ -494,7 +488,8 @@ func (a *Application) Start(name string) response.Response {
 	// 检查应用状态
 	if app.Status != "stopped" {
 		zap.L().Warn("应用未处于停止状态",
-			zap.String("name", name),
+			zap.String("name", app.Name),
+			zap.Uint64("deploy_id", deployID),
 			zap.String("status", app.Status),
 		)
 		return response.Error(res.ErrDockerComposeStart)
@@ -521,16 +516,18 @@ func (a *Application) Start(name string) response.Response {
 	err = a.Repository.Update(&app)
 	if err != nil {
 		zap.L().Error("更新应用状态失败",
-			zap.String("name", name),
+			zap.String("name", app.Name),
+			zap.Uint64("deploy_id", deployID),
 			zap.Error(err),
 		)
 		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 在协程中异步启动应用
-	go func(appName, composePath, composeFileName string) {
+	go func(appName, composePath, composeFileName string, deployID uint64) {
 		zap.L().Info("开始异步启动应用",
 			zap.String("name", appName),
+			zap.Uint64("deploy_id", deployID),
 		)
 
 		// 执行 docker-compose start 命令
@@ -547,7 +544,7 @@ func (a *Application) Start(name string) response.Response {
 				return
 			}
 			for i := range apps {
-				if apps[i].Name == appName {
+				if apps[i].DeployID == deployID {
 					apps[i].Status = "failed"
 					if updateErr := a.Repository.Update(&apps[i]); updateErr != nil {
 						zap.L().Error("更新应用状态为 failed 失败", zap.Error(updateErr))
@@ -560,14 +557,15 @@ func (a *Application) Start(name string) response.Response {
 
 		zap.L().Info("docker-compose start 命令执行成功",
 			zap.String("name", appName),
+			zap.Uint64("deploy_id", deployID),
 		)
 		// 启动命令执行成功，但不立即更新数据库
 		// 由 cron 定时任务 checkApplicationStatus 检测实际容器状态并更新
-	}(app.Name, composePath, composeFileName)
+	}(app.Name, composePath, composeFileName, deployID)
 
 	zap.L().Info("启动请求已提交，正在后台处理",
-		zap.String("name", name),
 		zap.String("name", app.Name),
+		zap.Uint64("deploy_id", deployID),
 	)
 
 	return response.Success("启动请求已提交，正在后台处理")

@@ -83,25 +83,43 @@ func UpdateHandler(service *Application) func(c *gin.Context) {
 
 func StopHandler(service *Application) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		name := c.Param("name")
-		res := service.Stop(name)
+		deployID := c.Param("deployId")
+		deployIDUint64, err := utils.StringToUint64(deployID)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.Stop(deployIDUint64)
 		c.JSON(http.StatusOK, res)
 	}
 }
 
 func StartHandler(service *Application) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		name := c.Param("name")
-		res := service.Start(name)
+		deployID := c.Param("deployId")
+		deployIDUint64, err := utils.StringToUint64(deployID)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.Start(deployIDUint64)
 		c.JSON(http.StatusOK, res)
 	}
 }
 
-// DeleteByNameHandler 根据名称删除应用（用于回滚）
+// DeleteByNameHandler 根据deployID删除应用（用于回滚）
 func DeleteByNameHandler(service *Application) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		name := c.Param("name")
-		res := service.DeleteByName(name)
+		deployID := c.Param("deployId")
+		deployIDUint64, err := utils.StringToUint64(deployID)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.DeleteByDeployID(deployIDUint64)
 		c.JSON(http.StatusOK, res)
 	}
 }

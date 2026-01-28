@@ -20,17 +20,13 @@ func (c *Client) Get(id uint) (application model.Application, err error) {
 	return application, err
 }
 
-func (c *Client) GetByName(name string) (application model.Application, err error) {
-	err = c.DB.Where("name = ?", name).First(&application).Error
+func (c *Client) GetByDeployID(deployID uint64) (application model.Application, err error) {
+	err = c.DB.Where("deploy_id = ?", deployID).First(&application).Error
 	return application, err
 }
 
 func (c *Client) Delete(id uint) (err error) {
 	return c.DB.Delete(&model.Application{}, id).Error
-}
-
-func (c *Client) DeleteByName(name string) (err error) {
-	return c.DB.Where("name = ?", name).Delete(&model.Application{}).Error
 }
 
 func (c *Client) Add(req *model.Application) (err error) {
