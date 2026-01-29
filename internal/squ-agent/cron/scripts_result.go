@@ -2,9 +2,9 @@ package cron
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"squirrel-dev/internal/pkg/response"
+	"squirrel-dev/pkg/utils"
 
 	"go.uber.org/zap"
 )
@@ -37,16 +37,20 @@ func (c *Cron) reportScriptResults() {
 	zap.L().Info("开始上报脚本执行结果", zap.Int("count", len(tasks)))
 	// TODO: 从配置中获取 API Server 的地址
 	// 这里暂时使用示例地址，需要根据实际情况修改
-	apiServerURL := fmt.Sprintf("%s%s", c.Config.Apiserver.Url, uriScriptResults)
+	apiServerURL := utils.GenAgentUrl(c.Config.Apiserver.Http.Scheme,
+		c.Config.Apiserver.Http.Server,
+		0,
+		c.Config.Apiserver.Http.BaseUri,
+		uriScriptResults)
 
 	for _, task := range tasks {
 		// 构建上报请求
-		reportRequest := map[string]any{
-			"task_id":       task.TaskID, // 使用 APIServer 分配的 TaskID
-			"script_id":     task.ScriptID,
-			"output":        task.Output,
-			"status":        task.Status,
-			"error_message": task.ErrorMsg,
+		reportRequest := ReportScriptsExcute{
+			TaskID:       task.TaskID,
+			ScriptsID:    task.ScriptID,
+			Output:       task.Output,
+			Status:       task.Status,
+			ErrorMessage: task.ErrorMsg,
 		}
 
 		// 发送请求到 API Server

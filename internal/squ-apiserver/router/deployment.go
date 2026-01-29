@@ -28,5 +28,5 @@ func Deployment(group *gin.RouterGroup, conf *config.Config, db database.DB) {
 	group.DELETE("/deployment/deploy/:id", deployment.UndeployHandler(service))
 	group.POST("/deployment/stop/:id", deployment.StopHandler(service))
 	group.POST("/deployment/start/:id", deployment.StartHandler(service))
-	group.POST("/deployment/status/:deployId", deployment.ReportStatusHandler(service))
+	group.POST("/deployment/report", deployment.ReportStatusHandler(service))
 }

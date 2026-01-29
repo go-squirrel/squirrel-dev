@@ -36,6 +36,15 @@ func TestGenAgentUrl(t *testing.T) {
 			uri:     "application",
 			want:    "https://127.0.0.1:10443/api/v1/application",
 		},
+		{
+			name:    "https",
+			schema:  "https",
+			address: "example.com:10444",
+			port:    10443,
+			baseuri: "/api/v1",
+			uri:     "application",
+			want:    "https://example.com:10444/api/v1/application",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

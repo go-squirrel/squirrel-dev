@@ -1,5 +1,11 @@
 package config
 
 type Apiserver struct {
-	Url string
+	Http Http
+}
+
+type Http struct {
+	Scheme  string
+	Server  string
+	BaseUri string
 }

@@ -244,7 +244,6 @@ func (m *Monitor) GetBaseMonitorPage(serverID uint, page, count int) (response.R
 		server.AgentPort,
 		m.Config.Agent.Http.BaseUrl,
 		baseMonitorUrl)
-	fmt.Println("agentURL", agentURL)
 	respBody, err := m.HTTPClient.Get(agentURL, nil)
 	if err != nil {
 		zap.L().Error("调用 Agent 获取基础监控数据失败",

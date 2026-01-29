@@ -6,9 +6,9 @@ content-type: application/json
 < json/deploy.json
 
 ### stop deployment
-POST    {{url}}/api/v1/deployment/stop/1/1
+POST    {{url}}/api/v1/deployment/stop/1
 content-type: application/json
 
 ### start deployment
-POST    {{url}}/api/v1/deployment/start/1/1
+POST    {{url}}/api/v1/deployment/start/1
 content-type: application/json

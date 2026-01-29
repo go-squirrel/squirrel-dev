@@ -116,23 +116,13 @@ func StartHandler(service *Deployment) func(c *gin.Context) {
 
 func ReportStatusHandler(service *Deployment) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		deployID := c.Param("deployId")
-
-		deployIDUint64, err := utils.StringToUint64(deployID)
-		if err != nil {
-			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
-			return
-		}
-
 		request := req.ReportApplicationStatus{}
-		err = c.ShouldBindJSON(&request)
+		err := c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
 			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
 			return
 		}
-		request.DeployID = deployIDUint64
 		res := service.ReportStatus(request)
 		c.JSON(http.StatusOK, res)
 	}

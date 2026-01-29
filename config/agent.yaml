@@ -36,4 +36,7 @@ common:
   scriptsPath: ./scripts
 
 apiserver:
-  Url: "http://127.0.0.1:10700"
+  http:
+    scheme: http
+    server: 127.0.0.1:10700
+    baseUri: /api/v1

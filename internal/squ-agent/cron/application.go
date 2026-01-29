@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"squirrel-dev/pkg/execute"
+	"squirrel-dev/pkg/utils"
 
 	"go.uber.org/zap"
 )
@@ -37,7 +38,7 @@ func (c *Cron) checkApplicationStatus() {
 		// 对于 "starting" 状态，无论检测结果如何，都更新数据库
 		// 对于 "failed" 状态，也需要重新检测
 		// 对于其他稳定状态，只有状态发生变化时才更新
-		shouldUpdate := app.Status != status || app.Status == "starting" || app.Status == "failed"
+		shouldUpdate := app.Status != status
 		if shouldUpdate {
 			updatedApp := app
 			updatedApp.Status = status
@@ -50,14 +51,33 @@ func (c *Cron) checkApplicationStatus() {
 					zap.String("new_status", status),
 					zap.Error(err),
 				)
-			} else {
-				zap.L().Info("应用状态已更新",
+			}
+			reportData := ReportApplicationStatus{
+				DeployID: updatedApp.DeployID,
+				Status:   status,
+			}
+			apiServerURL := utils.GenAgentUrl(c.Config.Apiserver.Http.Scheme,
+				c.Config.Apiserver.Http.Server,
+				0,
+				c.Config.Apiserver.Http.BaseUri,
+				uriAppReport)
+			_, err = c.HTTPClient.Post(apiServerURL, reportData, nil)
+			if err != nil {
+				zap.L().Error("report apiserver",
 					zap.Uint("id", app.ID),
 					zap.String("name", app.Name),
 					zap.String("old_status", app.Status),
 					zap.String("new_status", status),
+					zap.Error(err),
 				)
 			}
+			zap.L().Info("应用状态已更新",
+				zap.Uint("id", app.ID),
+				zap.String("name", app.Name),
+				zap.String("old_status", app.Status),
+				zap.String("new_status", status),
+			)
+
 		}
 	}
 }
