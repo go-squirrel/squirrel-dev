@@ -12,7 +12,7 @@ CMDS := squ-apiserver squ-agent squctl
 BINS := $(addprefix $(OUTPUT_DIR)/, $(CMDS))
 CONFIGS := $(addprefix $(OUTPUT_DIR)/config/, agent.yaml apiserver.yaml squctl.yaml)
 
-.PHONY: clean all package $(CMDS)
+.PHONY: clean all package $(CMDS) image
 
 all: $(BINS) $(CONFIGS)
 
@@ -34,3 +34,7 @@ $(OUTPUT_DIR)/config/%.yaml: config/%.yaml
 
 clean:
 	rm -rf $(OUTPUT_DIR)
+
+image: all
+	docker build -f dockerfiles/Dockerfile-apiserver -t gosquirrel/squ-apiserver .
+	docker build -f dockerfiles/Dockerfile-agent -t gosquirrel/squ-agent .

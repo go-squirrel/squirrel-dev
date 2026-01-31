@@ -1,0 +1,12 @@
+
+FROM alpine:latest
+WORKDIR /squirrel
+RUN apk update && \
+    apk --no-cache add tzdata ca-certificates && \
+    cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    apk del tzdata && \
+    rm -rf /var/cache/apk/*
+# 使用--from的参数做到拷贝使用
+COPY squirrel/squ-agent /squirrel
+COPY config/agent.yaml /squirrel/agent.yaml
+CMD ["sh","-c","/squirrel/squ-agent -c /squirrel/agent.yaml"]
