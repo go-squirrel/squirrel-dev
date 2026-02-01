@@ -1,16 +1,22 @@
 package server
 
 import (
+	"embed"
 	"fmt"
 	"time"
 
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/pkg/middleware/cors"
 	"squirrel-dev/internal/pkg/middleware/log"
 	"squirrel-dev/internal/squ-apiserver/config"
 )
+
+//go:embed all:dist
+var staticData embed.FS
 
 type Server struct {
 	Config *config.Config
@@ -36,7 +42,11 @@ func (s *Server) Run() {
 		},
 		MaxAge: 12 * time.Hour,
 	})
-
+	staticFunc, err := static.EmbedFolder(staticData, "dist")
+	if err != nil {
+		zap.S().Error(err)
+	}
+	s.Gin.Use(static.Serve("/", staticFunc))
 	// s.Gin.Use(log.GinLogger(s.Log.Logger),
 	// 	log.GinRecovery(s.Log.Logger, true),
 	// 	c)
@@ -46,7 +56,7 @@ func (s *Server) Run() {
 
 	s.SetupRouter()
 
-	err := s.Gin.Run(s.Config.Server.Bind + ":" + s.Config.Server.Port)
+	err = s.Gin.Run(s.Config.Server.Bind + ":" + s.Config.Server.Port)
 	if err != nil {
 		fmt.Println(err)
 	}
