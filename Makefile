@@ -18,7 +18,7 @@ all: frontend $(BINS) $(CONFIGS)
 
 frontend:
 	@echo "Building frontend..."
-	@cd front && npm run build
+	@cd front && npm install&& npm run build
 	@rm -rf internal/squ-apiserver/server/dist
 	@mv front/dist internal/squ-apiserver/server
 	@echo "Frontend built and moved to internal/squ-apiserver/server/dist"
