@@ -46,7 +46,7 @@ jobs:
         context: .
         push: true
         build-args: version=${{ env.IMAGE_TAG }}
-        tags: gosquirrel/Dockerfile-apiserver:${{ env.IMAGE_TAG }}
+        tags: gosquirrel/squ-apiserver:${{ env.IMAGE_TAG }}
         platforms: linux/amd64
         file: dockerfiles/Dockerfile-apiserver
     - name: Build and push agent image
@@ -55,7 +55,6 @@ jobs:
         context: .
         push: true
         build-args: version=${{ env.IMAGE_TAG }}
-        tags: gosquirrel/Dockerfile-agent:${{ env.IMAGE_TAG }}
+        tags: gosquirrel/squ-agent:${{ env.IMAGE_TAG }}
         platforms: linux/amd64
         file: dockerfiles/Dockerfile-agent
-        

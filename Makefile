@@ -12,9 +12,16 @@ CMDS := squ-apiserver squ-agent squctl
 BINS := $(addprefix $(OUTPUT_DIR)/, $(CMDS))
 CONFIGS := $(addprefix $(OUTPUT_DIR)/config/, agent.yaml apiserver.yaml squctl.yaml)
 
-.PHONY: clean all package $(CMDS) image
+.PHONY: clean all package $(CMDS) image frontend
 
-all: $(BINS) $(CONFIGS)
+all: frontend $(BINS) $(CONFIGS)
+
+frontend:
+	@echo "Building frontend..."
+	@cd front && npm run build
+	@rm -rf internal/squ-apiserver/server/dist
+	@mv front/dist internal/squ-apiserver/server
+	@echo "Frontend built and moved to internal/squ-apiserver/server/dist"
 
 package: all
 	tar -czf $(TAR_NAME) -C $(OUTPUT_DIR) .

@@ -3,6 +3,7 @@ package auth
 import (
 	"squirrel-dev/internal/pkg/migration"
 	"squirrel-dev/internal/squ-apiserver/model"
+	"squirrel-dev/pkg/hash"
 
 	"gorm.io/gorm"
 )
@@ -18,9 +19,13 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 			if err != nil {
 				return err
 			}
+			hashedPassword, err := hash.HashPassword("squ123")
+			if err != nil {
+				return err
+			}
 			user := &model.User{
-				Username: "test",
-				Password: "test",
+				Username: "demo",
+				Password: hashedPassword,
 			}
 			return db.Create(user).Error
 		},
