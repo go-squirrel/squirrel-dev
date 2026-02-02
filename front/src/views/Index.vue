@@ -101,7 +101,6 @@
               </svg>
               <div class="metric-value">
                 <span class="value">{{ loadMetric.usage.toFixed(2) }}</span>
-                <span class="unit">%</span>
               </div>
             </div>
             <span class="metric-label">负载</span>
@@ -519,7 +518,7 @@ const monitorData = ref<MonitorData>({})
 const loadMetric = computed(() => {
   const load = monitorData.value.loadAverage?.load1 || 0
   const cores = monitorData.value.cpu?.cores || 1
-  const usage = Math.min((load / cores) * 100, 100)
+  const usage = monitorData.value.loadAverage?.load1 || 0
   let status = '运行流畅'
   if (usage > 80) status = '负载过高'
   else if (usage > 50) status = '负载中等'
@@ -531,7 +530,7 @@ const cpuMetric = computed(() => {
   const rawUsage = monitorData.value.cpu?.usage || 0
   // 如果 rawUsage > 1，说明 API 返回的是百分比形式（如 49.75）
   // 如果 rawUsage <= 1，说明 API 返回的是小数形式（如 0.4975）
-  const usage = rawUsage > 1 ? rawUsage : rawUsage * 100
+  const usage = rawUsage > 1 ? rawUsage : rawUsage 
   const cores = monitorData.value.cpu?.cores || 0
   // 计算使用的核心数
   const used = ((usage / 100) * cores).toFixed(2)
@@ -541,7 +540,7 @@ const cpuMetric = computed(() => {
 const memoryMetric = computed(() => {
   // API 返回的 usage 可能是小数（如 0.219）或百分比（如 21.9）
   const rawUsage = monitorData.value.memory?.usage || 0
-  const usage = rawUsage > 1 ? rawUsage : rawUsage * 100
+  const usage = rawUsage > 1 ? rawUsage : rawUsage
   const used = formatBytes(monitorData.value.memory?.used || 0)
   const total = formatBytes(monitorData.value.memory?.total || 0)
   return { usage, used, total }
@@ -550,7 +549,7 @@ const memoryMetric = computed(() => {
 const diskMetric = computed(() => {
   // API 返回的 usage 可能是小数（如 0.1148）或百分比（如 11.48）
   const rawUsage = monitorData.value.disk?.usage || 0
-  const usage = rawUsage > 1 ? rawUsage : rawUsage * 100
+  const usage = rawUsage > 1 ? rawUsage : rawUsage 
   const used = formatBytes(monitorData.value.disk?.used || 0)
   const total = formatBytes(monitorData.value.disk?.total || 0)
   return { usage, used, total }
@@ -690,6 +689,9 @@ async function fetchServers() {
       serverList.value = result.data
       if (serverList.value.length > 0 && currentServerId.value === 0) {
         currentServerId.value = serverList.value[0].id
+        // 获取到服务器后立即加载监控数据
+        await fetchMonitorStats()
+        await fetchChartData()
       }
     }
   } catch (error) {
@@ -938,12 +940,6 @@ onMounted(() => {
   }, 10000)
 
   window.addEventListener('resize', handleResize)
-
-  // 初始加载
-  setTimeout(() => {
-    fetchMonitorStats()
-    fetchChartData()
-  }, 100)
 })
 
 onUnmounted(() => {
