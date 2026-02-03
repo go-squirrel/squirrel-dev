@@ -688,7 +688,8 @@ async function fetchServers() {
       serverList.value = result.data
       if (serverList.value.length > 0 && currentServerId.value === 0) {
         currentServerId.value = serverList.value[0].id
-        // 获取到服务器后立即加载监控数据
+        // 获取到服务器后立即加载监控数据和系统信息
+        await fetchServerDetail()
         await fetchMonitorStats()
         await fetchChartData()
       }
@@ -705,17 +706,41 @@ async function fetchMonitorStats() {
     const result = await response.json()
     if (result.code === 0) {
       monitorData.value = result.data
-      updateSystemInfo(result.data)
     }
   } catch (error) {
     console.error('Failed to fetch monitor stats:', error)
   }
 }
 
-function updateSystemInfo(data: MonitorData) {
-  systemInfo.value.hostname = data.hostname || '-'
-  systemInfo.value.ip = serverList.value.find(s => s.id === currentServerId.value)?.ip_address || '-'
-  // 其他系统信息需要从其他接口获取或在 stats 中扩展
+// 获取服务器详细信息
+async function fetchServerDetail() {
+  if (!currentServerId.value) return
+  try {
+    const response = await fetch(`${API_BASE}/server/${currentServerId.value}`)
+    const result = await response.json()
+    if (result.code === 0 && result.data.server_info) {
+      const info = result.data.server_info
+      systemInfo.value.hostname = info.hostname || '-'
+      systemInfo.value.os = `${info.platform || '-'} ${info.platformVersion || ''}`.trim() || '-'
+      systemInfo.value.kernel = info.kernelVersion || '-'
+      systemInfo.value.arch = info.architecture || '-'
+      systemInfo.value.uptime = info.uptimeStr || '-'
+
+      // 获取第一个 IPv4 地址作为主 IP
+      if (info.ipAddresses && info.ipAddresses.length > 0) {
+        const firstInterface = info.ipAddresses[0]
+        if (firstInterface.ipv4 && firstInterface.ipv4.length > 0) {
+          systemInfo.value.ip = firstInterface.ipv4[0]
+        } else {
+          systemInfo.value.ip = '-'
+        }
+      } else {
+        systemInfo.value.ip = '-'
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch server detail:', error)
+  }
 }
 
 async function fetchApplications() {
@@ -889,7 +914,7 @@ function drawChart() {
 }
 
 // 切换服务器
-function switchServer(serverId: number) {
+async function switchServer(serverId: number) {
   currentServerId.value = serverId
   chartData.value = []
   // 重置统计数据
@@ -897,6 +922,7 @@ function switchServer(serverId: number) {
   lastIOStats = { readBytes: 0, writeBytes: 0, timestamp: 0 }
   currentNetStats.value = { bytesSent: 0, bytesRecv: 0 }
   currentIOStats.value = { readBytes: 0, writeBytes: 0 }
+  await fetchServerDetail()
   fetchMonitorStats()
   fetchChartData()
 }
