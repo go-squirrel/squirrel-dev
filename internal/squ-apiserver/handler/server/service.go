@@ -1,18 +1,34 @@
 package server
 
 import (
+	"encoding/json"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/server/req"
 	"squirrel-dev/internal/squ-apiserver/handler/server/res"
 	"squirrel-dev/internal/squ-apiserver/model"
+	"squirrel-dev/pkg/httpclient"
+	"squirrel-dev/pkg/utils"
+	"time"
 
 	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
+
+	"go.uber.org/zap"
 )
 
 type Server struct {
 	Config     *config.Config
 	Repository serverRepository.Repository
+	HTTPClient *httpclient.Client
+}
+
+func New(conf *config.Config, repo serverRepository.Repository) *Server {
+	hc := httpclient.NewClient(30 * time.Second)
+	return &Server{
+		Config:     conf,
+		Repository: repo,
+		HTTPClient: hc,
+	}
 }
 
 func (s *Server) List() response.Response {
@@ -41,6 +57,31 @@ func (s *Server) Get(id uint) response.Response {
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
+
+	agentURL := utils.GenAgentUrl(s.Config.Agent.Http.Scheme,
+		daoS.IpAddress,
+		daoS.AgentPort,
+		s.Config.Agent.Http.BaseUrl,
+		"server/info")
+
+	respBody, err := s.HTTPClient.Get(agentURL, nil)
+	var agentResp response.Response
+	if err := json.Unmarshal(respBody, &agentResp); err != nil {
+		zap.L().Error("解析 Agent 响应失败",
+			zap.String("url", agentURL),
+			zap.Error(err),
+		)
+		return response.Error(res.ErrConnectFailed)
+	}
+	if agentResp.Code != 0 {
+		zap.L().Error("Agent 获取信息失败",
+			zap.String("url", agentURL),
+			zap.Int("code", agentResp.Code),
+			zap.String("message", agentResp.Message),
+		)
+		return response.Error(res.ErrConnectFailed)
+	}
+
 	serverRes = res.Server{
 		ID:          daoS.ID,
 		Hostname:    daoS.Hostname,
@@ -49,6 +90,7 @@ func (s *Server) Get(id uint) response.Response {
 		SshPort:     daoS.SshPort,
 		AuthType:    daoS.AuthType,
 		Status:      daoS.Status,
+		ServerInfo:  agentResp.Data.(map[string]any),
 	}
 
 	return response.Success(serverRes)
