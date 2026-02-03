@@ -5,7 +5,7 @@
       <span>{{ $t('overview.status') }}</span>
     </h3>
     <div class="metrics-grid">
-      <!-- 负载 -->
+      <!-- 负载 - 显示原始值，无单位 -->
       <MetricCircle
         :value="loadMetric.usage"
         :label="$t('overview.load')"
@@ -16,11 +16,12 @@
         <LoadDetail :data="monitorData.loadAverage" />
       </MetricCircle>
 
-      <!-- CPU -->
+      <!-- CPU - 显示百分比 -->
       <MetricCircle
         :value="cpuMetric.usage"
         :label="$t('overview.cpu')"
         :sub-label="`( ${cpuMetric.used} / ${cpuMetric.total} ) ${$t('overview.cores')}`"
+        unit="%"
         @show-detail="$emit('showTooltip', 'cpu')"
         @hide-detail="$emit('hideTooltip')"
       >
@@ -30,11 +31,12 @@
         />
       </MetricCircle>
 
-      <!-- 内存 -->
+      <!-- 内存 - 显示百分比 -->
       <MetricCircle
         :value="memoryMetric.usage"
         :label="$t('overview.memory')"
         :sub-label="`${memoryMetric.used} / ${memoryMetric.total}`"
+        unit="%"
         @show-detail="$emit('showTooltip', 'memory')"
         @hide-detail="$emit('hideTooltip')"
       >
@@ -44,11 +46,12 @@
         />
       </MetricCircle>
 
-      <!-- 磁盘 -->
+      <!-- 磁盘 - 显示百分比 -->
       <MetricCircle
         :value="diskMetric.usage"
         :label="$t('overview.disk')"
         :sub-label="`${diskMetric.used} / ${diskMetric.total}`"
+        unit="%"
         @show-detail="$emit('showTooltip', 'disk')"
         @hide-detail="$emit('hideTooltip')"
       >
