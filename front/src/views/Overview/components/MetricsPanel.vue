@@ -10,6 +10,7 @@
         :value="loadMetric.usage"
         :label="$t('overview.load')"
         :sub-label="loadMetric.status || ''"
+        :show-tooltip="activeTooltip === 'load'"
         @show-detail="$emit('showTooltip', 'load')"
         @hide-detail="$emit('hideTooltip')"
       >
@@ -22,6 +23,7 @@
         :label="$t('overview.cpu')"
         :sub-label="`( ${cpuMetric.used} / ${cpuMetric.total} ) ${$t('overview.cores')}`"
         unit="%"
+        :show-tooltip="activeTooltip === 'cpu'"
         @show-detail="$emit('showTooltip', 'cpu')"
         @hide-detail="$emit('hideTooltip')"
       >
@@ -37,6 +39,7 @@
         :label="$t('overview.memory')"
         :sub-label="`${memoryMetric.used} / ${memoryMetric.total}`"
         unit="%"
+        :show-tooltip="activeTooltip === 'memory'"
         @show-detail="$emit('showTooltip', 'memory')"
         @hide-detail="$emit('hideTooltip')"
       >
@@ -52,6 +55,7 @@
         :label="$t('overview.disk')"
         :sub-label="`${diskMetric.used} / ${diskMetric.total}`"
         unit="%"
+        :show-tooltip="activeTooltip === 'disk'"
         @show-detail="$emit('showTooltip', 'disk')"
         @hide-detail="$emit('hideTooltip')"
       >
@@ -83,6 +87,7 @@ defineProps<{
   cpuMetric: MetricData
   memoryMetric: MetricData
   diskMetric: MetricData
+  activeTooltip: string | null
 }>()
 
 defineEmits<{

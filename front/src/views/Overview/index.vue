@@ -29,6 +29,7 @@
         :cpu-metric="cpuMetric"
         :memory-metric="memoryMetric"
         :disk-metric="diskMetric"
+        :active-tooltip="activeTooltip"
         @show-tooltip="showTooltip"
         @hide-tooltip="hideTooltip"
         @show-process="showProcessList"
