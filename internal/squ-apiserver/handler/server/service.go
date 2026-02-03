@@ -45,7 +45,7 @@ func (s *Server) List() response.Response {
 			SshUsername: daoS.SshUsername,
 			SshPort:     daoS.SshPort,
 			AuthType:    daoS.AuthType,
-			Status:      daoS.Status,
+			Status:      model.ServerStatusOnline,
 		})
 	}
 	return response.Success(servers)
@@ -57,6 +57,15 @@ func (s *Server) Get(id uint) response.Response {
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
+	serverRes = res.Server{
+		ID:          daoS.ID,
+		Hostname:    daoS.Hostname,
+		IpAddress:   daoS.IpAddress,
+		SshUsername: daoS.SshUsername,
+		SshPort:     daoS.SshPort,
+		AuthType:    daoS.AuthType,
+		Status:      daoS.Status,
+	}
 
 	agentURL := utils.GenAgentUrl(s.Config.Agent.Http.Scheme,
 		daoS.IpAddress,
@@ -66,31 +75,31 @@ func (s *Server) Get(id uint) response.Response {
 
 	respBody, err := s.HTTPClient.Get(agentURL, nil)
 	var agentResp response.Response
-	if err := json.Unmarshal(respBody, &agentResp); err != nil {
-		zap.L().Error("解析 Agent 响应失败",
+	if err != nil {
+		zap.L().Error("获取 Agent 信息失败",
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
-		return response.Error(res.ErrConnectFailed)
+		serverRes.Status = model.ServerStatusOffline
+	} else {
+		if err := json.Unmarshal(respBody, &agentResp); err != nil {
+			zap.L().Error("解析 Agent 响应失败",
+				zap.String("url", agentURL),
+				zap.Error(err),
+			)
+			serverRes.Status = model.ServerStatusOffline
+		}
+		if agentResp.Code != 0 {
+			zap.L().Error("Agent 获取信息失败",
+				zap.String("url", agentURL),
+				zap.Int("code", agentResp.Code),
+				zap.String("message", agentResp.Message),
+			)
+			serverRes.Status = model.ServerStatusOffline
+		}
 	}
-	if agentResp.Code != 0 {
-		zap.L().Error("Agent 获取信息失败",
-			zap.String("url", agentURL),
-			zap.Int("code", agentResp.Code),
-			zap.String("message", agentResp.Message),
-		)
-		return response.Error(res.ErrConnectFailed)
-	}
-
-	serverRes = res.Server{
-		ID:          daoS.ID,
-		Hostname:    daoS.Hostname,
-		IpAddress:   daoS.IpAddress,
-		SshUsername: daoS.SshUsername,
-		SshPort:     daoS.SshPort,
-		AuthType:    daoS.AuthType,
-		Status:      daoS.Status,
-		ServerInfo:  agentResp.Data.(map[string]any),
+	if agentResp.Data != nil {
+		serverRes.ServerInfo = agentResp.Data.(map[string]any)
 	}
 
 	return response.Success(serverRes)
