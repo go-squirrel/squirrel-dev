@@ -1,0 +1,42 @@
+// 样式入口文件
+
+@import './variables.scss';
+@import './mixins.scss';
+
+// 基础样式
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// 滚动条样式
+* {
+  @include scrollbar;
+}
+
+// 链接样式
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+// 按钮重置
+button {
+  font-family: inherit;
+}
+
+// 输入框重置
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}

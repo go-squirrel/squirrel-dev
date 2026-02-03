@@ -1,0 +1,89 @@
+// SCSS Mixins
+
+//  flex 居中
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// flex 垂直居中
+@mixin flex-vcenter {
+  display: flex;
+  align-items: center;
+}
+
+// 文字省略
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 多行文字省略
+@mixin text-ellipsis-multi($line: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $line;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// 滚动条样式
+@mixin scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: var(--color-bg-light);
+    border-radius: var(--radius-sm);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: var(--radius-sm);
+    
+    &:hover {
+      background: var(--color-text-muted);
+    }
+  }
+}
+
+// 卡片样式
+@mixin card {
+  background: var(--color-bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+// 按钮基础样式
+@mixin btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  outline: none;
+}
+
+// 响应式断点
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == 'sm' {
+    @media (max-width: 640px) { @content; }
+  }
+  @if $breakpoint == 'md' {
+    @media (max-width: 768px) { @content; }
+  }
+  @if $breakpoint == 'lg' {
+    @media (max-width: 1024px) { @content; }
+  }
+  @if $breakpoint == 'xl' {
+    @media (max-width: 1280px) { @content; }
+  }
+}

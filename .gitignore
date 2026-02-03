@@ -5,6 +5,8 @@ output
 compose
 squirrel
 
+.trae
+
 # Frontend build output
 dist/
 build/

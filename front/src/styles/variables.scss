@@ -1,0 +1,67 @@
+// 全局变量
+
+// 颜色系统
+:root {
+  // 主色调
+  --color-primary: #4fc3f7;
+  --color-primary-dark: #29b6f6;
+  --color-primary-light: #e0f2fe;
+  
+  // 背景色
+  --color-bg: #f5f7fa;
+  --color-bg-white: #ffffff;
+  --color-bg-light: #f8fafc;
+  
+  // 文字色
+  --color-text: #1e3a5f;
+  --color-text-secondary: #64748b;
+  --color-text-muted: #94a3b8;
+  
+  // 边框色
+  --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
+  
+  // 状态色
+  --color-success: #16a34a;
+  --color-warning: #ea580c;
+  --color-error: #dc2626;
+  --color-info: #0284c7;
+  
+  // 阴影
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  
+  // 圆角
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 24px;
+  
+  // 间距
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-2xl: 24px;
+  
+  // 字体
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-size-xs: 10px;
+  --font-size-sm: 11px;
+  --font-size-base: 12px;
+  --font-size-md: 13px;
+  --font-size-lg: 14px;
+  --font-size-xl: 16px;
+  --font-size-2xl: 18px;
+  --font-size-3xl: 24px;
+  --font-size-4xl: 28px;
+  --font-size-5xl: 36px;
+  
+  // 侧边栏
+  --sidebar-width: 200px;
+  --sidebar-collapsed-width: 64px;
+  --header-height: 60px;
+}

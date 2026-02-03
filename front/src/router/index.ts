@@ -1,22 +1,23 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import { useUserStore } from '@/store'
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/Login.vue'),
-    meta: { requiresAuth: false }
+    component: () => import('@/views/Login/index.vue'),
+    meta: { requiresAuth: false, layout: 'full' }
   },
   {
     path: '/',
-    name: 'Index',
-    component: () => import('@/components/MainLayout.vue'),
+    component: () => import('@/layout/index.vue'),
     meta: { requiresAuth: true },
     children: [
       {
         path: '',
-        component: () => import('@/views/Index.vue')
+        name: 'Overview',
+        component: () => import('@/views/Overview/index.vue')
       }
     ]
   }
@@ -29,10 +30,10 @@ const router = createRouter({
 
 // 路由守卫
 router.beforeEach((to, _from, next) => {
+  const userStore = useUserStore()
   const requiresAuth = to.meta.requiresAuth !== false
-  const token = localStorage.getItem('token')
 
-  if (requiresAuth && !token) {
+  if (requiresAuth && !userStore.isLoggedIn) {
     next('/login')
   } else {
     next()
