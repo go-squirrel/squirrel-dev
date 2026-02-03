@@ -153,7 +153,7 @@
               <div class="tooltip-content">
                 <div class="cpu-info">
                   <span>型号: {{ monitorData.cpu?.model || '-' }}</span>
-                  <span>频率: {{ (monitorData.cpu?.frequency / 1000).toFixed(2) || 0 }} GHz</span>
+                  <span>频率: {{ ((monitorData.cpu?.frequency || 0) / 1000).toFixed(2) }} GHz</span>
                   <span>核心数: {{ monitorData.cpu?.cores || 0 }} 核</span>
                 </div>
                 <div class="cpu-cores">
@@ -463,6 +463,7 @@ const baseStats = ref({
 
 // 监控数据
 interface MonitorData {
+  hostname?: string
   cpu?: {
     cores: number
     frequency: number
@@ -516,8 +517,6 @@ const monitorData = ref<MonitorData>({})
 
 // 计算监控指标
 const loadMetric = computed(() => {
-  const load = monitorData.value.loadAverage?.load1 || 0
-  const cores = monitorData.value.cpu?.cores || 1
   const usage = monitorData.value.loadAverage?.load1 || 0
   let status = '运行流畅'
   if (usage > 80) status = '负载过高'
@@ -587,7 +586,7 @@ function getStatusClass(status: string): string {
 
 // 悬停提示
 const activeTooltip = ref<string | null>(null)
-let tooltipTimer: NodeJS.Timeout | null = null
+let tooltipTimer: ReturnType<typeof setTimeout> | null = null
 
 const showTooltip = (type: string) => {
   if (tooltipTimer) clearTimeout(tooltipTimer)
@@ -903,8 +902,8 @@ function switchServer(serverId: number) {
 }
 
 // 定时器
-let monitorTimer: NodeJS.Timeout | null = null
-let chartTimer: NodeJS.Timeout | null = null
+let monitorTimer: ReturnType<typeof setInterval> | null = null
+let chartTimer: ReturnType<typeof setInterval> | null = null
 
 // 监听图表类型变化
 watch(chartType, () => {
