@@ -73,8 +73,8 @@ func (d *Disk) CollectDisk() (*DiskInfo, error) {
 func (d *Disk) shouldSkip(fsType string) bool {
 	// 跳过虚拟文件系统
 	skipTypes := []string{
-		"fuse.lxcfs", "loop", "nsfs", "tmpfs",
-		"autofs", "binfmt_misc", "cgroup", "cgroup2",
+		"fuse.lxcfs", "loop", "nsfs", "tmpfs", "squashfs", "fuse",
+		"autofs", "binfmt_misc", "cgroup", "cgroup2", "efivarfs", "vfat",
 		"configfs", "debugfs", "devpts", "devtmpfs", "fusectl",
 		"hugetlbfs", "mqueue", "overlay", "proc", "procfs", "bpf",
 		"pstore", "rpc_pipefs", "securityfs", "sysfs", "tracefs",
