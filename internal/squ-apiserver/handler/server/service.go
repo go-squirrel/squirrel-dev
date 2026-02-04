@@ -123,6 +123,11 @@ func (s *Server) Add(request req.Server) response.Response {
 		AuthType:    request.AuthType,
 		Status:      request.Status,
 	}
+	if request.AuthType == model.ServerAuthTypePassword {
+		modelReq.SshPassword = &request.SshPassword
+	} else {
+		modelReq.SshPrivateKey = &request.SshPrivateKey
+	}
 
 	err := s.Repository.Add(&modelReq)
 	if err != nil {
