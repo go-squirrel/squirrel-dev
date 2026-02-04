@@ -50,5 +50,7 @@ export default {
   directory: 'Directory',
   processName: 'Name',
   memoryMB: 'Memory(MB)',
-  operation: 'Action'
+  operation: 'Action',
+  topCpuProcesses: 'Top 5 CPU Processes',
+  topMemoryProcesses: 'Top 5 Memory Processes'
 }

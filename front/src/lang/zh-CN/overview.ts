@@ -50,5 +50,7 @@ export default {
   directory: '目录',
   processName: '名称',
   memoryMB: '内存(MB)',
-  operation: '操作'
+  operation: '操作',
+  topCpuProcesses: 'CPU 使用率前五进程',
+  topMemoryProcesses: '内存使用率前五进程'
 }

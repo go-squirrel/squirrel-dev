@@ -64,6 +64,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ServerList from './components/ServerList.vue'
 import StatsCard from './components/StatsCard.vue'
 import MetricsPanel from './components/MetricsPanel.vue'
@@ -124,12 +125,14 @@ const showProcessModal = ref(false)
 const processModalTitle = ref('')
 const processList = ref<ProcessInfo[]>([])
 
+const { t } = useI18n()
+
 const showProcessList = (type: 'cpu' | 'memory') => {
   if (type === 'cpu') {
-    processModalTitle.value = 'CPU 使用率前五进程'
+    processModalTitle.value = t('overview.topCpuProcesses')
     processList.value = monitorData.value.topCPU || []
   } else {
-    processModalTitle.value = '内存使用率前五进程'
+    processModalTitle.value = t('overview.topMemoryProcesses')
     processList.value = monitorData.value.topMemory || []
   }
   showProcessModal.value = true
