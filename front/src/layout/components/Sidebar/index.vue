@@ -21,7 +21,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '@iconify/vue'
 import type { NavItem } from '../../types'
 
@@ -30,17 +32,18 @@ defineProps<{
 }>()
 
 const route = useRoute()
+const { t } = useI18n()
 
-const navItems: NavItem[] = [
-  { path: '/', label: '概览', icon: 'lucide:layout-dashboard' },
-  { path: '/servers', label: '服务器', icon: 'lucide:server' },
-  { path: '/applications', label: '应用', icon: 'lucide:box' },
-  { path: '/monitor', label: '监控', icon: 'lucide:activity' },
-  { path: '/scripts', label: '脚本', icon: 'lucide:terminal' },
-  { path: '/configs', label: '配置', icon: 'lucide:settings' },
-  { path: '/deployments', label: '部署', icon: 'lucide:rocket' },
-  { path: '/appstore', label: '应用商店', icon: 'lucide:shopping-bag' }
-]
+const navItems = computed<NavItem[]>(() => [
+  { path: '/', label: t('layout.overview'), icon: 'lucide:layout-dashboard' },
+  { path: '/servers', label: t('layout.servers'), icon: 'lucide:server' },
+  { path: '/applications', label: t('layout.applications'), icon: 'lucide:box' },
+  { path: '/monitor', label: t('layout.monitor'), icon: 'lucide:activity' },
+  { path: '/scripts', label: t('layout.scripts'), icon: 'lucide:terminal' },
+  { path: '/configs', label: t('layout.configs'), icon: 'lucide:settings' },
+  { path: '/deployments', label: t('layout.deployments'), icon: 'lucide:rocket' },
+  { path: '/appstore', label: t('layout.appstore'), icon: 'lucide:shopping-bag' }
+])
 
 const isActive = (path: string) => {
   return route.path === path || route.path.startsWith(path + '/')
