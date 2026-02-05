@@ -3,6 +3,8 @@
   "ip_address": "192.168.1.10",
   "ssh_username": "root",
   "ssh_port": 22,
+  "ssh_password": "123",
+  "ssh_private_key": "",
   "auth_type": "password",
   "status": "active",
   "server_alias": "WebProd"

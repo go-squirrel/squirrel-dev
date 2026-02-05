@@ -1,19 +1,15 @@
 package server
 
 import (
-	"encoding/json"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/server/req"
 	"squirrel-dev/internal/squ-apiserver/handler/server/res"
 	"squirrel-dev/internal/squ-apiserver/model"
 	"squirrel-dev/pkg/httpclient"
-	"squirrel-dev/pkg/utils"
 	"time"
 
 	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
-
-	"go.uber.org/zap"
 )
 
 type Server struct {
@@ -38,14 +34,21 @@ func (s *Server) List() response.Response {
 		return response.Error(model.ReturnErrCode(err))
 	}
 	for _, daoS := range daoServers {
+
+		status, _ := s.getAgentInfo(daoS.IpAddress, daoS.AgentPort)
+
 		servers = append(servers, res.Server{
-			ID:          daoS.ID,
-			Hostname:    daoS.Hostname,
-			IpAddress:   daoS.IpAddress,
-			SshUsername: daoS.SshUsername,
-			SshPort:     daoS.SshPort,
-			AuthType:    daoS.AuthType,
-			Status:      model.ServerStatusOnline,
+			ID:            daoS.ID,
+			Hostname:      daoS.Hostname,
+			Port:          daoS.AgentPort,
+			IpAddress:     daoS.IpAddress,
+			SshUsername:   daoS.SshUsername,
+			SshPassword:   daoS.SshPassword,
+			SshPrivateKey: daoS.SshPrivateKey,
+			ServerAlias:   daoS.ServerAlias,
+			SshPort:       daoS.SshPort,
+			AuthType:      daoS.AuthType,
+			Status:        status,
 		})
 	}
 	return response.Success(servers)
@@ -57,47 +60,25 @@ func (s *Server) Get(id uint) response.Response {
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
+
+	status, _ := s.getAgentInfo(daoS.IpAddress, daoS.AgentPort)
+
 	serverRes = res.Server{
-		ID:          daoS.ID,
-		Hostname:    daoS.Hostname,
-		IpAddress:   daoS.IpAddress,
-		SshUsername: daoS.SshUsername,
-		SshPort:     daoS.SshPort,
-		AuthType:    daoS.AuthType,
-		Status:      daoS.Status,
+		ID:            daoS.ID,
+		Hostname:      daoS.Hostname,
+		IpAddress:     daoS.IpAddress,
+		Port:          daoS.AgentPort,
+		SshUsername:   daoS.SshUsername,
+		SshPassword:   daoS.SshPassword,
+		SshPrivateKey: daoS.SshPrivateKey,
+		ServerAlias:   daoS.ServerAlias,
+		SshPort:       daoS.SshPort,
+		AuthType:      daoS.AuthType,
+		Status:        status,
 	}
 
-	agentURL := utils.GenAgentUrl(s.Config.Agent.Http.Scheme,
-		daoS.IpAddress,
-		daoS.AgentPort,
-		s.Config.Agent.Http.BaseUrl,
-		"server/info")
-
-	respBody, err := s.HTTPClient.Get(agentURL, nil)
-	var agentResp response.Response
-	if err != nil {
-		zap.L().Error("获取 Agent 信息失败",
-			zap.String("url", agentURL),
-			zap.Error(err),
-		)
-		serverRes.Status = model.ServerStatusOffline
-	} else {
-		if err := json.Unmarshal(respBody, &agentResp); err != nil {
-			zap.L().Error("解析 Agent 响应失败",
-				zap.String("url", agentURL),
-				zap.Error(err),
-			)
-			serverRes.Status = model.ServerStatusOffline
-		}
-		if agentResp.Code != 0 {
-			zap.L().Error("Agent 获取信息失败",
-				zap.String("url", agentURL),
-				zap.Int("code", agentResp.Code),
-				zap.String("message", agentResp.Message),
-			)
-			serverRes.Status = model.ServerStatusOffline
-		}
-	}
+	status, agentResp := s.getAgentInfo(daoS.IpAddress, daoS.AgentPort)
+	serverRes.Status = status
 	if agentResp.Data != nil {
 		serverRes.ServerInfo = agentResp.Data.(map[string]any)
 	}
@@ -123,6 +104,11 @@ func (s *Server) Add(request req.Server) response.Response {
 		AuthType:    request.AuthType,
 		Status:      request.Status,
 	}
+	if request.AuthType == model.ServerAuthTypePassword {
+		modelReq.SshPassword = &request.SshPassword
+	} else {
+		modelReq.SshPrivateKey = &request.SshPrivateKey
+	}
 
 	err := s.Repository.Add(&modelReq)
 	if err != nil {
@@ -141,6 +127,12 @@ func (s *Server) Update(request req.Server) response.Response {
 		Status:      request.Status,
 	}
 	modelReq.ID = request.ID
+	if request.AuthType == model.ServerAuthTypePassword {
+		modelReq.SshPassword = &request.SshPassword
+	} else {
+		modelReq.SshPrivateKey = &request.SshPrivateKey
+	}
+
 	err := s.Repository.Update(&modelReq)
 
 	if err != nil {
