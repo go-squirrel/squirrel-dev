@@ -23,6 +23,10 @@ export const useLayoutStore = defineStore('layout', () => {
   function setLayoutMode(mode: 'default' | 'compact' | 'full') {
     currentLayout.value = mode
   }
+
+  function isFullLayout() {
+    return currentLayout.value === 'full'
+  }
   
   return {
     sidebarCollapsed,
@@ -31,6 +35,7 @@ export const useLayoutStore = defineStore('layout', () => {
     layoutMode,
     toggleSidebar,
     setSidebarCollapsed,
-    setLayoutMode
+    setLayoutMode,
+    isFullLayout
   }
 })

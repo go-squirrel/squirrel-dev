@@ -8,7 +8,7 @@
         @logout="handleLogout"
       />
       <MainContent>
-        <router-view />
+        <slot />
       </MainContent>
     </div>
   </div>

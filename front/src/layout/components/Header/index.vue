@@ -1,7 +1,7 @@
 <template>
   <header class="header">
     <div class="header-left">
-      <button class="toggle-btn" @click="$emit('toggleSidebar')">
+      <button v-if="!isFullLayout" class="toggle-btn" @click="$emit('toggleSidebar')">
         <Icon icon="lucide:menu" />
       </button>
       <h1 class="page-title">{{ pageTitle }}</h1>
@@ -58,6 +58,7 @@ const { locale, t } = useI18n()
 
 const showLangMenu = ref(false)
 
+const isFullLayout = computed(() => route.meta.layout === 'full')
 const currentLocale = computed(() => locale.value)
 const currentLocaleName = computed(() => {
   const loc = availableLocales.find(l => l.code === locale.value)
@@ -67,7 +68,8 @@ const currentLocaleName = computed(() => {
 const pageTitle = computed(() => {
   const titles: Record<string, string> = {
     '/': t('layout.overview'),
-    '/servers': t('layout.servers'),
+    '/servers': t('server.title'),
+    '/servers/:id/terminal': t('server.terminal'),
     '/applications': t('layout.applications'),
     '/monitor': t('layout.monitor'),
     '/scripts': t('layout.scripts'),

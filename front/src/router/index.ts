@@ -11,15 +11,21 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/',
-    component: () => import('@/layout/index.vue'),
-    meta: { requiresAuth: true },
-    children: [
-      {
-        path: '',
-        name: 'Overview',
-        component: () => import('@/views/Overview/index.vue')
-      }
-    ]
+    name: 'Overview',
+    component: () => import('@/views/Overview/index.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/servers',
+    name: 'Servers',
+    component: () => import('@/views/Server/index.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/servers/:id/terminal',
+    name: 'ServerTerminal',
+    component: () => import('@/views/Server/Terminal.vue'),
+    meta: { requiresAuth: true, layout: 'full' }
   }
 ]
 

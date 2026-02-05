@@ -1,11 +1,60 @@
 // 全局类型定义
 
+// IP地址类型
+export interface IpAddress {
+  ipv4: string[]
+  ipv6: string[]
+  name: string
+}
+
+// 服务器详细信息
+export interface ServerInfo {
+  architecture: string
+  hostname: string
+  ipAddresses: IpAddress[]
+  kernelVersion: string
+  os: string
+  platform: string
+  platformVersion: string
+  uptime: number
+  uptimeStr: string
+}
+
 // 服务器类型
 export interface Server {
   id: number
   hostname: string
   ip_address: string
-  status: 'online' | 'offline' | 'unknown'
+  ssh_username: string
+  ssh_port: number
+  auth_type: 'password' | 'key'
+  status: 'online' | 'offline' | 'unknown' | 'active' | 'inactive'
+  server_info?: ServerInfo | null
+  server_alias?: string
+}
+
+// 创建服务器请求
+export interface CreateServerRequest {
+  ip_address: string
+  ssh_username: string
+  ssh_port: number
+  ssh_password?: string
+  ssh_private_key?: string
+  auth_type: 'password' | 'key'
+  status: 'active' | 'inactive'
+  server_alias?: string
+}
+
+// 更新服务器请求
+export interface UpdateServerRequest {
+  ip_address: string
+  ssh_username: string
+  ssh_port: number
+  auth_type: 'password' | 'key'
+  status: 'active' | 'inactive'
+  server_alias?: string
+  ssh_password?: string
+  ssh_private_key?: string
 }
 
 // 应用类型

@@ -2,10 +2,12 @@ import common from './common'
 import login from './login'
 import overview from './overview'
 import layout from './layout'
+import server from './server'
 
 export default {
   common,
   login,
   overview,
-  layout
+  layout,
+  server
 }
