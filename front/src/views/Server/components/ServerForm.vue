@@ -165,7 +165,7 @@ watch(() => props.server, (server) => {
   } else {
     resetForm()
   }
-})
+}, { immediate: true })
 
 const resetForm = () => {
   formData.ip_address = ''
