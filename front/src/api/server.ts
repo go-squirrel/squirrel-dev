@@ -43,6 +43,5 @@ export function deleteServer(serverId: number): Promise<string> {
 export function getTerminalWebSocketUrl(serverId: number): string {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
   const host = window.location.host
-  const token = localStorage.getItem('token') || ''
-  return `${protocol}//${host}/api/v1/server/${serverId}/terminal?token=${token}`
+  return `${protocol}//${host}/api/v1/ws/server/${serverId}`
 }
