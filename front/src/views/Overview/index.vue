@@ -10,46 +10,54 @@
       </defs>
     </svg>
 
-    <!-- 左侧服务器列表 -->
-    <ServerList 
-      :servers="serverList" 
-      :current-server-id="currentServerId"
-      @switch="handleServerSwitch"
-    />
+    <!-- 加载中状态 -->
+    <div v-if="loading" class="loading-container">
+      <Icon icon="lucide:loader-2" class="spinner" />
+      <p>{{ $t('overview.loading') }}</p>
+    </div>
 
-    <!-- 主内容区 -->
-    <main class="main-area">
-      <!-- 基础数据展示 -->
-      <StatsCard :stats="baseStats" />
-
-      <!-- 监控指标展示 -->
-      <MetricsPanel
-        :monitor-data="monitorData"
-        :load-metric="loadMetric"
-        :cpu-metric="cpuMetric"
-        :memory-metric="memoryMetric"
-        :disk-metric="diskMetric"
-        :active-tooltip="activeTooltip"
-        @show-tooltip="showTooltip"
-        @hide-tooltip="hideTooltip"
-        @show-process="showProcessList"
+    <template v-else>
+      <!-- 左侧服务器列表 -->
+      <ServerList 
+        :servers="serverList" 
+        :current-server-id="currentServerId"
+        @switch="handleServerSwitch"
       />
 
-      <!-- 监控图表 -->
-      <ChartPanel
-        v-model:chart-type="chartType"
-        v-model:chart-target="chartTarget"
-        :chart-data="chartData"
-        :current-net-stats="currentNetStats"
-        :current-i-o-stats="currentIOStats"
-      />
-    </main>
+      <!-- 主内容区 -->
+      <main class="main-area">
+        <!-- 基础数据展示 -->
+        <StatsCard :stats="baseStats" />
 
-    <!-- 右侧信息区 -->
-    <aside class="info-sidebar">
-      <SystemInfo :info="systemInfo" />
-      <AppList :apps="appList" />
-    </aside>
+        <!-- 监控指标展示 -->
+        <MetricsPanel
+          :monitor-data="monitorData"
+          :load-metric="loadMetric"
+          :cpu-metric="cpuMetric"
+          :memory-metric="memoryMetric"
+          :disk-metric="diskMetric"
+          :active-tooltip="activeTooltip"
+          @show-tooltip="showTooltip"
+          @hide-tooltip="hideTooltip"
+          @show-process="showProcessList"
+        />
+
+        <!-- 监控图表 -->
+        <ChartPanel
+          v-model:chart-type="chartType"
+          v-model:chart-target="chartTarget"
+          :chart-data="chartData"
+          :current-net-stats="currentNetStats"
+          :current-i-o-stats="currentIOStats"
+        />
+      </main>
+
+      <!-- 右侧信息区 -->
+      <aside class="info-sidebar">
+        <SystemInfo :info="systemInfo" />
+        <AppList :apps="appList" />
+      </aside>
+    </template>
 
     <!-- 进程列表弹窗 -->
     <ProcessModal
@@ -63,8 +71,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Icon } from '@iconify/vue'
 import ServerList from './components/ServerList.vue'
 import StatsCard from './components/StatsCard.vue'
 import MetricsPanel from './components/MetricsPanel.vue'
@@ -83,8 +92,11 @@ const baseStats = ref({
   installedApps: 6
 })
 
+// 页面加载状态
+const loading = ref(true)
+
 // 使用 composables
-const { serverList, currentServerId, switchServer } = useServers()
+const { serverList, currentServerId, loadServers, switchServer } = useServers()
 const { 
   monitorData, 
   chartData, 
@@ -155,13 +167,39 @@ const handleServerSwitch = async (serverId: number) => {
   loadChartData()
 }
 
+// 初始化数据
+const initData = async () => {
+  loading.value = true
+  try {
+    // 先加载服务器列表
+    await loadServers()
+    // 如果有服务器，加载监控数据
+    if (currentServerId.value) {
+      await loadSystemInfo()
+      await loadMonitorStats()
+      await loadChartData()
+      startTimers()
+    }
+  } catch (error) {
+    console.error('Failed to init data:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
 // 监听服务器变化
-watch(currentServerId, async (newId) => {
-  if (newId) {
+watch(currentServerId, async (newId, oldId) => {
+  if (newId && newId !== oldId) {
     stopTimers()
     await loadSystemInfo()
+    await loadMonitorStats()
+    await loadChartData()
     startTimers()
   }
+})
+
+onMounted(() => {
+  initData()
 })
 </script>
 
@@ -170,6 +208,32 @@ watch(currentServerId, async (newId) => {
   display: flex;
   height: 100%;
   gap: 16px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #64748b;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .main-area {

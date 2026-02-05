@@ -1,4 +1,5 @@
 export default {
+  loading: 'Loading...',
   serverList: 'Server List',
   website: 'Websites',
   database: 'Databases · All',

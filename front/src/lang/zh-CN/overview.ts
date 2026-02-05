@@ -1,4 +1,5 @@
 export default {
+  loading: '加载中...',
   serverList: '服务器列表',
   website: '网站',
   database: '数据库 · 所有',
