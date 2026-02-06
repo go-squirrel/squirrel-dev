@@ -13,19 +13,19 @@ type Server struct {
 	Factory *collector.CollectorFactory
 }
 
-func (s *Server) GetInfo() (response.Response, error) {
+func (s *Server) GetInfo() response.Response {
 	if s.Factory == nil {
-		return response.Error(model.ReturnErrCode(nil)), nil
+		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	hostCollector := s.Factory.GetHostCollector()
 	if hostCollector == nil {
-		return response.Error(model.ReturnErrCode(nil)), nil
+		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	hostInfo, err := hostCollector.CollectHostInfo()
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err)), nil
+		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 转换响应格式
@@ -50,5 +50,5 @@ func (s *Server) GetInfo() (response.Response, error) {
 		IPAddresses:     netAddrs,
 	}
 
-	return response.Success(info), nil
+	return response.Success(info)
 }

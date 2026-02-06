@@ -15,7 +15,7 @@ func ExecuteHandler(service *Script) func(c *gin.Context) {
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		res := service.Execute(request)
