@@ -31,6 +31,7 @@ $(CMDS): %: $(OUTPUT_DIR)/%
 
 $(OUTPUT_DIR)/%: cmd/%/*.go
 	@mkdir -p $(OUTPUT_DIR)
+	CGO_ENABLED=0 \
 	go build \
 	-ldflags '-X "squirrel-dev/cmd/$*/app.Version=$(VERSION)"' \
 	-o $@ ./cmd/$*
