@@ -19,7 +19,7 @@ func LoginHandler(service *Auth) func(c *gin.Context) {
 		if err != nil {
 			fmt.Println(err)
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 

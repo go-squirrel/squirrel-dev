@@ -20,7 +20,7 @@ func ListHandler(service *Deployment) func(c *gin.Context) {
 			serverIDUint, err = utils.StringToUint(serverID)
 			if err != nil {
 				zap.S().Warn(err)
-				c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+				c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 				return
 			}
 		}
@@ -36,14 +36,14 @@ func DeployHandler(service *Deployment) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		request := req.DeployApplication{}
 		err = c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		request.ApplicationID = idUint
@@ -58,7 +58,7 @@ func ListServersHandler(service *Deployment) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		res := service.ListServers(idUint)
@@ -73,7 +73,7 @@ func UndeployHandler(service *Deployment) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 
@@ -89,7 +89,7 @@ func StopHandler(service *Deployment) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 
@@ -105,7 +105,7 @@ func StartHandler(service *Deployment) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 
@@ -120,7 +120,7 @@ func ReportStatusHandler(service *Deployment) func(c *gin.Context) {
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		res := service.ReportStatus(request)

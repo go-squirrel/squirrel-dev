@@ -23,7 +23,7 @@ func GetHandler(service *AppStore) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		res := service.Get(idUint)
@@ -37,7 +37,7 @@ func DeleteHandler(service *AppStore) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		res := service.Delete(idUint)
@@ -51,7 +51,7 @@ func AddHandler(service *AppStore) func(c *gin.Context) {
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		res := service.Add(request)
@@ -65,14 +65,14 @@ func UpdateHandler(service *AppStore) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		request := req.AppStore{}
 		err = c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		request.ID = idUint

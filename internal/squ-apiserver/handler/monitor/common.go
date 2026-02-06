@@ -10,10 +10,10 @@ import (
 	"go.uber.org/zap"
 )
 
-func (m *Monitor) callAgent(serverID uint, path string, description string) (response.Response, error) {
+func (m *Monitor) callAgent(serverID uint, path string, description string) response.Response {
 	server, err := m.ServerRepo.Get(serverID)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err)), nil
+		return response.Error(model.ReturnErrCode(err))
 	}
 
 	agentURL := utils.GenAgentUrl(m.Config.Agent.Http.Scheme,
@@ -29,7 +29,7 @@ func (m *Monitor) callAgent(serverID uint, path string, description string) (res
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
-		return response.Error(res.ErrMonitorFailed), nil
+		return response.Error(res.ErrMonitorFailed)
 	}
 
 	var agentResp response.Response
@@ -39,8 +39,8 @@ func (m *Monitor) callAgent(serverID uint, path string, description string) (res
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
-		return response.Error(res.ErrMonitorFailed), nil
+		return response.Error(res.ErrMonitorFailed)
 	}
 
-	return agentResp, nil
+	return agentResp
 }
