@@ -27,7 +27,7 @@ func GetHandler(service *Server) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		res := service.Get(idUint)
@@ -42,7 +42,7 @@ func DeleteHandler(service *Server) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		res := service.Delete(idUint)
@@ -56,7 +56,7 @@ func AddHandler(service *Server) func(c *gin.Context) {
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		res := service.Add(request)
@@ -70,14 +70,14 @@ func UpdateHandler(service *Server) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		request := req.Server{}
 		err = c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		request.ID = idUint
@@ -92,7 +92,7 @@ func RegistryHandler(service *Server) func(c *gin.Context) {
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		res := service.Registry(request)
@@ -118,7 +118,7 @@ func TerminalHandler(service *Server) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		res := service.GetTerminal(idUint, conn)
