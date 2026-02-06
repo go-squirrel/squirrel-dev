@@ -24,3 +24,7 @@ func (c *Client) Add(req *model.Server) (err error) {
 func (c *Client) Update(req *model.Server) (err error) {
 	return c.DB.Updates(req).Error
 }
+
+func (c *Client) GetByUUID(uuid string) (server model.Server, err error) {
+	return server, c.DB.Where("uuid = ?", uuid).First(&server).Error
+}

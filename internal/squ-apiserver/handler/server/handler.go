@@ -86,6 +86,20 @@ func UpdateHandler(service *Server) func(c *gin.Context) {
 	}
 }
 
+func RegistryHandler(service *Server) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		request := req.Register{}
+		err := c.ShouldBindJSON(&request)
+		if err != nil {
+			zap.S().Warn(err)
+			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
+			return
+		}
+		res := service.Registry(request)
+		c.JSON(http.StatusOK, res)
+	}
+}
+
 func TerminalHandler(service *Server) func(c *gin.Context) {
 
 	return func(c *gin.Context) {

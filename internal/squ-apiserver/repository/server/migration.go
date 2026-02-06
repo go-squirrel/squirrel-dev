@@ -4,6 +4,7 @@ import (
 	"os"
 	"squirrel-dev/internal/pkg/migration"
 	"squirrel-dev/internal/squ-apiserver/model"
+	"squirrel-dev/pkg/utils"
 
 	"gorm.io/gorm"
 )
@@ -20,7 +21,9 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 				return err
 			}
 			hostname, _ := os.Hostname()
+			uuid := utils.GenerateServerUUID(hostname)
 			server := &model.Server{
+				UUID:      uuid,
 				Hostname:  hostname,
 				IpAddress: "127.0.0.1",
 			}

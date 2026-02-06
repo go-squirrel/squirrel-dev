@@ -141,3 +141,18 @@ func (s *Server) Update(request req.Server) response.Response {
 
 	return response.Success("success")
 }
+
+func (s *Server) Registry(request req.Register) response.Response {
+	daoS, err := s.Repository.GetByUUID(request.UUID)
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	daoS.AgentPort = request.AgentPort
+	err = s.Repository.Update(&daoS)
+	if err != nil {
+		return response.Error(model.ReturnErrCode(err))
+	}
+
+	return response.Success("success")
+}

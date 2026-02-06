@@ -12,6 +12,7 @@ type Repository interface {
 	Delete(id uint) (err error)
 	Add(req *model.Server) (err error)
 	Update(req *model.Server) (err error)
+	GetByUUID(uuid string) (server model.Server, err error)
 }
 
 func New(db *gorm.DB) Repository {
