@@ -1,6 +1,7 @@
 package monitor
 
 import (
+	"sort"
 	"squirrel-dev/internal/pkg/response"
 	monitorres "squirrel-dev/internal/squ-agent/handler/monitor/res"
 	"squirrel-dev/internal/squ-agent/model"
@@ -126,7 +127,7 @@ func (m *Monitor) GetAllNetIO() response.Response {
 		result.Data.Dropout += ioStats.Dropout
 		result.Ifnames = append(result.Ifnames, ioStats.Name)
 	}
-
+	sort.Strings(result.Ifnames)
 	return response.Success(result)
 }
 
@@ -183,6 +184,7 @@ func (m *Monitor) GetAllDiskIO() response.Response {
 		allResult.Devices = append(allResult.Devices, ioStats.Device)
 	}
 
+	sort.Strings(allResult.Devices)
 	return response.Success(allResult)
 }
 
