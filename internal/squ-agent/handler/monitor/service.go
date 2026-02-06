@@ -16,10 +16,10 @@ type Monitor struct {
 }
 
 // GetBaseMonitorPage 获取基础监控数据分页
-func (m *Monitor) GetBaseMonitorPage(page, count int) (response.Response, error) {
+func (m *Monitor) GetBaseMonitorPage(page, count int) response.Response {
 	monitors, total, err := m.Repository.GetBaseMonitorPage(page, count)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err)), nil
+		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 转换为响应结构
@@ -45,14 +45,14 @@ func (m *Monitor) GetBaseMonitorPage(page, count int) (response.Response, error)
 		Size:  count,
 	}
 
-	return response.Success(result), nil
+	return response.Success(result)
 }
 
 // GetDiskIOMonitorPage 获取磁盘IO监控数据分页
-func (m *Monitor) GetDiskIOMonitorPage(page, count int) (response.Response, error) {
+func (m *Monitor) GetDiskIOMonitorPage(page, count int) response.Response {
 	monitors, total, err := m.Repository.GetDiskIOMonitorPage(page, count)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err)), nil
+		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 转换为响应结构
@@ -81,14 +81,14 @@ func (m *Monitor) GetDiskIOMonitorPage(page, count int) (response.Response, erro
 		Size:  count,
 	}
 
-	return response.Success(result), nil
+	return response.Success(result)
 }
 
 // GetNetworkMonitorPage 获取网卡流量监控数据分页
-func (m *Monitor) GetNetworkMonitorPage(page, count int) (response.Response, error) {
+func (m *Monitor) GetNetworkMonitorPage(page, count int) response.Response {
 	monitors, total, err := m.Repository.GetNetworkMonitorPage(page, count)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err)), nil
+		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 转换为响应结构
@@ -118,5 +118,5 @@ func (m *Monitor) GetNetworkMonitorPage(page, count int) (response.Response, err
 		Size:  count,
 	}
 
-	return response.Success(result), nil
+	return response.Success(result)
 }

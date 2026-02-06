@@ -8,15 +8,15 @@ import (
 )
 
 // GetStats 获取系统统计数据
-func (m *Monitor) GetStats() (response.Response, error) {
+func (m *Monitor) GetStats() response.Response {
 	if m.Factory == nil {
-		return response.Error(model.ReturnErrCode(nil)), nil
+		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	// 收集主机信息
 	hostInfo, err := m.Factory.CollectAll()
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err)), nil
+		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 收集进程信息
@@ -97,19 +97,19 @@ func (m *Monitor) GetStats() (response.Response, error) {
 		})
 	}
 
-	return response.Success(stats), nil
+	return response.Success(stats)
 }
 
 // GetAllNetIO 获取所有网卡IO统计（汇总）
-func (m *Monitor) GetAllNetIO() (response.Response, error) {
+func (m *Monitor) GetAllNetIO() response.Response {
 	ioCollector := m.Factory.GetIOCollector()
 	if ioCollector == nil {
-		return response.Error(model.ReturnErrCode(nil)), nil
+		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	ioStatsList, err := ioCollector.CollectAllNetIO()
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err)), nil
+		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 汇总所有网卡IO数据
@@ -126,19 +126,19 @@ func (m *Monitor) GetAllNetIO() (response.Response, error) {
 		result.Dropout += ioStats.Dropout
 	}
 
-	return response.Success(result), nil
+	return response.Success(result)
 }
 
 // GetNetIO 获取指定网卡IO统计
-func (m *Monitor) GetNetIO(interfaceName string) (response.Response, error) {
+func (m *Monitor) GetNetIO(interfaceName string) response.Response {
 	ioCollector := m.Factory.GetIOCollector()
 	if ioCollector == nil {
-		return response.Error(model.ReturnErrCode(nil)), nil
+		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	ioStats, err := ioCollector.CollectNetIO(interfaceName)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err)), nil
+		return response.Error(model.ReturnErrCode(err))
 	}
 
 	result := monitorres.NetIOStats{
@@ -153,19 +153,19 @@ func (m *Monitor) GetNetIO(interfaceName string) (response.Response, error) {
 		Dropout:     ioStats.Dropout,
 	}
 
-	return response.Success(result), nil
+	return response.Success(result)
 }
 
 // GetAllDiskIO 获取所有磁盘IO统计（汇总）
-func (m *Monitor) GetAllDiskIO() (response.Response, error) {
+func (m *Monitor) GetAllDiskIO() response.Response {
 	ioCollector := m.Factory.GetIOCollector()
 	if ioCollector == nil {
-		return response.Error(model.ReturnErrCode(nil)), nil
+		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	ioStatsList, err := ioCollector.CollectAllDiskIO()
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err)), nil
+		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 汇总所有磁盘IO数据
@@ -180,19 +180,19 @@ func (m *Monitor) GetAllDiskIO() (response.Response, error) {
 		result.WriteTime += ioStats.IOCounters.WriteTime
 	}
 
-	return response.Success(result), nil
+	return response.Success(result)
 }
 
 // GetDiskIO 获取指定磁盘IO统计
-func (m *Monitor) GetDiskIO(device string) (response.Response, error) {
+func (m *Monitor) GetDiskIO(device string) response.Response {
 	ioCollector := m.Factory.GetIOCollector()
 	if ioCollector == nil {
-		return response.Error(model.ReturnErrCode(nil)), nil
+		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	ioStats, err := ioCollector.CollectDiskIO(device)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err)), nil
+		return response.Error(model.ReturnErrCode(err))
 	}
 
 	result := monitorres.DiskIOStats{
@@ -205,5 +205,5 @@ func (m *Monitor) GetDiskIO(device string) (response.Response, error) {
 		WriteTime:  ioStats.IOCounters.WriteTime,
 	}
 
-	return response.Success(result), nil
+	return response.Success(result)
 }
