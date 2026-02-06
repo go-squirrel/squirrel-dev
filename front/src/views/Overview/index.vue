@@ -1,35 +1,16 @@
 <template>
   <div class="overview-page">
-    <!-- SVG 渐变定义 -->
-    <svg width="0" height="0" style="position: absolute;">
-      <defs>
-        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" style="stop-color:#4fc3f7;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#29b6f6;stop-opacity:1" />
-        </linearGradient>
-      </defs>
-    </svg>
+    <ServerList 
+      :servers="serverList" 
+      :current-server-id="currentServerId"
+      @switch="handleServerSwitch"
+    />
 
-    <!-- 加载中状态 -->
-    <div v-if="loading" class="loading-container">
-      <Icon icon="lucide:loader-2" class="spinner" />
-      <p>{{ $t('overview.loading') }}</p>
-    </div>
-
-    <template v-else>
-      <!-- 左侧服务器列表 -->
-      <ServerList 
-        :servers="serverList" 
-        :current-server-id="currentServerId"
-        @switch="handleServerSwitch"
-      />
-
-      <!-- 主内容区 -->
-      <main class="main-area">
-        <!-- 基础数据展示 -->
+    <main class="main-area">
+      <Loading v-if="loading" :text="$t('overview.loading')" />
+      <template v-else>
         <StatsCard :stats="baseStats" />
 
-        <!-- 监控指标展示 -->
         <MetricsPanel
           :monitor-data="monitorData"
           :load-metric="loadMetric"
@@ -42,7 +23,6 @@
           @show-process="showProcessList"
         />
 
-        <!-- 监控图表 -->
         <ChartPanel
           v-model:chart-type="chartType"
           v-model:chart-target="chartTarget"
@@ -51,16 +31,14 @@
           :current-i-o-stats="currentIOStats"
           :chart-target-list="chartTargetList"
         />
-      </main>
+      </template>
+    </main>
 
-      <!-- 右侧信息区 -->
-      <aside class="info-sidebar">
-        <SystemInfo :info="systemInfo" />
-        <AppList :apps="appList" />
-      </aside>
-    </template>
+    <aside v-if="!loading" class="info-sidebar">
+      <SystemInfo :info="systemInfo" />
+      <AppList :apps="appList" />
+    </aside>
 
-    <!-- 进程列表弹窗 -->
     <ProcessModal
       :visible="showProcessModal"
       :title="processModalTitle"
@@ -74,7 +52,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon } from '@iconify/vue'
+import Loading from '@/components/Loading/index.vue'
 import ServerList from './components/ServerList.vue'
 import StatsCard from './components/StatsCard.vue'
 import MetricsPanel from './components/MetricsPanel.vue'
@@ -83,7 +61,10 @@ import SystemInfo from './components/SystemInfo.vue'
 import AppList from './components/AppList.vue'
 import ProcessModal from './components/ProcessModal.vue'
 import { useServers, useMonitor, useSystemInfo, useApplications } from './composables'
+import { useLoading } from '@/composables/useLoading'
 import type { ProcessInfo } from '@/types'
+
+const { loading, withLoading } = useLoading()
 
 // 基础统计数据
 const baseStats = ref({
@@ -92,9 +73,6 @@ const baseStats = ref({
   cron: 1,
   installedApps: 6
 })
-
-// 页面加载状态
-const loading = ref(true)
 
 // 使用 composables
 const { serverList, currentServerId, loadServers, switchServer } = useServers()
@@ -171,22 +149,15 @@ const handleServerSwitch = async (serverId: number) => {
 
 // 初始化数据
 const initData = async () => {
-  loading.value = true
-  try {
-    // 先加载服务器列表
+  await withLoading(async () => {
     await loadServers()
-    // 如果有服务器，加载监控数据
     if (currentServerId.value) {
       await loadSystemInfo()
       await loadMonitorStats()
       await loadChartData()
       startTimers()
     }
-  } catch (error) {
-    console.error('Failed to init data:', error)
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 // 监听服务器变化
@@ -212,38 +183,13 @@ onMounted(() => {
   gap: 16px;
 }
 
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  color: #64748b;
-}
-
-.spinner {
-  width: 48px;
-  height: 48px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .main-area {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 16px;
   overflow-y: auto;
+  position: relative;
 }
 
 .info-sidebar {
@@ -251,5 +197,12 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.main-area :deep(.s-loading) {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 </style>

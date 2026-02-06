@@ -39,16 +39,16 @@
         <span>{{ $t('login.rememberMe') }}</span>
       </label>
     </div>
-    <button type="submit" class="login-btn" :disabled="loading">
-      <span v-if="loading">{{ $t('login.loggingIn') }}</span>
-      <span v-else>{{ $t('login.login') }}</span>
-    </button>
+    <Button type="primary" size="large" block :loading="loading" @click="handleSubmit">
+      {{ $t('login.login') }}
+    </Button>
   </form>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Icon } from '@iconify/vue'
+import Button from '@/components/Button/index.vue'
 
 defineProps<{
   loading: boolean
@@ -161,32 +161,5 @@ const handleSubmit = () => {
   width: 16px;
   height: 16px;
   accent-color: #4fc3f7;
-}
-
-.login-btn {
-  padding: 14px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #ffffff;
-  background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(79, 195, 247, 0.4);
-  border: none;
-  cursor: pointer;
-}
-
-.login-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(79, 195, 247, 0.5);
-}
-
-.login-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.login-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
 }
 </style>

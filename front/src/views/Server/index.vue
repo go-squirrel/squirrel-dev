@@ -1,24 +1,21 @@
 <template>
   <div class="server-page">
-    <div class="page-header">
-      <h2 class="page-title">{{ $t('server.listTitle') }}</h2>
-      <button class="add-btn" @click="handleAdd">
+    <PageHeader :title="$t('server.listTitle')">
+      <Button type="primary" @click="handleAdd">
         <Icon icon="lucide:plus" />
         {{ $t('server.addServer') }}
-      </button>
-    </div>
+      </Button>
+    </PageHeader>
 
-    <div v-if="loading" class="loading">
-      {{ $t('server.loading') }}
-    </div>
+    <Loading v-if="loading" :text="$t('server.loading')" />
 
-    <div v-else-if="servers.length === 0" class="empty-state">
-      <Icon icon="lucide:server" class="empty-icon" />
-      <p>{{ $t('server.noServers') }}</p>
-      <button class="add-btn" @click="handleAdd">
-        {{ $t('server.addFirstServer') }}
-      </button>
-    </div>
+    <Empty v-else-if="servers.length === 0" :description="$t('server.noServers')" icon="lucide:server">
+      <template #action>
+        <Button type="primary" @click="handleAdd">
+          {{ $t('server.addFirstServer') }}
+        </Button>
+      </template>
+    </Empty>
 
     <ServerTable
       v-else
@@ -57,15 +54,20 @@ import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { fetchServers } from '@/api/server'
 import type { Server } from '@/types'
+import PageHeader from '@/components/PageHeader/index.vue'
+import Button from '@/components/Button/index.vue'
+import Loading from '@/components/Loading/index.vue'
+import Empty from '@/components/Empty/index.vue'
 import ServerTable from './components/ServerTable.vue'
 import ServerForm from './components/ServerForm.vue'
 import ServerDetail from './components/ServerDetail.vue'
 import DeleteConfirm from './components/DeleteConfirm.vue'
+import { useLoading } from '@/composables/useLoading'
 
 const router = useRouter()
+const { loading, withLoading } = useLoading()
 
 const servers = ref<Server[]>([])
-const loading = ref(true)
 const showForm = ref(false)
 const showDetail = ref(false)
 const showDeleteConfirm = ref(false)
@@ -74,14 +76,9 @@ const selectedServer = ref<Server | null>(null)
 const deletingServer = ref<Server | null>(null)
 
 const loadServers = async () => {
-  loading.value = true
-  try {
+  await withLoading(async () => {
     servers.value = await fetchServers()
-  } catch (error) {
-    console.error('Failed to load servers:', error)
-  } finally {
-    loading.value = false
-  }
+  })
 }
 
 const handleAdd = () => {
@@ -126,68 +123,5 @@ onMounted(() => {
 <style scoped>
 .server-page {
   padding: 20px;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.page-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1e3a5f;
-}
-
-.add-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.add-btn:hover {
-  box-shadow: 0 4px 12px rgba(79, 195, 247, 0.4);
-  transform: translateY(-1px);
-}
-
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 60px;
-  color: #64748b;
-  font-size: 14px;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-  color: #64748b;
-}
-
-.empty-icon {
-  width: 64px;
-  height: 64px;
-  color: #cbd5e1;
-  margin-bottom: 16px;
-}
-
-.empty-state p {
-  font-size: 14px;
-  margin-bottom: 20px;
 }
 </style>

@@ -17,22 +17,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store'
 import { login } from '@/api'
 import LoginForm from './components/LoginForm.vue'
 import LoginBrand from './components/LoginBrand.vue'
+import { useLoading } from '@/composables/useLoading'
 
 const router = useRouter()
 const userStore = useUserStore()
-
-const loading = ref(false)
+const { loading, withLoading } = useLoading()
 
 const handleLogin = async (formData: { username: string; password: string; remember: boolean }) => {
-  loading.value = true
-
-  try {
+  await withLoading(async () => {
     const data = await login({
       username: formData.username,
       password: formData.password
@@ -49,12 +46,7 @@ const handleLogin = async (formData: { username: string; password: string; remem
       }
       router.push('/')
     }
-  } catch (error) {
-    alert(error instanceof Error ? error.message : '登录失败，请检查用户名和密码')
-    console.error('登录错误:', error)
-  } finally {
-    loading.value = false
-  }
+  })
 }
 </script>
 
