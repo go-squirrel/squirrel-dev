@@ -50,12 +50,12 @@ const props = defineProps<{
   chartData: ChartDataPoint[]
   currentNetStats: { bytesSent: number; bytesRecv: number }
   currentIOStats: { readBytes: number; writeBytes: number }
+  chartTargetList: string[]
 }>()
 
 const chartType = defineModel<'net' | 'io'>('chartType', { default: 'net' })
 const chartTarget = defineModel<string>('chartTarget', { default: 'all' })
 
-const chartTargetList = ref<string[]>([])
 const chartContainer = ref<HTMLDivElement>()
 const chartCanvas = ref<HTMLCanvasElement>()
 

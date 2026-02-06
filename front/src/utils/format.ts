@@ -3,7 +3,8 @@
 /**
  * 格式化字节大小
  */
-export function formatBytes(bytes: number): string {
+export function formatBytes(bytes: number | undefined | null): string {
+  if (bytes === undefined || bytes === null || isNaN(bytes)) return '0 B'
   if (bytes === 0) return '0 B'
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -14,7 +15,8 @@ export function formatBytes(bytes: number): string {
 /**
  * 格式化速度
  */
-export function formatSpeed(bytes: number): string {
+export function formatSpeed(bytes: number | undefined | null): string {
+  if (bytes === undefined || bytes === null || isNaN(bytes)) return '0 B/s'
   return formatBytes(bytes) + '/s'
 }
 

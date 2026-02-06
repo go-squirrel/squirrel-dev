@@ -1,5 +1,5 @@
 // 监控数据相关逻辑
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { fetchMonitorStats, fetchNetStats, fetchIOStats } from '@/api'
 import { formatBytes } from '@/utils/format'
 import type { MonitorData, ChartDataPoint, ChartType } from '../types'
@@ -9,6 +9,7 @@ export function useMonitor(serverId: Ref<number>) {
   const chartData = ref<ChartDataPoint[]>([])
   const chartType = ref<ChartType>('net')
   const chartTarget = ref('all')
+  const chartTargetList = ref<string[]>([])
   const currentNetStats = ref({ bytesSent: 0, bytesRecv: 0 })
   const currentIOStats = ref({ readBytes: 0, writeBytes: 0 })
   
@@ -68,7 +69,15 @@ export function useMonitor(serverId: Ref<number>) {
       if (chartType.value === 'net') {
         const data = await fetchNetStats(serverId.value, chartTarget.value)
         const now = Date.now()
-        const { bytesSent, bytesRecv } = data
+        
+        // 更新网卡列表
+        if (data.ifnames && Array.isArray(data.ifnames)) {
+          chartTargetList.value = [...data.ifnames].sort()
+        }
+
+        // 从嵌套的 data.data 中获取实际统计数据
+        const stats = data.data || data
+        const { bytesSent, bytesRecv } = stats
 
         if (lastNetStats.timestamp > 0) {
           const timeDiff = (now - lastNetStats.timestamp) / 1000
@@ -82,7 +91,15 @@ export function useMonitor(serverId: Ref<number>) {
       } else {
         const data = await fetchIOStats(serverId.value, chartTarget.value)
         const now = Date.now()
-        const { readBytes, writeBytes } = data
+        
+        // 更新磁盘列表
+        if (data.devices && Array.isArray(data.devices)) {
+          chartTargetList.value = [...data.devices].sort()
+        }
+
+        // 从嵌套的 data.data 中获取实际统计数据
+        const stats = data.data || data
+        const { readBytes, writeBytes } = stats
 
         if (lastIOStats.timestamp > 0) {
           const timeDiff = (now - lastIOStats.timestamp) / 1000
@@ -119,6 +136,19 @@ export function useMonitor(serverId: Ref<number>) {
     currentIOStats.value = { readBytes: 0, writeBytes: 0 }
   }
 
+  // 监听图表类型变化，重置目标为 'all' 并清空图表数据
+  watch(chartType, async () => {
+    chartTarget.value = 'all'
+    resetData()
+    // 立即加载一次数据以更新目标列表
+    await loadChartData()
+  })
+
+  // 监听目标变化，清空图表数据
+  watch(chartTarget, () => {
+    resetData()
+  })
+
   // 启动定时器
   const startTimers = () => {
     monitorTimer = setInterval(loadMonitorStats, 5000)
@@ -148,6 +178,7 @@ export function useMonitor(serverId: Ref<number>) {
     chartData,
     chartType,
     chartTarget,
+    chartTargetList,
     currentNetStats,
     currentIOStats,
     loadMetric,

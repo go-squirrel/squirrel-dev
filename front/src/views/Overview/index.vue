@@ -49,6 +49,7 @@
           :chart-data="chartData"
           :current-net-stats="currentNetStats"
           :current-i-o-stats="currentIOStats"
+          :chart-target-list="chartTargetList"
         />
       </main>
 
@@ -102,6 +103,7 @@ const {
   chartData, 
   chartType, 
   chartTarget,
+  chartTargetList,
   currentNetStats,
   currentIOStats,
   loadMetric, 
