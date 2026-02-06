@@ -6,12 +6,12 @@ import (
 
 // Stats 系统统计信息
 type Stats struct {
-	Timestamp   time.Time `json:"timestamp"`
-	Hostname    string    `json:"hostname"`
-	LoadAverage LoadAvg   `json:"loadAverage"`
-	CPU         CPUStats  `json:"cpu"`
-	Memory      MemStats  `json:"memory"`
-	Disk        DiskStats `json:"disk"`
+	Timestamp   time.Time  `json:"timestamp"`
+	Hostname    string     `json:"hostname"`
+	LoadAverage LoadAvg    `json:"loadAverage"`
+	CPU         CPUStats   `json:"cpu"`
+	Memory      MemStats   `json:"memory"`
+	Disk        DiskStats  `json:"disk"`
 	TopCPU      []ProcStat `json:"topCPU"`
 	TopMemory   []ProcStat `json:"topMemory"`
 }
@@ -44,10 +44,10 @@ type MemStats struct {
 
 // DiskStats 磁盘统计
 type DiskStats struct {
-	Total      uint64       `json:"total"`
-	Used       uint64       `json:"used"`
-	Available  uint64       `json:"available"`
-	Usage      float64      `json:"usage"`
+	Total      uint64          `json:"total"`
+	Used       uint64          `json:"used"`
+	Available  uint64          `json:"available"`
+	Usage      float64         `json:"usage"`
 	Partitions []DiskPartition `json:"partitions"`
 }
 
@@ -73,6 +73,11 @@ type ProcStat struct {
 	CreateTime    int64   `json:"createTime"`
 }
 
+type AllDiskIOStats struct {
+	Data    DiskIOStats `json:"data"`
+	Devices []string    `json:"devices"`
+}
+
 // DiskIOStats 磁盘IO统计
 type DiskIOStats struct {
 	Device     string `json:"device"`
@@ -82,6 +87,11 @@ type DiskIOStats struct {
 	WriteCount uint64 `json:"writeCount"`
 	ReadTime   uint64 `json:"readTime"`
 	WriteTime  uint64 `json:"writeTime"`
+}
+
+type AllNetIOStats struct {
+	Data    NetIOStats `json:"data"`
+	Ifnames []string   `json:"ifnames"`
 }
 
 // NetIOStats 网络IO统计
@@ -112,18 +122,18 @@ type BaseMonitorResponse struct {
 
 // DiskIOMonitorResponse 磁盘IO监控响应
 type DiskIOMonitorResponse struct {
-	ID            uint      `json:"id"`
-	DiskName      string    `json:"disk_name"`
-	ReadCount     uint64    `json:"read_count"`
-	WriteCount    uint64    `json:"write_count"`
-	ReadBytes     uint64    `json:"read_bytes"`
-	WriteBytes    uint64    `json:"write_bytes"`
-	ReadTime      uint64    `json:"read_time"`
-	WriteTime     uint64    `json:"write_time"`
-	IoTime        uint64    `json:"io_time"`
+	ID             uint      `json:"id"`
+	DiskName       string    `json:"disk_name"`
+	ReadCount      uint64    `json:"read_count"`
+	WriteCount     uint64    `json:"write_count"`
+	ReadBytes      uint64    `json:"read_bytes"`
+	WriteBytes     uint64    `json:"write_bytes"`
+	ReadTime       uint64    `json:"read_time"`
+	WriteTime      uint64    `json:"write_time"`
+	IoTime         uint64    `json:"io_time"`
 	WeightedIoTime uint64    `json:"weighted_io_time"`
 	IopsInProgress uint64    `json:"iops_in_progress"`
-	CollectTime   time.Time `json:"collect_time"`
+	CollectTime    time.Time `json:"collect_time"`
 }
 
 // NetworkMonitorResponse 网卡流量监控响应

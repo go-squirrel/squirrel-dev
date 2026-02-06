@@ -2,6 +2,7 @@ package collector
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/shirou/gopsutil/v4/disk"
 	"github.com/shirou/gopsutil/v4/net"
@@ -132,7 +133,7 @@ func (io *IO) CollectNetIO(interfaceName string) (*NetIOStats, error) {
 	return nil, fmt.Errorf("网卡 %s 不存在", interfaceName)
 }
 
-// CollectAllNetIO 收集所有网卡的IO统计
+// CollectAllNetIO 收集所有网卡的IO统计（过滤虚拟网卡）
 func (io *IO) CollectAllNetIO() ([]NetIOStats, error) {
 	counters, err := net.IOCounters(true)
 	if err != nil {
@@ -141,6 +142,11 @@ func (io *IO) CollectAllNetIO() ([]NetIOStats, error) {
 
 	var stats []NetIOStats
 	for _, counter := range counters {
+		// 过滤虚拟网卡
+		if isVirtualInterface(counter.Name) {
+			continue
+		}
+
 		stats = append(stats, NetIOStats{
 			Name:        counter.Name,
 			BytesSent:   counter.BytesSent,
@@ -155,4 +161,29 @@ func (io *IO) CollectAllNetIO() ([]NetIOStats, error) {
 	}
 
 	return stats, nil
+}
+
+// isVirtualInterface 判断是否为虚拟网卡
+func isVirtualInterface(name string) bool {
+	// 常见的虚拟网卡前缀/模式
+	virtualPatterns := []string{
+		"lo",     // 本地回环
+		"docker", // Docker 网桥
+		"br-",    // Linux 网桥
+		"veth",   // Docker 虚拟以太网
+		"virbr",  // libvirt 虚拟网桥
+		"vnet",   // KVM 虚拟网卡
+		"tun",    // TUN 设备
+		"tap",    // TAP 设备
+		"wg",     // WireGuard
+		"ppp",    // 点对点协议
+		"dummy",  // 虚拟(dummy)接口
+	}
+
+	for _, pattern := range virtualPatterns {
+		if strings.HasPrefix(name, pattern) {
+			return true
+		}
+	}
+	return false
 }

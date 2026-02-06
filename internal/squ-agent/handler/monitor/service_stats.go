@@ -113,17 +113,18 @@ func (m *Monitor) GetAllNetIO() response.Response {
 	}
 
 	// 汇总所有网卡IO数据
-	var result monitorres.NetIOStats
-	result.Name = "all"
+	var result monitorres.AllNetIOStats
+	result.Data.Name = "all"
 	for _, ioStats := range ioStatsList {
-		result.BytesSent += ioStats.BytesSent
-		result.BytesRecv += ioStats.BytesRecv
-		result.PacketsSent += ioStats.PacketsSent
-		result.PacketsRecv += ioStats.PacketsRecv
-		result.Errin += ioStats.Errin
-		result.Errout += ioStats.Errout
-		result.Dropin += ioStats.Dropin
-		result.Dropout += ioStats.Dropout
+		result.Data.BytesSent += ioStats.BytesSent
+		result.Data.BytesRecv += ioStats.BytesRecv
+		result.Data.PacketsSent += ioStats.PacketsSent
+		result.Data.PacketsRecv += ioStats.PacketsRecv
+		result.Data.Errin += ioStats.Errin
+		result.Data.Errout += ioStats.Errout
+		result.Data.Dropin += ioStats.Dropin
+		result.Data.Dropout += ioStats.Dropout
+		result.Ifnames = append(result.Ifnames, ioStats.Name)
 	}
 
 	return response.Success(result)
@@ -169,18 +170,20 @@ func (m *Monitor) GetAllDiskIO() response.Response {
 	}
 
 	// 汇总所有磁盘IO数据
-	var result monitorres.DiskIOStats
-	result.Device = "all"
+	var allResult monitorres.AllDiskIOStats
+
+	allResult.Data.Device = "all"
 	for _, ioStats := range ioStatsList {
-		result.ReadBytes += ioStats.IOCounters.ReadBytes
-		result.WriteBytes += ioStats.IOCounters.WriteBytes
-		result.ReadCount += ioStats.IOCounters.ReadCount
-		result.WriteCount += ioStats.IOCounters.WriteCount
-		result.ReadTime += ioStats.IOCounters.ReadTime
-		result.WriteTime += ioStats.IOCounters.WriteTime
+		allResult.Data.ReadBytes += ioStats.IOCounters.ReadBytes
+		allResult.Data.WriteBytes += ioStats.IOCounters.WriteBytes
+		allResult.Data.ReadCount += ioStats.IOCounters.ReadCount
+		allResult.Data.WriteCount += ioStats.IOCounters.WriteCount
+		allResult.Data.ReadTime += ioStats.IOCounters.ReadTime
+		allResult.Data.WriteTime += ioStats.IOCounters.WriteTime
+		allResult.Devices = append(allResult.Devices, ioStats.Device)
 	}
 
-	return response.Success(result)
+	return response.Success(allResult)
 }
 
 // GetDiskIO 获取指定磁盘IO统计
