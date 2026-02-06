@@ -77,6 +77,19 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 					Downloads:   0,
 					Status:      StatusActive,
 				},
+				{
+					Name:        "Jenkins",
+					Description: "Jenkins 2.401.1 with persistence, monitoring and exporter. Continuous integration and delivery tool.",
+					Type:        TypeCompose,
+					Category:    CategoryDatabase,
+					Version:     "latest",
+					Author:      "Jenkins",
+					HomepageUrl: strPtr("https://www.jenkins.io/"),
+					RepoUrl:     strPtr("https://github.com/jenkinsci/jenkins"),
+					IsOfficial:  true,
+					Downloads:   0,
+					Status:      StatusActive,
+				},
 			}
 
 			// 读取嵌入的模板文件并填充内容
@@ -93,6 +106,8 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 					content, err = readFile("elasticsearch-compose.yml")
 				case "Nginx":
 					content, err = readFile("nginx-compose.yml")
+				case "Jenkins":
+					content, err = readFile("jenkins-compose.yml")
 				}
 
 				if err != nil {

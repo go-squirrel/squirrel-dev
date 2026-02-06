@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    privileged: true  # 授予容器特权
+    user: root        # 以root用户运行，避免权限问题
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      # Jenkins 数据卷
+      - jenkins_home:/var/jenkins_home
+      
+      # 挂载宿主机的Docker到容器内
+      - /var/run/docker.sock:/var/run/docker.sock      # Docker socket
+      - /usr/bin/docker:/usr/bin/docker                # Docker CLI
+      - /usr/libexec/docker:/usr/libexec/docker        # Docker相关库（可选）
+      
+      # 如果使用Docker Compose
+      - /usr/local/bin/docker-compose:/usr/local/bin/docker-compose
+      
+      # 挂载Docker配置（可选）
+      - /etc/docker:/etc/docker
+      
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    networks:
+      - jenkins-net
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:
+
+networks:
+  jenkins-net:
+    driver: bridge
