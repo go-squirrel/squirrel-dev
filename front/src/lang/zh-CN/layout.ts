@@ -5,6 +5,5 @@ export default {
   monitor: '监控',
   scripts: '脚本',
   configs: '配置',
-  deployments: '部署',
-  appstore: '应用商店'
+  appStore: '应用商店'
 }

@@ -5,6 +5,7 @@ import layout from './layout'
 import server from './server'
 import configs from './configs'
 import scripts from './scripts'
+import appStore from './app-store'
 
 export default {
   common,
@@ -13,5 +14,6 @@ export default {
   layout,
   server,
   configs,
-  scripts
+  scripts,
+  appStore
 }

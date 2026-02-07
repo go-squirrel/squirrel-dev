@@ -213,3 +213,55 @@ export interface ScriptResult {
   error_message: string
   created_at: string
 }
+
+// 应用模板类型
+export interface AppStore {
+  id: number
+  name: string
+  description: string
+  type: 'compose' | 'k8s_manifest' | 'helm_chart'
+  category: 'web' | 'database' | 'middleware' | 'devops'
+  icon?: string
+  version: string
+  content: string
+  tags: string
+  author: string
+  repo_url?: string
+  homepage_url?: string
+  is_official: boolean
+  downloads: number
+  status: 'active' | 'deprecated'
+}
+
+// 创建应用请求
+export interface CreateAppRequest {
+  name: string
+  description: string
+  type: 'compose' | 'k8s_manifest' | 'helm_chart'
+  category: 'web' | 'database' | 'middleware' | 'devops'
+  icon?: string
+  version: string
+  content: string
+  tags: string
+  author: string
+  repo_url?: string
+  homepage_url?: string
+  is_official: boolean
+}
+
+// 更新应用请求
+export interface UpdateAppRequest {
+  id: number
+  name: string
+  description: string
+  type: 'compose' | 'k8s_manifest' | 'helm_chart'
+  category: 'web' | 'database' | 'middleware' | 'devops'
+  icon?: string
+  version: string
+  content: string
+  tags: string
+  author: string
+  repo_url?: string
+  homepage_url?: string
+  is_official: boolean
+}

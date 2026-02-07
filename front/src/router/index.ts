@@ -34,6 +34,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/app-store',
+    name: 'AppStore',
+    component: () => import('@/views/AppStore/index.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/servers/:id/terminal',
     name: 'ServerTerminal',
     component: () => import('@/views/Server/Terminal.vue'),
