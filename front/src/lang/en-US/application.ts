@@ -33,5 +33,11 @@ export default {
   sortAsc: 'Ascending',
   sortDesc: 'Descending',
   importFromStore: 'Import from App Store',
-  deploy: 'Deploy'
+  deploy: 'Deploy',
+  deployApplication: 'Deploy Application',
+  selectServer: 'Select Server',
+  selectServerPlaceholder: 'Please select a server to deploy',
+  deploySuccess: 'Application deployed successfully',
+  deployFailed: 'Application deployment failed',
+  deploying: 'Deploying...'
 }

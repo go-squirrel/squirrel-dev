@@ -43,6 +43,7 @@
       @delete="handleDelete"
       @view="handleView"
       @sort="handleSort"
+      @deploy="handleDeploy"
     />
 
     <ApplicationForm
@@ -66,10 +67,18 @@
       @cancel="showDeleteConfirm = false"
     />
 
+    <DeployModal
+      v-if="showDeployModal && deployingApplication"
+      :application="deployingApplication"
+      @cancel="showDeployModal = false"
+      @success="handleDeploySuccess"
+      @error="handleDeployError"
+    />
+
     <Toast
       :visible="toastVisible"
       :message="toastMessage"
-      type="success"
+      :type="toastType"
     />
   </div>
 </template>
@@ -89,6 +98,7 @@ import ApplicationTable from './components/ApplicationTable.vue'
 import ApplicationForm from './components/ApplicationForm.vue'
 import ApplicationDetail from './components/ApplicationDetail.vue'
 import DeleteConfirm from './components/DeleteConfirm.vue'
+import DeployModal from './components/DeployModal.vue'
 import Toast from '@/components/Toast/index.vue'
 import { useLoading } from '@/composables/useLoading'
 
@@ -100,14 +110,17 @@ const applications = ref<ApplicationInstance[]>([])
 const showForm = ref(false)
 const showDeleteConfirm = ref(false)
 const showDetail = ref(false)
+const showDeployModal = ref(false)
 const editingApplication = ref<ApplicationInstance | null>(null)
 const deletingApplication = ref<ApplicationInstance | null>(null)
 const viewingApplication = ref<ApplicationInstance | null>(null)
+const deployingApplication = ref<ApplicationInstance | null>(null)
 const searchKeyword = ref('')
 const sortBy = ref<string | null>(null)
 const sortOrder = ref<'asc' | 'desc'>('asc')
 const toastVisible = ref(false)
 const toastMessage = ref('')
+const toastType = ref<'success' | 'error'>('success')
 
 const filteredApplications = computed(() => {
   let result = applications.value
@@ -168,6 +181,31 @@ const handleDelete = (application: ApplicationInstance) => {
   showDeleteConfirm.value = true
 }
 
+const handleDeploy = (application: ApplicationInstance) => {
+  deployingApplication.value = application
+  showDeployModal.value = true
+}
+
+const handleDeploySuccess = () => {
+  showDeployModal.value = false
+  toastMessage.value = t('application.deploySuccess')
+  toastType.value = 'success'
+  toastVisible.value = true
+  setTimeout(() => {
+    toastVisible.value = false
+  }, 2000)
+}
+
+const handleDeployError = (message: string) => {
+  showDeployModal.value = false
+  toastMessage.value = message
+  toastType.value = 'error'
+  toastVisible.value = true
+  setTimeout(() => {
+    toastVisible.value = false
+  }, 3000)
+}
+
 const handleSort = (field: string) => {
   if (sortBy.value === field) {
     sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
@@ -184,16 +222,22 @@ const handleFormSubmit = async (data: CreateApplicationRequest | UpdateApplicati
       await updateApplication(editingApplication.value.id, data as UpdateApplicationRequest)
       success = true
       toastMessage.value = t('application.updateSuccess')
+      toastType.value = 'success'
     } catch (error) {
       console.error('Failed to update application:', error)
+      toastMessage.value = t('application.operationFailed')
+      toastType.value = 'error'
     }
   } else {
     try {
       await createApplication(data as CreateApplicationRequest)
       success = true
       toastMessage.value = t('application.createSuccess')
+      toastType.value = 'success'
     } catch (error) {
       console.error('Failed to create application:', error)
+      toastMessage.value = t('application.operationFailed')
+      toastType.value = 'error'
     }
   }
 
@@ -215,12 +259,19 @@ const confirmDelete = async () => {
     showDeleteConfirm.value = false
     await loadApplications()
     toastMessage.value = t('application.deleteSuccess')
+    toastType.value = 'success'
     toastVisible.value = true
     setTimeout(() => {
       toastVisible.value = false
     }, 2000)
   } catch (error) {
     console.error('Failed to delete application:', error)
+    toastMessage.value = t('application.operationFailed')
+    toastType.value = 'error'
+    toastVisible.value = true
+    setTimeout(() => {
+      toastVisible.value = false
+    }, 3000)
   }
 }
 

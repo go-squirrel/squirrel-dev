@@ -50,6 +50,9 @@
             <button class="action-btn delete-btn" :title="$t('application.deleteApplication')" @click="$emit('delete', app)">
               <Icon icon="lucide:trash-2" />
             </button>
+            <button class="action-btn deploy-btn" :title="$t('application.deploy')" @click="$emit('deploy', app)">
+              <Icon icon="lucide:rocket" />
+            </button>
           </td>
         </tr>
       </tbody>
@@ -71,6 +74,7 @@ defineEmits<{
   edit: [application: ApplicationInstance]
   delete: [application: ApplicationInstance]
   view: [application: ApplicationInstance]
+  deploy: [application: ApplicationInstance]
   sort: [field: string]
 }>()
 
@@ -233,7 +237,7 @@ const getTypeLabel = (type: string) => {
 }
 
 .action-cell {
-  width: 120px;
+  width: 160px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -271,5 +275,10 @@ const getTypeLabel = (type: string) => {
 .action-btn.delete-btn:hover {
   background: #fee2e2;
   color: #dc2626;
+}
+
+.action-btn.deploy-btn:hover {
+  background: #dbeafe;
+  color: #0284c7;
 }
 </style>

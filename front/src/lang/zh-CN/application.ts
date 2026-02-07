@@ -33,5 +33,11 @@ export default {
   sortAsc: '升序',
   sortDesc: '降序',
   importFromStore: '从应用商店导入',
-  deploy: '部署'
+  deploy: '部署',
+  deployApplication: '部署应用',
+  selectServer: '选择服务器',
+  selectServerPlaceholder: '请选择要部署的服务器',
+  deploySuccess: '应用部署成功',
+  deployFailed: '应用部署失败',
+  deploying: '部署中...'
 }
