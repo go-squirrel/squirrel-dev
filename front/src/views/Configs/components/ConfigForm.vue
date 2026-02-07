@@ -1,107 +1,118 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('cancel')">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>{{ isEdit ? $t('configs.editConfig') : $t('configs.addConfig') }}</h3>
+  <div class="config-editor-overlay" @click.self="$emit('cancel')">
+    <div class="config-editor-container">
+      <div class="editor-header">
+        <h3 class="editor-title">
+          {{ isEdit ? $t('configs.editConfig') : $t('configs.addConfig') }}
+        </h3>
         <button class="close-btn" @click="$emit('cancel')">
           <Icon icon="lucide:x" />
         </button>
       </div>
 
-      <form @submit.prevent="handleSubmit" class="modal-body">
-        <div class="form-section">
-          <h4>{{ $t('configs.basicInfo') }}</h4>
-          <div class="form-group">
-            <label>{{ $t('configs.configKey') }} *</label>
-            <input
-              v-model="formData.key"
-              type="text"
-              :placeholder="$t('configs.required')"
-              :class="{ error: errors.key }"
-            />
-            <span v-if="errors.key" class="error-text">{{ errors.key }}</span>
-          </div>
-
-          <div class="form-group">
-            <label>{{ $t('configs.configValue') }} *</label>
-            <textarea
-              v-model="formData.value"
-              rows="6"
-              :placeholder="$t('configs.required')"
-              :class="{ error: errors.value }"
-            ></textarea>
-            <span v-if="errors.value" class="error-text">{{ errors.value }}</span>
-          </div>
+      <div class="editor-body">
+        <div class="form-group">
+          <label class="form-label">
+            {{ $t('configs.configKey') }}
+            <span class="required">*</span>
+          </label>
+          <input
+            v-model="formData.key"
+            type="text"
+            class="form-input"
+            :placeholder="$t('configs.required')"
+          />
+          <span v-if="errors.key" class="error-message">{{ errors.key }}</span>
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-cancel" @click="$emit('cancel')">
-            {{ $t('configs.cancel') }}
-          </button>
-          <button type="submit" class="btn btn-primary" :disabled="submitting">
-            {{ submitting ? $t('common.loading') : $t('configs.save') }}
-          </button>
+        <div class="form-group">
+          <label class="form-label">
+            {{ $t('configs.configValue') }}
+            <span class="required">*</span>
+          </label>
+          <textarea
+            v-model="formData.value"
+            class="form-textarea"
+            :placeholder="$t('configs.required')"
+            rows="8"
+          />
+          <span v-if="errors.value" class="error-message">{{ errors.value }}</span>
         </div>
-      </form>
+      </div>
+
+      <div class="editor-footer">
+        <Button type="secondary" @click="$emit('cancel')">
+          {{ $t('common.cancel') }}
+        </Button>
+        <Button type="primary" :loading="submitting" @click="handleSubmit">
+          {{ $t('common.save') }}
+        </Button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@iconify/vue'
-import { createConfig, updateConfig } from '@/api/config'
+import Button from '@/components/Button/index.vue'
 import type { Config, CreateConfigRequest, UpdateConfigRequest } from '@/types'
 
 const props = defineProps<{
-  config?: Config | null
+  config: Config | null
 }>()
 
 const emit = defineEmits<{
-  submit: []
+  submit: [data: CreateConfigRequest | UpdateConfigRequest]
   cancel: []
 }>()
 
 const { t } = useI18n()
 
-const isEdit = computed(() => !!props.config)
+const isEdit = computed(() => props.config !== null)
 const submitting = ref(false)
 
-const formData = reactive<CreateConfigRequest>({
+const formData = ref<CreateConfigRequest>({
   key: '',
   value: ''
 })
 
-const errors = reactive<Record<string, string>>({})
+const errors = ref({
+  key: '',
+  value: ''
+})
 
-watch(() => props.config, (config) => {
-  if (config) {
-    formData.key = config.key
-    formData.value = config.value
+watch(() => props.config, (newConfig) => {
+  if (newConfig) {
+    formData.value = {
+      key: newConfig.key,
+      value: newConfig.value
+    }
   } else {
-    resetForm()
+    formData.value = {
+      key: '',
+      value: ''
+    }
   }
+  errors.value = { key: '', value: '' }
 }, { immediate: true })
 
-const resetForm = () => {
-  formData.key = ''
-  formData.value = ''
-  Object.keys(errors).forEach(key => delete errors[key])
-}
+const validate = (): boolean => {
+  errors.value = { key: '', value: '' }
+  let isValid = true
 
-const validate = () => {
-  Object.keys(errors).forEach(key => delete errors[key])
-
-  if (!formData.key) {
-    errors.key = t('configs.required')
+  if (!formData.value.key.trim()) {
+    errors.value.key = t('configs.required')
+    isValid = false
   }
 
-  if (!formData.value) {
-    errors.value = t('configs.required')
+  if (!formData.value.value.trim()) {
+    errors.value.value = t('configs.required')
+    isValid = false
   }
 
-  return Object.keys(errors).length === 0
+  return isValid
 }
 
 const handleSubmit = async () => {
@@ -109,19 +120,10 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
-    if (isEdit.value && props.config) {
-      const updateData: UpdateConfigRequest = {
-        id: props.config.id,
-        key: formData.key,
-        value: formData.value
-      }
-      await updateConfig(props.config.id, updateData)
-    } else {
-      await createConfig(formData)
-    }
-    emit('submit')
-  } catch (error) {
-    console.error('Failed to save config:', error)
+    const data: CreateConfigRequest | UpdateConfigRequest = isEdit.value
+      ? { id: props.config!.id, ...formData.value }
+      : formData.value
+    emit('submit', data)
   } finally {
     submitting.value = false
   }
@@ -129,7 +131,7 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.modal-overlay {
+.config-editor-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -139,30 +141,29 @@ const handleSubmit = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
-  padding: 20px;
+  z-index: 1000;
 }
 
-.modal {
+.config-editor-container {
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  max-width: 500px;
-  width: 100%;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
-.modal-header {
+.editor-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.modal-header h3 {
-  font-size: 16px;
+.editor-title {
+  font-size: 18px;
   font-weight: 600;
   color: #1e3a5f;
 }
@@ -171,132 +172,94 @@ const handleSubmit = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: #f5f7fa;
-  color: #64748b;
+  width: 32px;
+  height: 32px;
   border: none;
+  background: transparent;
+  color: #64748b;
   cursor: pointer;
+  border-radius: 6px;
   transition: all 0.2s ease;
 }
 
 .close-btn:hover {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.modal-body {
-  padding: 24px;
-}
-
-.form-section {
-  margin-bottom: 24px;
-}
-
-.form-section:last-of-type {
-  margin-bottom: 0;
-}
-
-.form-section h4 {
-  font-size: 13px;
-  font-weight: 600;
+  background: #f1f5f9;
   color: #1e3a5f;
-  margin-bottom: 16px;
+}
+
+.editor-body {
+  padding: 24px;
+  overflow-y: auto;
+  max-height: calc(90vh - 140px);
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
-.form-group label {
+.form-label {
   display: block;
-  font-size: 12px;
+  margin-bottom: 8px;
+  font-size: 14px;
   font-weight: 500;
-  color: #64748b;
-  margin-bottom: 6px;
+  color: #1e3a5f;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
+.form-label .required {
+  color: #ef4444;
+  margin-left: 4px;
+}
+
+.form-input {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 10px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
   color: #1e3a5f;
+  background: #f8fafc;
   transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4fc3f7;
   background: #ffffff;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.form-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  color: #1e3a5f;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.form-textarea:focus {
   outline: none;
   border-color: #4fc3f7;
-  box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.1);
+  background: #ffffff;
 }
 
-.form-group input.error,
-.form-group select.error,
-.form-group textarea.error {
-  border-color: #dc2626;
-}
-
-.form-group textarea {
-  resize: vertical;
-  font-family: 'SF Mono', Monaco, Consolas, monospace;
+.error-message {
+  margin-top: 6px;
   font-size: 12px;
+  color: #ef4444;
 }
 
-.error-text {
-  display: block;
-  font-size: 11px;
-  color: #dc2626;
-  margin-top: 4px;
-}
-
-.modal-footer {
+.editor-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding-top: 20px;
-  border-top: 1px solid #f1f5f9;
-}
-
-.btn {
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-}
-
-.btn-cancel {
-  background: #f5f7fa;
-  color: #64748b;
-}
-
-.btn-cancel:hover {
-  background: #e2e8f0;
-  color: #1e3a5f;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
-  color: #ffffff;
-}
-
-.btn-primary:hover:not(:disabled) {
-  box-shadow: 0 4px 12px rgba(79, 195, 247, 0.4);
-  transform: translateY(-1px);
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
 }
 </style>

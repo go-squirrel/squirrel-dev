@@ -4,8 +4,8 @@
       <div class="header-actions">
         <div class="search-wrapper">
           <Icon icon="lucide:search" class="search-icon" />
-          <input 
-            v-model="searchKeyword" 
+          <input
+            v-model="searchKeyword"
             :placeholder="$t('configs.searchPlaceholder')"
             class="search-input"
           />
@@ -67,8 +67,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
-import { fetchConfigs } from '@/api/config'
-import type { Config } from '@/types'
+import { fetchConfigs, createConfig, updateConfig, deleteConfig } from '@/api/config'
+import type { Config, CreateConfigRequest, UpdateConfigRequest } from '@/types'
 import PageHeader from '@/components/PageHeader/index.vue'
 import Button from '@/components/Button/index.vue'
 import Loading from '@/components/Loading/index.vue'
@@ -98,7 +98,7 @@ const filteredConfigs = computed(() => {
 
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
-    result = result.filter(config => 
+    result = result.filter(config =>
       config.key.toLowerCase().includes(keyword) ||
       config.value.toLowerCase().includes(keyword)
     )
@@ -159,14 +159,51 @@ const handleSort = (field: string) => {
   }
 }
 
-const handleFormSubmit = async () => {
-  showForm.value = false
-  await loadConfigs()
+const handleFormSubmit = async (data: CreateConfigRequest | UpdateConfigRequest) => {
+  let success = false
+  if (editingConfig.value) {
+    try {
+      await updateConfig(editingConfig.value.id, data as UpdateConfigRequest)
+      success = true
+      toastMessage.value = t('configs.updateSuccess')
+    } catch (error) {
+      console.error('Failed to update config:', error)
+    }
+  } else {
+    try {
+      await createConfig(data as CreateConfigRequest)
+      success = true
+      toastMessage.value = t('configs.createSuccess')
+    } catch (error) {
+      console.error('Failed to create config:', error)
+    }
+  }
+
+  if (success) {
+    showForm.value = false
+    await loadConfigs()
+    toastVisible.value = true
+    setTimeout(() => {
+      toastVisible.value = false
+    }, 2000)
+  }
 }
 
 const confirmDelete = async () => {
-  showDeleteConfirm.value = false
-  await loadConfigs()
+  if (!deletingConfig.value) return
+
+  try {
+    await deleteConfig(deletingConfig.value.id)
+    showDeleteConfirm.value = false
+    await loadConfigs()
+    toastMessage.value = t('configs.deleteSuccess')
+    toastVisible.value = true
+    setTimeout(() => {
+      toastVisible.value = false
+    }, 2000)
+  } catch (error) {
+    console.error('Failed to delete config:', error)
+  }
 }
 
 onMounted(() => {
