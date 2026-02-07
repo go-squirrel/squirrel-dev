@@ -1,4 +1,4 @@
-import type { Config, CreateConfigRequest, UpdateConfigRequest } from '../../types'
+import type { Config, CreateConfigRequest, UpdateConfigRequest } from '../../../types'
 
 export type { Config, CreateConfigRequest, UpdateConfigRequest }
 

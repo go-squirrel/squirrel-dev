@@ -3,8 +3,14 @@
     <table class="config-table">
       <thead>
         <tr>
-          <th>{{ $t('configs.configKey') }}</th>
-          <th>{{ $t('configs.configValue') }}</th>
+          <th class="sortable" @click="$emit('sort', 'key')">
+            {{ $t('configs.configKey') }}
+            <Icon :icon="getSortIcon('key')" class="sort-icon" />
+          </th>
+          <th class="sortable" @click="$emit('sort', 'value')">
+            {{ $t('configs.configValue') }}
+            <Icon :icon="getSortIcon('value')" class="sort-icon" />
+          </th>
           <th>{{ $t('configs.operation') }}</th>
         </tr>
       </thead>
@@ -22,6 +28,9 @@
             </div>
           </td>
           <td class="action-cell">
+            <button class="action-btn copy-btn" :title="$t('configs.copy')" @click="$emit('copy', config.value)">
+              <Icon icon="lucide:copy" />
+            </button>
             <button class="action-btn edit-btn" :title="$t('configs.editConfig')" @click="$emit('edit', config)">
               <Icon icon="lucide:edit-2" />
             </button>
@@ -43,14 +52,23 @@
 import { Icon } from '@iconify/vue'
 import type { Config } from '@/types'
 
-defineProps<{
+const props = defineProps<{
   configs: Config[]
+  sortBy?: string | null
+  sortOrder?: 'asc' | 'desc'
 }>()
 
 defineEmits<{
   edit: [config: Config]
   delete: [config: Config]
+  copy: [value: string]
+  sort: [field: string]
 }>()
+
+const getSortIcon = (field: string) => {
+  if (field !== props.sortBy) return 'lucide:chevrons-up-down'
+  return props.sortOrder === 'asc' ? 'lucide:chevron-up' : 'lucide:chevron-down'
+}
 </script>
 
 <style scoped>
@@ -78,6 +96,23 @@ defineEmits<{
   color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.config-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+
+.config-table th.sortable:hover {
+  background: #f1f5f9;
+}
+
+.sort-icon {
+  width: 14px;
+  height: 14px;
+  margin-left: 4px;
+  color: #94a3b8;
 }
 
 .config-row {
@@ -142,7 +177,7 @@ defineEmits<{
 }
 
 .action-cell {
-  min-width: 100px;
+  min-width: 140px;
 }
 
 .action-btn {
@@ -160,6 +195,16 @@ defineEmits<{
 
 .action-btn:last-child {
   margin-right: 0;
+}
+
+.copy-btn {
+  background: #eff6ff;
+  color: #0284c7;
+}
+
+.copy-btn:hover {
+  background: #dbeafe;
+  transform: scale(1.1);
 }
 
 .edit-btn {

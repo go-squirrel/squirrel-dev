@@ -19,5 +19,10 @@ export default {
   deleteSuccess: '配置删除成功',
   operationFailed: '操作失败',
   configDetail: '配置详情',
-  basicInfo: '基本信息'
+  basicInfo: '基本信息',
+  searchPlaceholder: '搜索配置键或值...',
+  copy: '复制',
+  copySuccess: '已复制到剪贴板',
+  sortAsc: '升序',
+  sortDesc: '降序'
 }

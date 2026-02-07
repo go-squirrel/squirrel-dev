@@ -19,5 +19,10 @@ export default {
   deleteSuccess: 'Config deleted successfully',
   operationFailed: 'Operation failed',
   configDetail: 'Config Detail',
-  basicInfo: 'Basic Info'
+  basicInfo: 'Basic Info',
+  searchPlaceholder: 'Search config key or value...',
+  copy: 'Copy',
+  copySuccess: 'Copied to clipboard',
+  sortAsc: 'Ascending',
+  sortDesc: 'Descending'
 }

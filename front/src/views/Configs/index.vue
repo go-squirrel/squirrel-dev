@@ -1,15 +1,28 @@
 <template>
   <div class="configs-page">
     <PageHeader :title="$t('configs.listTitle')">
-      <Button type="primary" @click="handleAdd">
-        <Icon icon="lucide:plus" />
-        {{ $t('configs.addConfig') }}
-      </Button>
+      <div class="header-actions">
+        <div class="search-wrapper">
+          <Icon icon="lucide:search" class="search-icon" />
+          <input 
+            v-model="searchKeyword" 
+            :placeholder="$t('configs.searchPlaceholder')"
+            class="search-input"
+          />
+          <button v-if="searchKeyword" class="clear-btn" @click="searchKeyword = ''">
+            <Icon icon="lucide:x" />
+          </button>
+        </div>
+        <Button type="primary" @click="handleAdd">
+          <Icon icon="lucide:plus" />
+          {{ $t('configs.addConfig') }}
+        </Button>
+      </div>
     </PageHeader>
 
     <Loading v-if="loading" :text="$t('common.loading')" />
 
-    <Empty v-else-if="configs.length === 0" :description="$t('common.noData')" icon="lucide:settings">
+    <Empty v-else-if="filteredConfigs.length === 0" :description="$t('common.noData')" icon="lucide:settings">
       <template #action>
         <Button type="primary" @click="handleAdd">
           {{ $t('configs.addConfig') }}
@@ -19,9 +32,13 @@
 
     <ConfigTable
       v-else
-      :configs="configs"
+      :configs="filteredConfigs"
+      :sort-by="sortBy"
+      :sort-order="sortOrder"
       @edit="handleEdit"
       @delete="handleDelete"
+      @copy="handleCopy"
+      @sort="handleSort"
     />
 
     <ConfigForm
@@ -37,12 +54,19 @@
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
     />
+
+    <Toast
+      :visible="toastVisible"
+      :message="toastMessage"
+      type="success"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
+import { useI18n } from 'vue-i18n'
 import { fetchConfigs } from '@/api/config'
 import type { Config } from '@/types'
 import PageHeader from '@/components/PageHeader/index.vue'
@@ -52,8 +76,10 @@ import Empty from '@/components/Empty/index.vue'
 import ConfigTable from './components/ConfigTable.vue'
 import ConfigForm from './components/ConfigForm.vue'
 import DeleteConfirm from './components/DeleteConfirm.vue'
+import Toast from '@/components/Toast/index.vue'
 import { useLoading } from '@/composables/useLoading'
 
+const { t } = useI18n()
 const { loading, withLoading } = useLoading()
 
 const configs = ref<Config[]>([])
@@ -61,6 +87,34 @@ const showForm = ref(false)
 const showDeleteConfirm = ref(false)
 const editingConfig = ref<Config | null>(null)
 const deletingConfig = ref<Config | null>(null)
+const searchKeyword = ref('')
+const sortBy = ref<string | null>(null)
+const sortOrder = ref<'asc' | 'desc'>('asc')
+const toastVisible = ref(false)
+const toastMessage = ref('')
+
+const filteredConfigs = computed(() => {
+  let result = configs.value
+
+  if (searchKeyword.value) {
+    const keyword = searchKeyword.value.toLowerCase()
+    result = result.filter(config => 
+      config.key.toLowerCase().includes(keyword) ||
+      config.value.toLowerCase().includes(keyword)
+    )
+  }
+
+  if (sortBy.value) {
+    result = [...result].sort((a, b) => {
+      const aValue = a[sortBy.value as keyof Config]
+      const bValue = b[sortBy.value as keyof Config]
+      const comparison = String(aValue).localeCompare(String(bValue))
+      return sortOrder.value === 'asc' ? comparison : -comparison
+    })
+  }
+
+  return result
+})
 
 const loadConfigs = async () => {
   await withLoading(async () => {
@@ -83,6 +137,28 @@ const handleDelete = (config: Config) => {
   showDeleteConfirm.value = true
 }
 
+const handleCopy = async (value: string) => {
+  try {
+    await navigator.clipboard.writeText(value)
+    toastMessage.value = t('configs.copySuccess')
+    toastVisible.value = true
+    setTimeout(() => {
+      toastVisible.value = false
+    }, 2000)
+  } catch (err) {
+    console.error('Failed to copy:', err)
+  }
+}
+
+const handleSort = (field: string) => {
+  if (sortBy.value === field) {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortBy.value = field
+    sortOrder.value = 'asc'
+  }
+}
+
 const handleFormSubmit = async () => {
   showForm.value = false
   await loadConfigs()
@@ -101,5 +177,64 @@ onMounted(() => {
 <style scoped>
 .configs-page {
   padding: 20px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.search-input {
+  width: 280px;
+  padding: 8px 12px 8px 36px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1e3a5f;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4fc3f7;
+  background: #ffffff;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.clear-btn {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+  background: #f1f5f9;
+  color: #64748b;
 }
 </style>
