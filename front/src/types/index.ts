@@ -173,3 +173,43 @@ export interface UpdateConfigRequest {
   key: string
   value: string
 }
+
+// 脚本类型
+export interface Script {
+  id: number
+  name: string
+  content: string
+}
+
+// 创建脚本请求
+export interface CreateScriptRequest {
+  name: string
+  content: string
+}
+
+// 更新脚本请求
+export interface UpdateScriptRequest {
+  id: number
+  name: string
+  content: string
+}
+
+// 执行脚本请求
+export interface ExecuteScriptRequest {
+  script_id: number
+  server_id: number
+}
+
+// 脚本执行结果
+export interface ScriptResult {
+  id: number
+  task_id: number
+  script_id: number
+  server_id: number
+  server_ip: string
+  agent_port: number
+  output: string
+  status: 'running' | 'success' | 'failed'
+  error_message: string
+  created_at: string
+}

@@ -4,6 +4,7 @@ import overview from './overview'
 import layout from './layout'
 import server from './server'
 import configs from './configs'
+import scripts from './scripts'
 
 export default {
   common,
@@ -11,5 +12,6 @@ export default {
   overview,
   layout,
   server,
-  configs
+  configs,
+  scripts
 }
