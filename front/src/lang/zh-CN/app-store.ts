@@ -38,6 +38,8 @@ export default {
   copySuccess: '已复制到剪贴板',
   deploy: '部署',
   download: '下载',
+  importToApplication: '导入到应用管理',
+  importSuccess: '已成功导入到应用管理',
   allCategory: '全部分类',
   allType: '全部类型',
   typeCompose: 'Docker Compose',

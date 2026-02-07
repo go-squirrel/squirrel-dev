@@ -38,6 +38,8 @@ export default {
   copySuccess: 'Copied to clipboard',
   deploy: 'Deploy',
   download: 'Download',
+  importToApplication: 'Import to Applications',
+  importSuccess: 'Successfully imported to Applications',
   allCategory: 'All Categories',
   allType: 'All Types',
   typeCompose: 'Docker Compose',

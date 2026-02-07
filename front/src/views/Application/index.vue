@@ -13,6 +13,10 @@
             <Icon icon="lucide:x" />
           </button>
         </div>
+        <Button type="secondary" @click="handleImportFromStore">
+          <Icon icon="lucide:shopping-bag" />
+          {{ $t('application.importFromStore') }}
+        </Button>
         <Button type="primary" @click="handleAdd">
           <Icon icon="lucide:plus" />
           {{ $t('application.addApplication') }}
@@ -72,6 +76,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
 import { fetchApplications, createApplication, updateApplication, deleteApplication } from '@/api/application'
@@ -88,6 +93,7 @@ import Toast from '@/components/Toast/index.vue'
 import { useLoading } from '@/composables/useLoading'
 
 const { t } = useI18n()
+const router = useRouter()
 const { loading, withLoading } = useLoading()
 
 const applications = ref<ApplicationInstance[]>([])
@@ -135,6 +141,10 @@ const loadApplications = async () => {
 const handleAdd = () => {
   editingApplication.value = null
   showForm.value = true
+}
+
+const handleImportFromStore = () => {
+  router.push('/app-store')
 }
 
 const handleEdit = (application: ApplicationInstance) => {
