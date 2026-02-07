@@ -31,6 +31,7 @@ export interface Server {
   status: 'online' | 'offline' | 'unknown' | 'active' | 'inactive'
   server_info?: ServerInfo | null
   server_alias?: string
+  agent_port?: number
 }
 
 // 创建服务器请求
@@ -293,4 +294,23 @@ export interface UpdateAppRequest {
   repo_url?: string
   homepage_url?: string
   is_official: boolean
+}
+
+// 部署状态
+export type DeploymentStatus = 'running' | 'stopped' | 'not_deployed' | 'error'
+
+// 部署信息
+export interface Deployment {
+  id: number
+  deploy_id: number
+  application: ApplicationInstance
+  server: Server
+  status: DeploymentStatus
+  deployed_at: string
+}
+
+// 创建部署请求
+export interface CreateDeploymentRequest {
+  application_id: number
+  server_id: number
 }

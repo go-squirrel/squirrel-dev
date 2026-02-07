@@ -7,6 +7,7 @@ import configs from './configs'
 import scripts from './scripts'
 import appStore from './app-store'
 import application from './application'
+import deployment from './deployment'
 
 export default {
   common,
@@ -17,5 +18,6 @@ export default {
   configs,
   scripts,
   appStore,
-  application
+  application,
+  deployment
 }
