@@ -32,6 +32,7 @@
         @detail="handleDetail"
         @edit="handleEdit"
         @delete="handleDelete"
+        @import="handleImport"
       />
     </div>
 
@@ -49,6 +50,7 @@
       :app="detailApp"
       @close="closeDetail"
       @download="handleDownload"
+      @import="handleImport"
     />
 
     <!-- 删除确认弹窗 -->
@@ -72,6 +74,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import PageHeader from '@/components/PageHeader/index.vue'
 import Button from '@/components/Button/index.vue'
@@ -83,9 +86,11 @@ import AppDetail from './components/AppDetail.vue'
 import DeleteConfirm from './components/DeleteConfirm.vue'
 import CategoryFilter from './components/CategoryFilter.vue'
 import { useAppStore } from './composables/useAppStore'
+import { createApplication } from '@/api/application'
 import type { AppStore, CreateAppRequest, UpdateAppRequest } from '@/types'
 
 const { t } = useI18n()
+const router = useRouter()
 
 // 搜索和筛选
 const searchKeyword = ref('')
@@ -188,6 +193,28 @@ const handleDownload = (app: AppStore | null) => {
   a.click()
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
+}
+
+// 导入应用到应用管理
+const handleImport = async (app: AppStore | null) => {
+  if (!app) return
+  try {
+    // 转换类型：AppStore.type -> ApplicationInstance.type
+    const applicationData = {
+      name: app.name,
+      description: app.description,
+      type: app.type,
+      content: app.content,
+      version: app.version
+    }
+    await createApplication(applicationData)
+    showToast(t('appStore.importSuccess'), 'success')
+    // 跳转到应用管理页面
+    router.push('/applications')
+  } catch (error) {
+    console.error('Failed to import application:', error)
+    showToast(t('appStore.operationFailed'), 'error')
+  }
 }
 
 // 打开删除确认

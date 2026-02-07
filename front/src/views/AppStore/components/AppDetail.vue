@@ -105,6 +105,9 @@
         <Button type="secondary" @click="$emit('close')">
           {{ $t('common.close') }}
         </Button>
+        <Button type="secondary" icon="lucide:download-cloud" @click="$emit('import', app)">
+          {{ $t('appStore.importToApplication') }}
+        </Button>
         <Button type="primary" icon="lucide:download" @click="$emit('download', app)">
           {{ $t('appStore.download') }}
         </Button>
@@ -127,6 +130,7 @@ const props = defineProps<{
 defineEmits<{
   close: []
   download: [app: AppStore | null]
+  import: [app: AppStore | null]
 }>()
 
 const { t } = useI18n()

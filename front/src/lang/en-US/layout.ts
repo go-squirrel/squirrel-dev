@@ -5,5 +5,6 @@ export default {
   monitor: 'Monitor',
   scripts: 'Scripts',
   configs: 'Configs',
+  deployments: 'Deployments',
   appStore: 'App Store'
 }

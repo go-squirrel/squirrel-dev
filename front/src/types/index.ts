@@ -31,6 +31,7 @@ export interface Server {
   status: 'online' | 'offline' | 'unknown' | 'active' | 'inactive'
   server_info?: ServerInfo | null
   server_alias?: string
+  agent_port?: number
 }
 
 // 创建服务器请求
@@ -57,7 +58,7 @@ export interface UpdateServerRequest {
   ssh_private_key?: string
 }
 
-// 应用类型
+// 应用类型（概览页显示的简化版本）
 export interface Application {
   id: number
   name: string
@@ -65,6 +66,35 @@ export interface Application {
   status: 'running' | 'stopped' | 'error'
   icon: string
   color: string
+}
+
+// 应用实例类型（应用管理页面的完整版本）
+export interface ApplicationInstance {
+  id: number
+  name: string
+  description: string
+  type: string
+  content: string
+  version: string
+}
+
+// 创建应用实例请求
+export interface CreateApplicationRequest {
+  name: string
+  description: string
+  type: string
+  content: string
+  version: string
+}
+
+// 更新应用实例请求
+export interface UpdateApplicationRequest {
+  id: number
+  name: string
+  description: string
+  type: string
+  content: string
+  version: string
 }
 
 // 监控数据类型
@@ -264,4 +294,23 @@ export interface UpdateAppRequest {
   repo_url?: string
   homepage_url?: string
   is_official: boolean
+}
+
+// 部署状态
+export type DeploymentStatus = 'running' | 'stopped' | 'not_deployed' | 'error'
+
+// 部署信息
+export interface Deployment {
+  id: number
+  deploy_id: number
+  application: ApplicationInstance
+  server: Server
+  status: DeploymentStatus
+  deployed_at: string
+}
+
+// 创建部署请求
+export interface CreateDeploymentRequest {
+  application_id: number
+  server_id: number
 }

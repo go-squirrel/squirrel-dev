@@ -41,6 +41,7 @@ const navItems = computed<NavItem[]>(() => [
   { path: '/monitor', label: t('layout.monitor'), icon: 'lucide:activity' },
   { path: '/scripts', label: t('layout.scripts'), icon: 'lucide:terminal' },
   { path: '/configs', label: t('layout.configs'), icon: 'lucide:settings' },
+  { path: '/deployments', label: t('layout.deployments'), icon: 'lucide:rocket' },
   { path: '/app-store', label: t('layout.appStore'), icon: 'lucide:shopping-bag' }
 ])
 

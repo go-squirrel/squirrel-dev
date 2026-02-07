@@ -22,6 +22,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/applications',
+    name: 'Applications',
+    component: () => import('@/views/Application/index.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/scripts',
     name: 'Scripts',
     component: () => import('@/views/Scripts/index.vue'),
@@ -37,6 +43,12 @@ const routes: RouteRecordRaw[] = [
     path: '/app-store',
     name: 'AppStore',
     component: () => import('@/views/AppStore/index.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/deployments',
+    name: 'Deployments',
+    component: () => import('@/views/Deployment/index.vue'),
     meta: { requiresAuth: true }
   },
   {

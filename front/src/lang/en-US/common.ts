@@ -11,5 +11,6 @@ export default {
   refresh: 'Refresh',
   close: 'Close',
   back: 'Back',
-  submit: 'Submit'
+  submit: 'Submit',
+  operation: 'Operation'
 }

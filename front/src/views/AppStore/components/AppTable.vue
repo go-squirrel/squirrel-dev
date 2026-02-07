@@ -52,6 +52,9 @@
             </span>
           </td>
           <td class="action-cell">
+            <button class="action-btn import-btn" :title="$t('appStore.importToApplication')" @click="$emit('import', app)">
+              <Icon icon="lucide:download-cloud" />
+            </button>
             <button class="action-btn detail-btn" :title="$t('appStore.viewDetail')" @click="$emit('detail', app)">
               <Icon icon="lucide:eye" />
             </button>
@@ -85,6 +88,7 @@ defineEmits<{
   detail: [app: AppStore]
   edit: [app: AppStore]
   delete: [app: AppStore]
+  import: [app: AppStore]
 }>()
 
 const { t } = useI18n()
@@ -312,7 +316,7 @@ const getStatusLabel = (status: string) => {
 }
 
 .action-cell {
-  min-width: 140px;
+  min-width: 180px;
 }
 
 .action-btn {
@@ -339,6 +343,16 @@ const getStatusLabel = (status: string) => {
 
 .detail-btn:hover {
   background: #dbeafe;
+  transform: scale(1.1);
+}
+
+.import-btn {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.import-btn:hover {
+  background: #bae6fd;
   transform: scale(1.1);
 }
 
