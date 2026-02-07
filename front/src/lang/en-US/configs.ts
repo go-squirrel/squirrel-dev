@@ -1,0 +1,23 @@
+export default {
+  title: 'Config Management',
+  listTitle: 'Config List',
+  addConfig: 'Add Config',
+  editConfig: 'Edit Config',
+  deleteConfig: 'Delete Config',
+  viewDetail: 'View Detail',
+  configKey: 'Config Key',
+  configValue: 'Config Value',
+  operation: 'Operation',
+  save: 'Save',
+  cancel: 'Cancel',
+  confirm: 'Confirm',
+  confirmDelete: 'Confirm Delete',
+  deleteWarning: 'Are you sure you want to delete config "{key}"? This action cannot be undone.',
+  required: 'Required',
+  createSuccess: 'Config created successfully',
+  updateSuccess: 'Config updated successfully',
+  deleteSuccess: 'Config deleted successfully',
+  operationFailed: 'Operation failed',
+  configDetail: 'Config Detail',
+  basicInfo: 'Basic Info'
+}

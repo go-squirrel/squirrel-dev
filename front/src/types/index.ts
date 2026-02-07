@@ -153,3 +153,23 @@ export interface ChartDataPoint {
   value1: number
   value2: number
 }
+
+// 配置项类型
+export interface Config {
+  id: number
+  key: string
+  value: string
+}
+
+// 创建配置请求
+export interface CreateConfigRequest {
+  key: string
+  value: string
+}
+
+// 更新配置请求
+export interface UpdateConfigRequest {
+  id: number
+  key: string
+  value: string
+}
