@@ -32,6 +32,10 @@ Squirrel 采用有代理（Agent）架构设计：
                                                                └─────────────┘
 ```
 
+### 页面展示
+
+![overview](/images/overview.png)
+
 ### 核心组件
 
 | 组件 | 描述 | 默认端口 |
