@@ -6,6 +6,8 @@ import (
 	"squirrel-dev/internal/squ-agent/handler/server/res"
 	"squirrel-dev/internal/squ-agent/model"
 	"squirrel-dev/pkg/collector"
+
+	"go.uber.org/zap"
 )
 
 type Server struct {
@@ -15,16 +17,19 @@ type Server struct {
 
 func (s *Server) GetInfo() response.Response {
 	if s.Factory == nil {
+		zap.L().Error("Factory is nil")
 		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	hostCollector := s.Factory.GetHostCollector()
 	if hostCollector == nil {
+		zap.L().Error("Host collector is nil")
 		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	hostInfo, err := hostCollector.CollectHostInfo()
 	if err != nil {
+		zap.L().Error("Failed to collect host info", zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 

@@ -16,7 +16,7 @@ func getDockerComposeCommandType() (command string, composePrefix string, err er
 	} else if checkCommandAvailable("docker") {
 		return "docker", "compose", nil
 	} else {
-		return "", "", fmt.Errorf("docker-compose 命令不可用")
+		return "", "", fmt.Errorf("docker-compose command not available")
 	}
 }
 
@@ -34,7 +34,7 @@ func runDockerComposeCommand(workDir, composeFile string, actions ...string) err
 		args = append([]string{"-f", composeFile}, actions...)
 	}
 
-	zap.L().Info("执行 docker-compose",
+	zap.L().Info("Executing docker-compose",
 		zap.String("work_dir", workDir),
 		zap.String("compose_file", composeFile),
 		zap.Strings("actions", actions),
@@ -43,18 +43,18 @@ func runDockerComposeCommand(workDir, composeFile string, actions ...string) err
 	// 切换到工作目录执行命令
 	currentDir, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("获取当前目录失败: %w", err)
+		return fmt.Errorf("failed to get current directory: %w", err)
 	}
 	defer os.Chdir(currentDir)
 
 	if err := os.Chdir(workDir); err != nil {
-		return fmt.Errorf("切换到工作目录失败: %w", err)
+		return fmt.Errorf("failed to change to work directory: %w", err)
 	}
 
 	// 执行命令并获取输出和错误
 	stdout, stderr, err := execute.CommandError(command, args...)
 	if err != nil {
-		zap.L().Error("docker-compose 命令执行失败",
+		zap.L().Error("docker-compose command execution failed",
 			zap.Strings("actions", actions),
 			zap.String("stdout", stdout),
 			zap.String("stderr", stderr),
@@ -63,7 +63,7 @@ func runDockerComposeCommand(workDir, composeFile string, actions ...string) err
 		return err
 	}
 
-	zap.L().Info("docker-compose 命令执行成功",
+	zap.L().Info("docker-compose command executed successfully",
 		zap.Strings("actions", actions),
 		zap.String("output", stdout),
 	)

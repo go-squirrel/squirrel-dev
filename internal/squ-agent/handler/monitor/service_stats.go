@@ -6,17 +6,21 @@ import (
 	monitorres "squirrel-dev/internal/squ-agent/handler/monitor/res"
 	"squirrel-dev/internal/squ-agent/model"
 	"squirrel-dev/pkg/collector"
+
+	"go.uber.org/zap"
 )
 
 // GetStats 获取系统统计数据
 func (m *Monitor) GetStats() response.Response {
 	if m.Factory == nil {
+		zap.L().Error("Factory is nil")
 		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	// 收集主机信息
 	hostInfo, err := m.Factory.CollectAll()
 	if err != nil {
+		zap.L().Error("Failed to collect host info", zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -105,11 +109,13 @@ func (m *Monitor) GetStats() response.Response {
 func (m *Monitor) GetAllNetIO() response.Response {
 	ioCollector := m.Factory.GetIOCollector()
 	if ioCollector == nil {
+		zap.L().Error("IO collector is nil")
 		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	ioStatsList, err := ioCollector.CollectAllNetIO()
 	if err != nil {
+		zap.L().Error("Failed to collect all network IO", zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -135,11 +141,13 @@ func (m *Monitor) GetAllNetIO() response.Response {
 func (m *Monitor) GetNetIO(interfaceName string) response.Response {
 	ioCollector := m.Factory.GetIOCollector()
 	if ioCollector == nil {
+		zap.L().Error("IO collector is nil")
 		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	ioStats, err := ioCollector.CollectNetIO(interfaceName)
 	if err != nil {
+		zap.L().Error("Failed to collect network IO", zap.String("interface", interfaceName), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -162,11 +170,13 @@ func (m *Monitor) GetNetIO(interfaceName string) response.Response {
 func (m *Monitor) GetAllDiskIO() response.Response {
 	ioCollector := m.Factory.GetIOCollector()
 	if ioCollector == nil {
+		zap.L().Error("IO collector is nil")
 		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	ioStatsList, err := ioCollector.CollectAllDiskIO()
 	if err != nil {
+		zap.L().Error("Failed to collect all disk IO", zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -192,11 +202,13 @@ func (m *Monitor) GetAllDiskIO() response.Response {
 func (m *Monitor) GetDiskIO(device string) response.Response {
 	ioCollector := m.Factory.GetIOCollector()
 	if ioCollector == nil {
+		zap.L().Error("IO collector is nil")
 		return response.Error(model.ReturnErrCode(nil))
 	}
 
 	ioStats, err := ioCollector.CollectDiskIO(device)
 	if err != nil {
+		zap.L().Error("Failed to collect disk IO", zap.String("device", device), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 

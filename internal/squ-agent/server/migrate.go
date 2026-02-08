@@ -16,9 +16,9 @@ func (s *Server) migrate() {
 	config.RegisterMigrations(configRegistry)
 
 	if err := migration.RunMigrations(s.AgentDB.GetDB(), configRegistry); err != nil {
-		zap.S().Errorf("config 迁移失败: %v", err)
+		zap.L().Error("Failed to migrate config", zap.Error(err))
 	} else {
-		zap.S().Infof("config 迁移成功完成")
+		zap.L().Info("Config migration completed successfully")
 	}
 
 	// 迁移 AppDB
@@ -26,9 +26,9 @@ func (s *Server) migrate() {
 	application.RegisterMigrations(appRegistry)
 
 	if err := migration.RunMigrations(s.AppDB.GetDB(), appRegistry); err != nil {
-		zap.S().Errorf("AppDB 迁移失败: %v", err)
+		zap.L().Error("Failed to migrate AppDB", zap.Error(err))
 	} else {
-		zap.S().Infof("AppDB 迁移成功完成")
+		zap.L().Info("AppDB migration completed successfully")
 	}
 
 	// 迁移 ScriptTaskDB
@@ -36,17 +36,17 @@ func (s *Server) migrate() {
 	script_task.RegisterMigrations(scriptTaskRegistry)
 
 	if err := migration.RunMigrations(s.ScriptTaskDB.GetDB(), scriptTaskRegistry); err != nil {
-		zap.S().Errorf("ScriptTaskDB 迁移失败: %v", err)
+		zap.L().Error("Failed to migrate ScriptTaskDB", zap.Error(err))
 	} else {
-		zap.S().Infof("ScriptTaskDB 迁移成功完成")
+		zap.L().Info("ScriptTaskDB migration completed successfully")
 	}
 	// 迁移 MonitorDB
 	monitorRegistry := migration.NewMigrationRegistry()
 	monitor.RegisterMigrations(monitorRegistry)
 
 	if err := migration.RunMigrations(s.MonitorDB.GetDB(), monitorRegistry); err != nil {
-		zap.S().Errorf("MonitorDB 迁移失败: %v", err)
+		zap.L().Error("Failed to migrate MonitorDB", zap.Error(err))
 	} else {
-		zap.S().Infof("MonitorDB 迁移成功完成")
+		zap.L().Info("MonitorDB migration completed successfully")
 	}
 }

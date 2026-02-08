@@ -7,6 +7,8 @@ import (
 	"squirrel-dev/internal/squ-agent/model"
 	monitorRepository "squirrel-dev/internal/squ-agent/repository/monitor"
 	"squirrel-dev/pkg/collector"
+
+	"go.uber.org/zap"
 )
 
 type Monitor struct {
@@ -19,6 +21,7 @@ type Monitor struct {
 func (m *Monitor) GetBaseMonitorPage(page, count int) response.Response {
 	monitors, total, err := m.Repository.GetBaseMonitorPage(page, count)
 	if err != nil {
+		zap.L().Error("Failed to get base monitor page", zap.Int("page", page), zap.Int("count", count), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -52,6 +55,7 @@ func (m *Monitor) GetBaseMonitorPage(page, count int) response.Response {
 func (m *Monitor) GetDiskIOMonitorPage(page, count int) response.Response {
 	monitors, total, err := m.Repository.GetDiskIOMonitorPage(page, count)
 	if err != nil {
+		zap.L().Error("Failed to get disk IO monitor page", zap.Int("page", page), zap.Int("count", count), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -88,6 +92,7 @@ func (m *Monitor) GetDiskIOMonitorPage(page, count int) response.Response {
 func (m *Monitor) GetNetworkMonitorPage(page, count int) response.Response {
 	monitors, total, err := m.Repository.GetNetworkMonitorPage(page, count)
 	if err != nil {
+		zap.L().Error("Failed to get network monitor page", zap.Int("page", page), zap.Int("count", count), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
