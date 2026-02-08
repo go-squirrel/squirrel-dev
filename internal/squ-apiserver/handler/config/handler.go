@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/handler/config/req"
+	"squirrel-dev/internal/squ-apiserver/handler/config/res"
 	"squirrel-dev/pkg/utils"
 
 	"github.com/gin-gonic/gin"
@@ -23,11 +24,11 @@ func GetHandler(service *Config) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidConfigKey))
 			return
 		}
-		res := service.Get(idUint)
-		c.JSON(http.StatusOK, res)
+		resp := service.Get(idUint)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -37,11 +38,11 @@ func DeleteHandler(service *Config) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidConfigKey))
 			return
 		}
-		res := service.Delete(idUint)
-		c.JSON(http.StatusOK, res)
+		resp := service.Delete(idUint)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -51,11 +52,11 @@ func AddHandler(service *Config) func(c *gin.Context) {
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidConfigValue))
 			return
 		}
-		res := service.Add(request)
-		c.JSON(http.StatusOK, res)
+		resp := service.Add(request)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -65,19 +66,19 @@ func UpdateHandler(service *Config) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidConfigKey))
 			return
 		}
 		request := req.Config{}
 		err = c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidConfigValue))
 			return
 		}
 		request.ID = idUint
-		res := service.Update(request)
-		c.JSON(http.StatusOK, res)
+		resp := service.Update(request)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
