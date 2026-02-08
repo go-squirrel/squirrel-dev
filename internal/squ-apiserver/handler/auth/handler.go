@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/handler/auth/req"
+	"squirrel-dev/internal/squ-apiserver/handler/auth/res"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -19,12 +20,12 @@ func LoginHandler(service *Auth) func(c *gin.Context) {
 		if err != nil {
 			fmt.Println(err)
 			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidCredentials))
 			return
 		}
 
-		res := service.Login(request)
+		resp := service.Login(request)
 
-		c.JSON(http.StatusOK, res)
+		c.JSON(http.StatusOK, resp)
 	}
 }

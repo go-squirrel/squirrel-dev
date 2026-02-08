@@ -23,7 +23,7 @@ func (a *Auth) Login(request req.Request) response.Response {
 
 	ok := a.Repository.Get(request.Username, request.Password)
 	if !ok {
-		return response.Error(response.ErrUserOrPassword)
+		return response.Error(res.ErrInvalidCredentials)
 	}
 
 	j := jwt.New(a.Config.Auth.Jwt.SigningKey)
@@ -32,6 +32,7 @@ func (a *Auth) Login(request req.Request) response.Response {
 	token, err := j.GenToken(request.Username, expireDuration)
 	if err != nil {
 		zap.S().Error(err)
+		return response.Error(res.ErrTokenGenerateFailed)
 	}
 
 	return response.Success(res.TokenRes{
