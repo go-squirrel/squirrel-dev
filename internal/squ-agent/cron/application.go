@@ -1,9 +1,11 @@
 package cron
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
+	"squirrel-dev/internal/squ-agent/model"
 	"squirrel-dev/pkg/execute"
 	"squirrel-dev/pkg/utils"
 
@@ -13,7 +15,7 @@ import (
 // startApp 启动应用状态检测定时任务
 // 每 30 秒检测一次应用容器状态
 func (c *Cron) startApp() error {
-	_, err := c.Cron.AddFunc("*/30 * * * * *", func() {
+	_, err := c.Cron.AddFunc("*/5 * * * * *", func() {
 		c.checkApplicationStatus()
 	})
 	if err != nil {
@@ -34,7 +36,6 @@ func (c *Cron) checkApplicationStatus() {
 	// 遍历每个应用，检查容器状态
 	for _, app := range applications {
 		status := c.getContainerStatus(app.Name)
-
 		// 对于 "starting" 状态，无论检测结果如何，都更新数据库
 		// 对于 "failed" 状态，也需要重新检测
 		// 对于其他稳定状态，只有状态发生变化时才更新
@@ -84,75 +85,71 @@ func (c *Cron) checkApplicationStatus() {
 
 // getContainerStatus 获取指定应用名称的容器状态
 func (c *Cron) getContainerStatus(appName string) string {
-	// 使用 docker ps 命令检查容器状态
-	// 查找名称包含 appName 的容器
-	output, stderr, err := execute.CommandError("docker", "ps", "--format", "{{.Names}}:{{.Status}}", "--filter", fmt.Sprintf("name=%s", appName))
+	// 首先尝试使用 docker compose ls 检查
+	composeStatus := c.checkComposeStatus("docker", "compose", appName)
+	if composeStatus != "" {
+		return composeStatus
+	}
 
+	// 如果 docker compose 不可用，尝试 docker-compose ls
+	composeStatus = c.checkComposeStatus("docker-compose", "", appName)
+	if composeStatus != "" {
+		return composeStatus
+	}
+
+	// 如果都不可用，返回 unknown
+	return model.AppStatusFailed
+}
+
+// checkComposeStatus 使用指定的 compose 命令检查应用状态
+func (c *Cron) checkComposeStatus(command, composePrefix, appName string) string {
+	var args []string
+	if composePrefix != "" {
+		args = []string{composePrefix, "ls", "--all", "--format", "json"}
+	} else {
+		args = []string{"ls", "--all", "--format", "json"}
+	}
+
+	output, stderr, err := execute.CommandError(command, args...)
 	if err != nil {
-		zap.L().Warn("检查容器状态失败",
-			zap.String("app_name", appName),
+		zap.L().Warn("检查 compose 状态失败",
+			zap.String("command", command),
+			zap.String("args", fmt.Sprintf("%v", args)),
 			zap.String("stderr", stderr),
 			zap.Error(err),
 		)
-		return "unknown"
+		return model.AppStatusFailed
 	}
 
-	// 解析输出，查找匹配的容器
-	lines := strings.Split(strings.TrimSpace(output), "\n")
+	// 解析 JSON 数组输出
+	// 输出格式为: [{"Name":"compose","Status":"running(1)","ConfigFiles":"/path/to/docker-compose.yml"}]
+	if err := json.Unmarshal([]byte(strings.TrimSpace(output)), &composeProjects); err != nil {
+		zap.L().Debug("解析 compose JSON 输出失败",
+			zap.String("output", output),
+			zap.Error(err),
+		)
+		return model.AppStatusFailed
+	}
 
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
+	// 构建 compose 文件名用于匹配
+	// compose 文件命名规则: docker-compose-{appName}.yml
+	expectedComposeFile := fmt.Sprintf("docker-compose-%s.yml", appName)
 
-		// 输出格式为：container_name:status
-		// 例如：my-app-1:Up 2 hours
-		parts := strings.SplitN(line, ":", 2)
-		if len(parts) == 2 {
-			containerName := parts[0]
-			status := parts[1]
-
-			// 检查容器名称是否匹配
-			if strings.Contains(containerName, appName) {
-				// 判断容器状态
-				if strings.HasPrefix(status, "Up") {
-					return "running"
-				} else if strings.HasPrefix(status, "Exited") {
-					return "stopped"
-				} else if strings.HasPrefix(status, "Restarting") {
-					return "restarting"
-				}
+	for _, project := range composeProjects {
+		// 检查 ConfigFiles 是否包含预期的 compose 文件名
+		if strings.Contains(project.ConfigFiles, expectedComposeFile) {
+			// 解析状态
+			// running(1), running(2) 等表示有容器在运行
+			statusLower := strings.ToLower(project.Status)
+			if strings.HasPrefix(statusLower, "running") {
+				return model.AppStatusRunning
+			} else if strings.HasPrefix(statusLower, "exited") {
+				return model.AppStatusStopped
+			} else if strings.HasPrefix(statusLower, "paused") {
+				return model.AppStatusPaused
 			}
 		}
 	}
 
-	// 没有找到运行中的容器，检查是否已停止
-	output, stderr, err = execute.CommandError("docker", "ps", "-a", "--format", "{{.Names}}:{{.Status}}", "--filter", fmt.Sprintf("name=%s", appName))
-
-	if err != nil {
-		return "unknown"
-	}
-
-	lines = strings.Split(strings.TrimSpace(output), "\n")
-
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-
-		parts := strings.SplitN(line, ":", 2)
-		if len(parts) == 2 {
-			containerName := parts[0]
-			status := parts[1]
-
-			if strings.Contains(containerName, appName) {
-				if strings.HasPrefix(status, "Exited") {
-					return "stopped"
-				}
-			}
-		}
-	}
-
-	// 没有找到容器
-	return "not_deployed"
+	return model.AppStatusUndeploy
 }
