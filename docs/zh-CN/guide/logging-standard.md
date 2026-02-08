@@ -212,14 +212,43 @@ zap.L().Error("failed to create application server association record",
 )
 ```
 
-### 5.4 使用适当的日志级别
+### 5.4 日志格式化规范
+
+为了避免代码过长，提高可读性，遵循以下格式化规则：
+
+**单行模式**: 当日志消息和所有参数的总长度不超过120个字符时，使用单行格式。
+
+✅ 推荐（短日志使用单行）:
+```go
+zap.L().Error("failed to send deployment request", zap.String("url", agentURL), zap.Error(err))
+zap.L().Warn("invalid parameter", zap.String("field", "id"))
+zap.L().Info("deployment completed", zap.Uint64("deploy_id", deployID))
+```
+
+✅ 推荐（长日志使用多行）:
+```go
+zap.L().Error("failed to send deployment request",
+    zap.String("url", agentURL),
+    zap.String("method", "POST"),
+    zap.Uint64("deploy_id", deployID),
+    zap.Error(err),
+)
+```
+
+**判断标准**:
+- 计算消息长度 + 所有参数名称和值的长度
+- 如果总和 ≤ 120，使用单行格式
+- 如果总和 > 120，使用多行格式
+- 当参数数量超过3个时，建议使用多行格式以提高可读性
+
+### 5.5 使用适当的日志级别
 
 根据错误的严重程度选择正确的日志级别：
 - **Error**: 需要立即关注的错误
 - **Warn**: 潜在问题，但系统可以继续运行
 - **Info**: 关键业务操作和状态变更
 
-### 5.5 避免循环日志
+### 5.6 避免循环日志
 
 不要在循环中频繁记录相同级别的日志：
 

@@ -212,14 +212,43 @@ zap.L().Error("failed to create application server association record",
 )
 ```
 
-### 5.4 Use Appropriate Log Levels
+### 5.4 Log Formatting Guidelines
+
+To avoid overly long code and improve readability, follow these formatting rules:
+
+**Single Line Format**: When the total length of log message and all parameters is within 120 characters, use single line format.
+
+✅ Recommended (Use single line for short logs):
+```go
+zap.L().Error("failed to send deployment request", zap.String("url", agentURL), zap.Error(err))
+zap.L().Warn("invalid parameter", zap.String("field", "id"))
+zap.L().Info("deployment completed", zap.Uint64("deploy_id", deployID))
+```
+
+✅ Recommended (Use multi-line for long logs):
+```go
+zap.L().Error("failed to send deployment request",
+    zap.String("url", agentURL),
+    zap.String("method", "POST"),
+    zap.Uint64("deploy_id", deployID),
+    zap.Error(err),
+)
+```
+
+**Judgment Criteria**:
+- Calculate the length of message + all parameter names and values
+- If total ≤ 120, use single line format
+- If total > 120, use multi-line format
+- When parameter count exceeds 3, it's recommended to use multi-line format for better readability
+
+### 5.5 Use Appropriate Log Levels
 
 Select the correct log level based on error severity:
 - **Error**: Errors requiring immediate attention
 - **Warn**: Potential issues, but system can continue running
 - **Info**: Key business operations and status changes
 
-### 5.5 Avoid Loop Logging
+### 5.6 Avoid Loop Logging
 
 Do not frequently log the same level in loops:
 
