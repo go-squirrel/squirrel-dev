@@ -19,7 +19,10 @@ func (c *Cron) startApp() error {
 		c.checkApplicationStatus()
 	})
 	if err != nil {
-		zap.L().Error(err.Error())
+		zap.L().Error("failed to start cron task for application status check",
+			zap.String("cron", "application_status_check"),
+			zap.Error(err),
+		)
 	}
 	return err
 }
@@ -29,7 +32,10 @@ func (c *Cron) checkApplicationStatus() {
 	// 获取所有应用
 	applications, err := c.AppRepository.List()
 	if err != nil {
-		zap.L().Error("获取应用列表失败", zap.Error(err))
+		zap.L().Error("failed to list applications",
+			zap.String("cron", "application_status_check"),
+			zap.Error(err),
+		)
 		return
 	}
 
@@ -47,7 +53,8 @@ func (c *Cron) checkApplicationStatus() {
 			updatedApp.OldStatus = app.OldStatus
 			err := c.AppRepository.Update(&updatedApp)
 			if err != nil {
-				zap.L().Error("更新应用状态失败",
+				zap.L().Error("failed to update application status",
+					zap.String("cron", "application_status_check"),
 					zap.Uint("id", app.ID),
 					zap.String("name", app.Name),
 					zap.String("old_status", app.OldStatus),
@@ -66,17 +73,21 @@ func (c *Cron) checkApplicationStatus() {
 				uriAppReport)
 			_, err = c.HTTPClient.Post(apiServerURL, reportData, nil)
 			if err != nil {
-				zap.L().Error("report apiserver",
+				zap.L().Error("failed to report application status to apiserver",
+					zap.String("cron", "application_status_check"),
 					zap.Uint("id", app.ID),
 					zap.String("name", app.Name),
+					zap.Uint64("deploy_id", app.DeployID),
 					zap.String("old_status", app.OldStatus),
 					zap.String("new_status", status),
 					zap.Error(err),
 				)
 			}
-			zap.L().Info("应用状态已更新",
+			zap.L().Info("application status updated",
+				zap.String("cron", "application_status_check"),
 				zap.Uint("id", app.ID),
 				zap.String("name", app.Name),
+				zap.Uint64("deploy_id", app.DeployID),
 				zap.String("old_status", app.OldStatus),
 				zap.String("new_status", status),
 			)
@@ -114,7 +125,8 @@ func (c *Cron) checkComposeStatus(command, composePrefix, appName string) string
 
 	output, stderr, err := execute.CommandError(command, args...)
 	if err != nil {
-		zap.L().Warn("检查 compose 状态失败",
+		zap.L().Warn("failed to check compose status",
+			zap.String("cron", "application_status_check"),
 			zap.String("command", command),
 			zap.String("args", fmt.Sprintf("%v", args)),
 			zap.String("stderr", stderr),
@@ -126,8 +138,8 @@ func (c *Cron) checkComposeStatus(command, composePrefix, appName string) string
 	// 解析 JSON 数组输出
 	// 输出格式为: [{"Name":"compose","Status":"running(1)","ConfigFiles":"/path/to/docker-compose.yml"}]
 	if err := json.Unmarshal([]byte(strings.TrimSpace(output)), &composeProjects); err != nil {
-		zap.L().Debug("解析 compose JSON 输出失败",
-			zap.String("output", output),
+		zap.L().Debug("failed to parse compose JSON output",
+			zap.String("cron", "application_status_check"),
 			zap.Error(err),
 		)
 		return model.AppStatusFailed

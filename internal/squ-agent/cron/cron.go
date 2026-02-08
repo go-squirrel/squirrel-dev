@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"time"
 
+	"go.uber.org/zap"
+
 	cronV3 "github.com/robfig/cron/v3"
 )
 
@@ -39,23 +41,29 @@ func New(config *config.Config, agentDB, appDB, scriptTaskDB, monitorDB database
 }
 
 func (c *Cron) Start() error {
+	zap.L().Info("starting cron tasks")
+
 	err := c.startApp()
 	if err != nil {
+		zap.L().Warn("failed started cron app", zap.String("cron", "start app"))
 		return err
 	}
 
 	err = c.startScriptResultReporter()
 	if err != nil {
+		zap.L().Warn("failed started cron script", zap.String("cron", "start script"))
 		return err
 	}
 
 	err = c.startMonitor()
 	if err != nil {
+		zap.L().Warn("failed started cron monitor", zap.String("cron", "start monitor"))
 		return err
 	}
 
 	// 关键：启动 cron 定时器
 	c.Cron.Start()
+	zap.L().Info("cron tasks started successfully")
 	return nil
 
 }
