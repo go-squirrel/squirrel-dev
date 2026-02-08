@@ -19,7 +19,7 @@ func (a *Application) Start(deployID uint64) response.Response {
 	}
 
 	// 检查应用状态
-	if app.Status != "stopped" {
+	if app.Status != model.AppStatusStopped {
 		zap.L().Warn("应用未处于停止状态",
 			zap.String("name", app.Name),
 			zap.Uint64("deploy_id", deployID),
@@ -45,7 +45,7 @@ func (a *Application) Start(deployID uint64) response.Response {
 	}
 
 	// 更新数据库状态为 "starting"（启动中）
-	app.Status = "starting"
+	app.Status = model.AppStatusStarting
 	err = a.Repository.Update(&app)
 	if err != nil {
 		zap.L().Error("更新应用状态失败",
@@ -78,7 +78,7 @@ func (a *Application) Start(deployID uint64) response.Response {
 			}
 			for i := range apps {
 				if apps[i].DeployID == deployID {
-					apps[i].Status = "failed"
+					apps[i].Status = model.AppStatusFailed
 					if updateErr := a.Repository.Update(&apps[i]); updateErr != nil {
 						zap.L().Error("更新应用状态为 failed 失败", zap.Error(updateErr))
 					}
@@ -112,7 +112,7 @@ func (a *Application) Stop(deployID uint64) response.Response {
 	}
 
 	// 检查应用状态
-	if app.Status != "running" {
+	if app.Status != model.AppStatusRunning {
 		zap.L().Warn("应用未在运行中",
 			zap.String("name", app.Name),
 			zap.Uint64("deploy_id", deployID),
@@ -148,7 +148,7 @@ func (a *Application) Stop(deployID uint64) response.Response {
 	}
 
 	// 更新数据库状态
-	app.Status = "stopped"
+	app.Status = model.AppStatusStopped
 	err = a.Repository.Update(&app)
 	if err != nil {
 		zap.L().Error("更新应用状态失败",

@@ -71,7 +71,7 @@ func (a *Application) Delete(id uint) response.Response {
 	}
 
 	// 如果应用正在运行，先停止服务
-	if app.Status == "running" {
+	if app.Status == model.AppStatusRunning {
 		stopRes := a.Stop(app.DeployID)
 		if stopRes.Code != 200 {
 			return stopRes
@@ -100,7 +100,7 @@ func (a *Application) DeleteByDeployID(deployID uint64) response.Response {
 	}
 
 	// 如果应用正在运行，先停止服务
-	if app.Status == "running" {
+	if app.Status == model.AppStatusRunning {
 		stopRes := a.Stop(deployID)
 		if stopRes.Code != 200 {
 			zap.L().Warn("删除时停止应用失败，继续删除",
@@ -183,7 +183,7 @@ func (a *Application) Add(request req.Application) response.Response {
 		Name:        request.Name,
 		Description: request.Description,
 		Type:        request.Type,
-		Status:      "starting",
+		Status:      model.AppStatusStarting,
 		Content:     request.Content,
 		Version:     request.Version,
 		DeployID:    request.DeployID,
@@ -232,7 +232,7 @@ func (a *Application) Add(request req.Application) response.Response {
 			}
 			for i := range apps {
 				if apps[i].Name == appName {
-					apps[i].Status = "failed"
+					apps[i].Status = model.AppStatusFailed
 					if updateErr := a.Repository.Update(&apps[i]); updateErr != nil {
 						zap.L().Error("更新应用状态为 failed 失败", zap.Error(updateErr))
 					}
