@@ -50,6 +50,9 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 	// 2. 检查服务器是否存在
 	server, err := a.ServerRepo.Get(request.ServerID)
 	if err != nil {
+		if err.Error() == "record not found" {
+			return response.Error(res.ErrServerNotFound)
+		}
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -58,7 +61,7 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 		zap.L().Error("生成部署ID失败",
 			zap.Error(err),
 		)
-		return response.Error(res.ErrDeployFailed)
+		return response.Error(res.ErrDeployIDGenerateFailed)
 	}
 
 	// 4. 发送部署请求到 agent
@@ -82,7 +85,7 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
-		return response.Error(res.ErrDeployFailed)
+		return response.Error(res.ErrAgentRequestFailed)
 	}
 
 	// 解析响应，检查是否部署成功
@@ -92,7 +95,7 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
-		return response.Error(res.ErrDeployFailed)
+		return response.Error(res.ErrAgentResponseParseFailed)
 	}
 
 	if agentResp.Code != 0 {
@@ -101,7 +104,7 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 			zap.Int("code", agentResp.Code),
 			zap.String("message", agentResp.Message),
 		)
-		return response.Error(res.ErrDeployFailed)
+		return response.Error(res.ErrAgentDeployFailed)
 	}
 
 	// 5. 创建应用服务器关联记录
@@ -214,7 +217,7 @@ func (a *Deployment) Undeploy(deploymentID uint) response.Response {
 			zap.String("url", agentDeleteURL),
 			zap.Error(err),
 		)
-		return response.Error(res.ErrDeployFailed)
+		return response.Error(res.ErrAgentDeleteFailed)
 	}
 
 	// 4. 删除应用服务器关联记录

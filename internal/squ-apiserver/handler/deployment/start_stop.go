@@ -42,7 +42,7 @@ func (a *Deployment) Stop(deploymentID uint) response.Response {
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
-		return response.Error(res.ErrDeployFailed)
+		return response.Error(res.ErrAgentStopFailed)
 	}
 
 	// 解析响应，检查是否停止成功
@@ -52,7 +52,7 @@ func (a *Deployment) Stop(deploymentID uint) response.Response {
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
-		return response.Error(res.ErrDeployFailed)
+		return response.Error(res.ErrAgentResponseParseFailed)
 	}
 
 	if agentResp.Code != 0 {
@@ -61,7 +61,7 @@ func (a *Deployment) Stop(deploymentID uint) response.Response {
 			zap.Int("code", agentResp.Code),
 			zap.String("message", agentResp.Message),
 		)
-		return response.Error(res.ErrDeployFailed)
+		return response.Error(res.ErrAgentOperationFailed)
 	}
 
 	return response.Success("stop success")
@@ -98,7 +98,7 @@ func (a *Deployment) Start(deploymentID uint) response.Response {
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
-		return response.Error(res.ErrDeployFailed)
+		return response.Error(res.ErrAgentStartFailed)
 	}
 
 	// 解析响应，检查是否启动成功
@@ -108,7 +108,7 @@ func (a *Deployment) Start(deploymentID uint) response.Response {
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
-		return response.Error(res.ErrDeployFailed)
+		return response.Error(res.ErrAgentResponseParseFailed)
 	}
 
 	if agentResp.Code != 0 {
@@ -117,7 +117,7 @@ func (a *Deployment) Start(deploymentID uint) response.Response {
 			zap.Int("code", agentResp.Code),
 			zap.String("message", agentResp.Message),
 		)
-		return response.Error(res.ErrDeployFailed)
+		return response.Error(res.ErrAgentOperationFailed)
 	}
 
 	return response.Success("start success")
