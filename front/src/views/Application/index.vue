@@ -123,11 +123,11 @@ const toastMessage = ref('')
 const toastType = ref<'success' | 'error'>('success')
 
 const filteredApplications = computed(() => {
-  let result = applications.value
+  let result = applications.value || []
 
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
-    result = result.filter(app => 
+    result = result.filter(app =>
       app.name.toLowerCase().includes(keyword) ||
       app.description.toLowerCase().includes(keyword)
     )
