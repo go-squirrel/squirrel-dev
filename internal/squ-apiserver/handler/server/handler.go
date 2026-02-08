@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/handler/server/req"
+	"squirrel-dev/internal/squ-apiserver/handler/server/res"
 	"squirrel-dev/pkg/utils"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +28,7 @@ func GetHandler(service *Server) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}
 		res := service.Get(idUint)
@@ -42,11 +43,11 @@ func DeleteHandler(service *Server) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}
-		res := service.Delete(idUint)
-		c.JSON(http.StatusOK, res)
+		resp := service.Delete(idUint)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -56,11 +57,11 @@ func AddHandler(service *Server) func(c *gin.Context) {
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}
-		res := service.Add(request)
-		c.JSON(http.StatusOK, res)
+		resp := service.Add(request)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -70,19 +71,19 @@ func UpdateHandler(service *Server) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}
 		request := req.Server{}
 		err = c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}
 		request.ID = idUint
-		res := service.Update(request)
-		c.JSON(http.StatusOK, res)
+		resp := service.Update(request)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -92,11 +93,11 @@ func RegistryHandler(service *Server) func(c *gin.Context) {
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}
-		res := service.Registry(request)
-		c.JSON(http.StatusOK, res)
+		resp := service.Registry(request)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -118,11 +119,11 @@ func TerminalHandler(service *Server) func(c *gin.Context) {
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
 			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}
-		res := service.GetTerminal(idUint, conn)
+		resp := service.GetTerminal(idUint, conn)
 
-		conn.WriteJSON(res)
+		conn.WriteJSON(resp)
 	}
 }

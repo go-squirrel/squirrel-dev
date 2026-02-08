@@ -9,6 +9,7 @@ import (
 	"squirrel-dev/pkg/utils"
 
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 func (s *Server) getAgentInfo(ipAddress string, port int) (status string, agentResp response.Response) {
@@ -77,4 +78,15 @@ func (s *Server) requestToModel(request req.Server) model.Server {
 		modelReq.SshPrivateKey = &request.SshPrivateKey
 	}
 	return modelReq
+}
+
+// returnServerErrCode 根据错误类型返回精确的服务器错误码
+func returnServerErrCode(err error) int {
+	switch err {
+	case gorm.ErrRecordNotFound:
+		return res.ErrServerNotFound
+	case gorm.ErrDuplicatedKey:
+		return res.ErrServerAlreadyExists
+	}
+	return res.ErrServerUpdateFailed
 }
