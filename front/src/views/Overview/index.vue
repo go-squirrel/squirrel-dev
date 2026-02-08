@@ -1,4 +1,8 @@
 <template>
+  <div class="overview-grid">
+    <StatsCard :stats="baseStats" />
+  </div>
+
   <div class="overview-page">
     <ServerList 
       :servers="serverList" 
@@ -9,8 +13,7 @@
     <main class="main-area">
       <Loading v-if="loading" :text="$t('overview.loading')" />
       <template v-else>
-        <StatsCard :stats="baseStats" />
-
+        
         <MetricsPanel
           :monitor-data="monitorData"
           :load-metric="loadMetric"
@@ -177,6 +180,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.overview-grid {
+  margin-bottom: 24px;
+}
+
 .overview-page {
   display: flex;
   height: 100%;
