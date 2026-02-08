@@ -12,6 +12,7 @@ import (
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/pkg/middleware/cors"
 	"squirrel-dev/internal/pkg/middleware/log"
+	spaMiddleware "squirrel-dev/internal/pkg/middleware/static"
 	"squirrel-dev/internal/squ-apiserver/config"
 )
 
@@ -47,6 +48,10 @@ func (s *Server) Run() {
 		zap.S().Error(err)
 	}
 	s.Gin.Use(static.Serve("/", staticFunc))
+
+	// SPA 路由回退中间件：处理前端路由
+	s.Gin.Use(spaMiddleware.Default(staticData, "dist"))
+
 	// s.Gin.Use(log.GinLogger(s.Log.Logger),
 	// 	log.GinRecovery(s.Log.Logger, true),
 	// 	c)
