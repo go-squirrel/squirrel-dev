@@ -121,7 +121,7 @@ const toastMessage = ref('')
 const toastType = ref<'success' | 'error'>('success')
 
 const filteredDeployments = computed(() => {
-  let result = deployments.value
+  let result = deployments.value || []
 
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
