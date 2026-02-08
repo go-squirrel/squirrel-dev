@@ -71,10 +71,8 @@ const { loading, withLoading } = useLoading()
 
 // 基础统计数据
 const baseStats = ref({
-  website: 1,
-  database: 2,
-  cron: 1,
-  installedApps: 6
+  script: 1,
+  deployment: 2
 })
 
 // 使用 composables
@@ -181,7 +179,7 @@ onMounted(() => {
 
 <style scoped>
 .overview-grid {
-  margin-bottom: 24px;
+  margin-bottom: 14px;
 }
 
 .overview-page {

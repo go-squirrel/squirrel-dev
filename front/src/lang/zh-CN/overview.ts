@@ -1,10 +1,8 @@
 export default {
   loading: '加载中...',
   serverList: '服务器列表',
-  website: '网站',
-  database: '数据库 · 所有',
-  cron: '计划任务',
-  installedApps: '已安装应用',
+  script: '脚本',
+  deployment: '部署',
   status: '状态',
   load: '负载',
   cpu: 'CPU',
