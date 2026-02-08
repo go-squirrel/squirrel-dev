@@ -37,48 +37,20 @@ func (s *Server) List() response.Response {
 
 		status, _ := s.getAgentInfo(daoS.IpAddress, daoS.AgentPort)
 
-		servers = append(servers, res.Server{
-			ID:            daoS.ID,
-			Hostname:      daoS.Hostname,
-			Port:          daoS.AgentPort,
-			IpAddress:     daoS.IpAddress,
-			SshUsername:   daoS.SshUsername,
-			SshPassword:   daoS.SshPassword,
-			SshPrivateKey: daoS.SshPrivateKey,
-			ServerAlias:   daoS.ServerAlias,
-			SshPort:       daoS.SshPort,
-			AuthType:      daoS.AuthType,
-			Status:        status,
-		})
+		servers = append(servers, s.modelToResponse(daoS, status))
 	}
 	return response.Success(servers)
 }
 
 func (s *Server) Get(id uint) response.Response {
-	var serverRes res.Server
 	daoS, err := s.Repository.Get(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	status, _ := s.getAgentInfo(daoS.IpAddress, daoS.AgentPort)
-
-	serverRes = res.Server{
-		ID:            daoS.ID,
-		Hostname:      daoS.Hostname,
-		IpAddress:     daoS.IpAddress,
-		Port:          daoS.AgentPort,
-		SshUsername:   daoS.SshUsername,
-		SshPassword:   daoS.SshPassword,
-		SshPrivateKey: daoS.SshPrivateKey,
-		ServerAlias:   daoS.ServerAlias,
-		SshPort:       daoS.SshPort,
-		AuthType:      daoS.AuthType,
-		Status:        status,
-	}
-
 	status, agentResp := s.getAgentInfo(daoS.IpAddress, daoS.AgentPort)
-	serverRes.Status = status
+
+	serverRes := s.modelToResponse(daoS, status)
 	if agentResp.Data != nil {
 		serverRes.ServerInfo = agentResp.Data.(map[string]any)
 	}
@@ -96,19 +68,7 @@ func (s *Server) Delete(id uint) response.Response {
 }
 
 func (s *Server) Add(request req.Server) response.Response {
-	modelReq := model.Server{
-		Hostname:    request.Hostname,
-		IpAddress:   request.IpAddress,
-		SshUsername: request.SshUsername,
-		SshPort:     request.SshPort,
-		AuthType:    request.AuthType,
-		Status:      request.Status,
-	}
-	if request.AuthType == model.ServerAuthTypePassword {
-		modelReq.SshPassword = &request.SshPassword
-	} else {
-		modelReq.SshPrivateKey = &request.SshPrivateKey
-	}
+	modelReq := s.requestToModel(request)
 
 	err := s.Repository.Add(&modelReq)
 	if err != nil {
@@ -119,19 +79,8 @@ func (s *Server) Add(request req.Server) response.Response {
 }
 
 func (s *Server) Update(request req.Server) response.Response {
-	modelReq := model.Server{
-		IpAddress:   request.IpAddress,
-		SshUsername: request.SshUsername,
-		SshPort:     request.SshPort,
-		AuthType:    request.AuthType,
-		Status:      request.Status,
-	}
+	modelReq := s.requestToModel(request)
 	modelReq.ID = request.ID
-	if request.AuthType == model.ServerAuthTypePassword {
-		modelReq.SshPassword = &request.SshPassword
-	} else {
-		modelReq.SshPrivateKey = &request.SshPrivateKey
-	}
 
 	err := s.Repository.Update(&modelReq)
 

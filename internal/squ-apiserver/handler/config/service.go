@@ -22,26 +22,17 @@ func (c *Config) List() response.Response {
 		return response.Error(model.ReturnErrCode(err))
 	}
 	for _, daoC := range daoConfigs {
-		configs = append(configs, res.Config{
-			ID:    daoC.ID,
-			Key:   daoC.Key,
-			Value: daoC.Value,
-		})
+		configs = append(configs, c.modelToResponse(daoC))
 	}
 	return response.Success(configs)
 }
 
 func (c *Config) Get(id uint) response.Response {
-	var configRes res.Config
 	daoC, err := c.Repository.Get(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
-	configRes = res.Config{
-		ID:    daoC.ID,
-		Key:   daoC.Key,
-		Value: daoC.Value,
-	}
+	configRes := c.modelToResponse(daoC)
 
 	return response.Success(configRes)
 }
@@ -56,10 +47,7 @@ func (c *Config) Delete(id uint) response.Response {
 }
 
 func (c *Config) Add(request req.Config) response.Response {
-	modelReq := model.Config{
-		Key:   request.Key,
-		Value: request.Value,
-	}
+	modelReq := c.requestToModel(request)
 
 	err := c.Repository.Add(&modelReq)
 	if err != nil {
@@ -70,10 +58,7 @@ func (c *Config) Add(request req.Config) response.Response {
 }
 
 func (c *Config) Update(request req.Config) response.Response {
-	modelReq := model.Config{
-		Key:   request.Key,
-		Value: request.Value,
-	}
+	modelReq := c.requestToModel(request)
 	modelReq.ID = request.ID
 	err := c.Repository.Update(&modelReq)
 

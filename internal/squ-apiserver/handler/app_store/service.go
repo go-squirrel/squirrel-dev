@@ -25,7 +25,7 @@ func (a *AppStore) List() response.Response {
 		return response.Error(model.ReturnErrCode(err))
 	}
 	for _, daoA := range daoAppStores {
-		appStores = append(appStores, a.modelToRequest(daoA))
+		appStores = append(appStores, a.modelToResponse(daoA))
 	}
 	return response.Success(appStores)
 }
@@ -36,7 +36,7 @@ func (a *AppStore) Get(id uint) response.Response {
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
-	appStoreRes = a.modelToRequest(daoA)
+	appStoreRes = a.modelToResponse(daoA)
 
 	return response.Success(appStoreRes)
 }

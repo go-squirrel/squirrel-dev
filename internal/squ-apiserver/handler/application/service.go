@@ -38,32 +38,17 @@ func (a *Application) List() response.Response {
 		return response.Error(model.ReturnErrCode(err))
 	}
 	for _, daoA := range daoApps {
-		applications = append(applications, res.Application{
-			ID:          daoA.ID,
-			Name:        daoA.Name,
-			Description: daoA.Description,
-			Type:        daoA.Type,
-			Content:     daoA.Content,
-			Version:     daoA.Version,
-		})
+		applications = append(applications, a.modelToResponse(daoA))
 	}
 	return response.Success(applications)
 }
 
 func (a *Application) Get(id uint) response.Response {
-	var appRes res.Application
 	daoA, err := a.Repository.Get(id)
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
-	appRes = res.Application{
-		ID:          daoA.ID,
-		Name:        daoA.Name,
-		Description: daoA.Description,
-		Type:        daoA.Type,
-		Content:     daoA.Content,
-		Version:     daoA.Version,
-	}
+	appRes := a.modelToResponse(daoA)
 
 	return response.Success(appRes)
 }
@@ -80,13 +65,7 @@ func (a *Application) Delete(id uint) response.Response {
 }
 
 func (a *Application) Add(request req.Application) response.Response {
-	modelReq := model.Application{
-		Name:        request.Name,
-		Description: request.Description,
-		Type:        request.Type,
-		Content:     request.Content,
-		Version:     request.Version,
-	}
+	modelReq := a.requestToModel(request)
 
 	err := a.Repository.Add(&modelReq)
 	if err != nil {
@@ -97,13 +76,7 @@ func (a *Application) Add(request req.Application) response.Response {
 }
 
 func (a *Application) Update(request req.Application) response.Response {
-	modelReq := model.Application{
-		Name:        request.Name,
-		Description: request.Description,
-		Type:        request.Type,
-		Content:     request.Content,
-		Version:     request.Version,
-	}
+	modelReq := a.requestToModel(request)
 	modelReq.ID = request.ID
 	err := a.Repository.Update(&modelReq)
 

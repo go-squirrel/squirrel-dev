@@ -6,7 +6,7 @@ import (
 	"squirrel-dev/internal/squ-apiserver/model"
 )
 
-func (a *AppStore) modelToRequest(daoA model.AppStore) res.AppStore {
+func (a *AppStore) modelToResponse(daoA model.AppStore) res.AppStore {
 	return res.AppStore{
 		ID:          daoA.ID,
 		Name:        daoA.Name,

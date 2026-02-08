@@ -3,6 +3,8 @@ package server
 import (
 	"encoding/json"
 	"squirrel-dev/internal/pkg/response"
+	"squirrel-dev/internal/squ-apiserver/handler/server/req"
+	"squirrel-dev/internal/squ-apiserver/handler/server/res"
 	"squirrel-dev/internal/squ-apiserver/model"
 	"squirrel-dev/pkg/utils"
 
@@ -42,4 +44,37 @@ func (s *Server) getAgentInfo(ipAddress string, port int) (status string, agentR
 		}
 	}
 	return model.ServerStatusOnline, agentResp
+}
+
+func (s *Server) modelToResponse(daoS model.Server, status string) res.Server {
+	return res.Server{
+		ID:            daoS.ID,
+		Hostname:      daoS.Hostname,
+		IpAddress:     daoS.IpAddress,
+		Port:          daoS.AgentPort,
+		SshUsername:   daoS.SshUsername,
+		SshPassword:   daoS.SshPassword,
+		SshPrivateKey: daoS.SshPrivateKey,
+		ServerAlias:   daoS.ServerAlias,
+		SshPort:       daoS.SshPort,
+		AuthType:      daoS.AuthType,
+		Status:        status,
+	}
+}
+
+func (s *Server) requestToModel(request req.Server) model.Server {
+	modelReq := model.Server{
+		Hostname:    request.Hostname,
+		IpAddress:   request.IpAddress,
+		SshUsername: request.SshUsername,
+		SshPort:     request.SshPort,
+		AuthType:    request.AuthType,
+		Status:      request.Status,
+	}
+	if request.AuthType == model.ServerAuthTypePassword {
+		modelReq.SshPassword = &request.SshPassword
+	} else {
+		modelReq.SshPrivateKey = &request.SshPrivateKey
+	}
+	return modelReq
 }
