@@ -41,19 +41,13 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 	// 1. 检查应用是否存在
 	app, err := a.AppRepo.Get(request.ApplicationID)
 	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrApplicationNotFound)
-		}
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
 	// 2. 检查服务器是否存在
 	server, err := a.ServerRepo.Get(request.ServerID)
 	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrServerNotFound)
-		}
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
 	deployID, err := utils.IDGenerate()
@@ -142,7 +136,7 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 			)
 		}
 
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnDeploymentErrCode(err))
 	}
 
 	return response.Success("deploy success")
@@ -153,16 +147,13 @@ func (a *Deployment) ListServers(applicationID uint) response.Response {
 	// 检查应用是否存在
 	_, err := a.AppRepo.Get(applicationID)
 	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrApplicationNotFound)
-		}
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
 	// 查询应用服务器关联记录
 	appServers, err := a.Repository.List(applicationID)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnDeploymentErrCode(err))
 	}
 
 	var servers []res.ServerInfo
@@ -191,16 +182,13 @@ func (a *Deployment) Undeploy(deploymentID uint) response.Response {
 	// 1. 根据deployment.ID查询部署记录
 	deployment, err := a.Repository.Get(deploymentID)
 	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrDeploymentNotFound)
-		}
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnDeploymentErrCode(err))
 	}
 
 	// 2. 检查服务器是否存在
 	server, err := a.ServerRepo.Get(deployment.ServerID)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
 	// 3. 调用 Agent 删除应用，使用deployID
@@ -227,7 +215,7 @@ func (a *Deployment) Undeploy(deploymentID uint) response.Response {
 			zap.Uint("id", deployment.ID),
 			zap.Error(err),
 		)
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnDeploymentErrCode(err))
 	}
 
 	return response.Success("undeploy success")
@@ -241,7 +229,7 @@ func (a *Deployment) ReportStatus(request req.ReportApplicationStatus) response.
 			zap.Uint64("deploy_id", request.DeployID),
 			zap.Error(err),
 		)
-		return response.Error(response.ErrCodeParameter)
+		return response.Error(returnDeploymentErrCode(err))
 	}
 
 	// 更新状态，使用deployID
@@ -252,7 +240,7 @@ func (a *Deployment) ReportStatus(request req.ReportApplicationStatus) response.
 			zap.String("status", request.Status),
 			zap.Error(err),
 		)
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnDeploymentErrCode(err))
 	}
 
 	zap.L().Info("应用状态已更新",
@@ -268,7 +256,7 @@ func (a *Deployment) List(serverID uint) response.Response {
 	// 查询部署列表
 	deployments, err := a.Repository.List(serverID)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnDeploymentErrCode(err))
 	}
 
 	// 构建响应数据

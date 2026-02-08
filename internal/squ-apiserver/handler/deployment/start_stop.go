@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/handler/deployment/res"
-	"squirrel-dev/internal/squ-apiserver/model"
 	"squirrel-dev/pkg/utils"
 
 	"go.uber.org/zap"
@@ -16,16 +15,13 @@ func (a *Deployment) Stop(deploymentID uint) response.Response {
 	// 1. 根据deployment.ID查询部署记录
 	deployment, err := a.Repository.Get(deploymentID)
 	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrDeploymentNotFound)
-		}
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnDeploymentErrCode(err))
 	}
 
 	// 2. 检查服务器是否存在
 	server, err := a.ServerRepo.Get(deployment.ServerID)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
 	// 3. 调用 Agent 停止应用，使用deployID
@@ -72,16 +68,13 @@ func (a *Deployment) Start(deploymentID uint) response.Response {
 	// 1. 根据deployment.ID查询部署记录
 	deployment, err := a.Repository.Get(deploymentID)
 	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrDeploymentNotFound)
-		}
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnDeploymentErrCode(err))
 	}
 
 	// 2. 检查服务器是否存在
 	server, err := a.ServerRepo.Get(deployment.ServerID)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
 	// 3. 调用 Agent 启动应用，使用deployID
