@@ -4,6 +4,8 @@ import (
 	"squirrel-dev/internal/squ-apiserver/handler/app_store/req"
 	"squirrel-dev/internal/squ-apiserver/handler/app_store/res"
 	"squirrel-dev/internal/squ-apiserver/model"
+
+	"gorm.io/gorm"
 )
 
 func (a *AppStore) modelToResponse(daoA model.AppStore) res.AppStore {
@@ -43,4 +45,15 @@ func (a *AppStore) requestToModel(request req.AppStore) model.AppStore {
 		Downloads:   request.Downloads,
 		Status:      request.Status,
 	}
+}
+
+// returnAppStoreErrCode 根据错误类型返回精确的应用商店错误码
+func returnAppStoreErrCode(err error) int {
+	switch err {
+	case gorm.ErrRecordNotFound:
+		return res.ErrAppStoreNotFound
+	case gorm.ErrDuplicatedKey:
+		return res.ErrDuplicateAppStore
+	}
+	return res.ErrAppStoreUpdateFailed
 }

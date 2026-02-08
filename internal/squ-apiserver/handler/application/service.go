@@ -7,7 +7,6 @@ import (
 	"squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/application/req"
 	"squirrel-dev/internal/squ-apiserver/handler/application/res"
-	"squirrel-dev/internal/squ-apiserver/model"
 	"squirrel-dev/pkg/httpclient"
 
 	appRepository "squirrel-dev/internal/squ-apiserver/repository/application"
@@ -35,7 +34,7 @@ func (a *Application) List() response.Response {
 	var applications []res.Application
 	daoApps, err := a.Repository.List()
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnApplicationErrCode(err))
 	}
 	for _, daoA := range daoApps {
 		applications = append(applications, a.modelToResponse(daoA))
@@ -46,7 +45,7 @@ func (a *Application) List() response.Response {
 func (a *Application) Get(id uint) response.Response {
 	daoA, err := a.Repository.Get(id)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnApplicationErrCode(err))
 	}
 	appRes := a.modelToResponse(daoA)
 
@@ -58,7 +57,7 @@ func (a *Application) Delete(id uint) response.Response {
 	// 删除应用记录
 	err := a.Repository.Delete(id)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnApplicationErrCode(err))
 	}
 
 	return response.Success("success")
@@ -69,7 +68,7 @@ func (a *Application) Add(request req.Application) response.Response {
 
 	err := a.Repository.Add(&modelReq)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnApplicationErrCode(err))
 	}
 
 	return response.Success("success")
@@ -81,7 +80,7 @@ func (a *Application) Update(request req.Application) response.Response {
 	err := a.Repository.Update(&modelReq)
 
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnApplicationErrCode(err))
 	}
 
 	return response.Success("success")

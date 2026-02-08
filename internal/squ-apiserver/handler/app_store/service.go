@@ -5,7 +5,6 @@ import (
 	"squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/app_store/req"
 	"squirrel-dev/internal/squ-apiserver/handler/app_store/res"
-	"squirrel-dev/internal/squ-apiserver/model"
 	"squirrel-dev/pkg/compose"
 
 	appStoreRepository "squirrel-dev/internal/squ-apiserver/repository/app_store"
@@ -22,7 +21,7 @@ func (a *AppStore) List() response.Response {
 	var appStores []res.AppStore
 	daoAppStores, err := a.Repository.List()
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnAppStoreErrCode(err))
 	}
 	for _, daoA := range daoAppStores {
 		appStores = append(appStores, a.modelToResponse(daoA))
@@ -34,7 +33,7 @@ func (a *AppStore) Get(id uint) response.Response {
 	var appStoreRes res.AppStore
 	daoA, err := a.Repository.Get(id)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnAppStoreErrCode(err))
 	}
 	appStoreRes = a.modelToResponse(daoA)
 
@@ -44,7 +43,7 @@ func (a *AppStore) Get(id uint) response.Response {
 func (a *AppStore) Delete(id uint) response.Response {
 	err := a.Repository.Delete(id)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnAppStoreErrCode(err))
 	}
 
 	return response.Success("success")
@@ -69,7 +68,7 @@ func (a *AppStore) Add(request req.AppStore) response.Response {
 
 	err := a.Repository.Add(&modelReq)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnAppStoreErrCode(err))
 	}
 
 	return response.Success("success")
@@ -95,7 +94,7 @@ func (a *AppStore) Update(request req.AppStore) response.Response {
 	err := a.Repository.Update(&modelReq)
 
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnAppStoreErrCode(err))
 	}
 
 	return response.Success("success")

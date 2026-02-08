@@ -4,6 +4,8 @@ import (
 	"squirrel-dev/internal/squ-apiserver/handler/application/req"
 	"squirrel-dev/internal/squ-apiserver/handler/application/res"
 	"squirrel-dev/internal/squ-apiserver/model"
+
+	"gorm.io/gorm"
 )
 
 func (a *Application) modelToResponse(daoA model.Application) res.Application {
@@ -25,4 +27,15 @@ func (a *Application) requestToModel(request req.Application) model.Application 
 		Content:     request.Content,
 		Version:     request.Version,
 	}
+}
+
+// returnApplicationErrCode 根据错误类型返回精确的应用错误码
+func returnApplicationErrCode(err error) int {
+	switch err {
+	case gorm.ErrRecordNotFound:
+		return res.ErrApplicationNotFound
+	case gorm.ErrDuplicatedKey:
+		return res.ErrDuplicateApplication
+	}
+	return res.ErrApplicationUpdateFailed
 }
