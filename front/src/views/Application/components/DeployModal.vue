@@ -130,17 +130,14 @@ const handleDeploy = async () => {
 
   loading.value = true
   try {
-    const response: any = await post(`/deployment/deploy/${props.application.id}`, {
+    await post(`/deployment/deploy/${props.application.id}`, {
       server_id: selectedServerId.value
     })
-    if (response.code === 0) {
-      emit('success')
-    } else {
-      emit('error', response.message || t('application.deployFailed'))
-    }
+    // post 函数在 code !== 0 时会抛出异常，所以这里直接表示成功
+    emit('success')
   } catch (error: any) {
     console.error('Failed to deploy application:', error)
-    const errorMessage = error.response?.data?.message || error.message || t('application.deployFailed')
+    const errorMessage = error.message || t('application.deployFailed')
     emit('error', errorMessage)
   } finally {
     loading.value = false
