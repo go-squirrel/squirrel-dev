@@ -193,6 +193,8 @@ const handleDeploySuccess = () => {
   toastVisible.value = true
   setTimeout(() => {
     toastVisible.value = false
+    // 部署成功后跳转到部署页面
+    router.push('/deployments')
   }, 2000)
 }
 
