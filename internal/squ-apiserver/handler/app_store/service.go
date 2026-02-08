@@ -25,23 +25,7 @@ func (a *AppStore) List() response.Response {
 		return response.Error(model.ReturnErrCode(err))
 	}
 	for _, daoA := range daoAppStores {
-		appStores = append(appStores, res.AppStore{
-			ID:          daoA.ID,
-			Name:        daoA.Name,
-			Description: daoA.Description,
-			Type:        daoA.Type,
-			Category:    daoA.Category,
-			Icon:        daoA.Icon,
-			Version:     daoA.Version,
-			Content:     daoA.Content,
-			Tags:        daoA.Tags,
-			Author:      daoA.Author,
-			RepoUrl:     daoA.RepoUrl,
-			HomepageUrl: daoA.HomepageUrl,
-			IsOfficial:  daoA.IsOfficial,
-			Downloads:   daoA.Downloads,
-			Status:      daoA.Status,
-		})
+		appStores = append(appStores, a.modelToRequest(daoA))
 	}
 	return response.Success(appStores)
 }
@@ -52,23 +36,7 @@ func (a *AppStore) Get(id uint) response.Response {
 	if err != nil {
 		return response.Error(model.ReturnErrCode(err))
 	}
-	appStoreRes = res.AppStore{
-		ID:          daoA.ID,
-		Name:        daoA.Name,
-		Description: daoA.Description,
-		Type:        daoA.Type,
-		Category:    daoA.Category,
-		Icon:        daoA.Icon,
-		Version:     daoA.Version,
-		Content:     daoA.Content,
-		Tags:        daoA.Tags,
-		Author:      daoA.Author,
-		RepoUrl:     daoA.RepoUrl,
-		HomepageUrl: daoA.HomepageUrl,
-		IsOfficial:  daoA.IsOfficial,
-		Downloads:   daoA.Downloads,
-		Status:      daoA.Status,
-	}
+	appStoreRes = a.modelToRequest(daoA)
 
 	return response.Success(appStoreRes)
 }
@@ -97,22 +65,7 @@ func (a *AppStore) Add(request req.AppStore) response.Response {
 		}
 	}
 
-	modelReq := model.AppStore{
-		Name:        request.Name,
-		Description: request.Description,
-		Type:        request.Type,
-		Category:    request.Category,
-		Icon:        request.Icon,
-		Version:     request.Version,
-		Content:     request.Content,
-		Tags:        request.Tags,
-		Author:      request.Author,
-		RepoUrl:     request.RepoUrl,
-		HomepageUrl: request.HomepageUrl,
-		IsOfficial:  request.IsOfficial,
-		Downloads:   request.Downloads,
-		Status:      request.Status,
-	}
+	modelReq := a.requestToModel(request)
 
 	err := a.Repository.Add(&modelReq)
 	if err != nil {
@@ -137,22 +90,7 @@ func (a *AppStore) Update(request req.AppStore) response.Response {
 		}
 	}
 
-	modelReq := model.AppStore{
-		Name:        request.Name,
-		Description: request.Description,
-		Type:        request.Type,
-		Category:    request.Category,
-		Icon:        request.Icon,
-		Version:     request.Version,
-		Content:     request.Content,
-		Tags:        request.Tags,
-		Author:      request.Author,
-		RepoUrl:     request.RepoUrl,
-		HomepageUrl: request.HomepageUrl,
-		IsOfficial:  request.IsOfficial,
-		Downloads:   request.Downloads,
-		Status:      request.Status,
-	}
+	modelReq := a.requestToModel(request)
 	modelReq.ID = request.ID
 	err := a.Repository.Update(&modelReq)
 
