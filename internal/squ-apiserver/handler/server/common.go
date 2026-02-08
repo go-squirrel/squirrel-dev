@@ -22,21 +22,21 @@ func (s *Server) getAgentInfo(ipAddress string, port int) (status string, agentR
 	respBody, err := s.HTTPClient.Get(agentURL, nil)
 
 	if err != nil {
-		zap.L().Error("获取 Agent 信息失败",
+		zap.L().Error("failed to get agent information",
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
 		return model.ServerStatusOffline, agentResp
 	} else {
 		if err := json.Unmarshal(respBody, &agentResp); err != nil {
-			zap.L().Error("解析 Agent 响应失败",
+			zap.L().Error("failed to parse agent response",
 				zap.String("url", agentURL),
 				zap.Error(err),
 			)
 			return model.ServerStatusOffline, agentResp
 		}
 		if agentResp.Code != 0 {
-			zap.L().Error("Agent 获取信息失败",
+			zap.L().Error("agent failed to get information",
 				zap.String("url", agentURL),
 				zap.Int("code", agentResp.Code),
 				zap.String("message", agentResp.Message),

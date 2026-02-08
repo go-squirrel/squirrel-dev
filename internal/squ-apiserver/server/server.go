@@ -2,7 +2,6 @@ package server
 
 import (
 	"embed"
-	"fmt"
 	"time"
 
 	"github.com/gin-contrib/static"
@@ -45,7 +44,10 @@ func (s *Server) Run() {
 	})
 	staticFunc, err := static.EmbedFolder(staticData, "dist")
 	if err != nil {
-		zap.S().Error(err)
+		zap.L().Error("failed to embed static folder",
+			zap.String("folder", "dist"),
+			zap.Error(err),
+		)
 	}
 	s.Gin.Use(static.Serve("/", staticFunc))
 
@@ -63,6 +65,9 @@ func (s *Server) Run() {
 
 	err = s.Gin.Run(s.Config.Server.Bind + ":" + s.Config.Server.Port)
 	if err != nil {
-		fmt.Println(err)
+		zap.L().Error("failed to start server",
+			zap.String("address", s.Config.Server.Bind+":"+s.Config.Server.Port),
+			zap.Error(err),
+		)
 	}
 }

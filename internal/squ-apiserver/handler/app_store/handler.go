@@ -23,7 +23,7 @@ func GetHandler(service *AppStore) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse app store id", zap.String("id", id), zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidAppStoreConfig))
 			return
 		}
@@ -37,7 +37,7 @@ func DeleteHandler(service *AppStore) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse app store id", zap.String("id", id), zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidAppStoreConfig))
 			return
 		}
@@ -51,7 +51,7 @@ func AddHandler(service *AppStore) func(c *gin.Context) {
 		request := req.AppStore{}
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to bind app store request", zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidAppStoreConfig))
 			return
 		}
@@ -65,14 +65,14 @@ func UpdateHandler(service *AppStore) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse app store id", zap.String("id", id), zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidAppStoreConfig))
 			return
 		}
 		request := req.AppStore{}
 		err = c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to bind app store request", zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidAppStoreConfig))
 			return
 		}

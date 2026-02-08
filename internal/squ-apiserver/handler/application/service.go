@@ -11,6 +11,8 @@ import (
 
 	appRepository "squirrel-dev/internal/squ-apiserver/repository/application"
 	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
+
+	"go.uber.org/zap"
 )
 
 type Application struct {
@@ -34,6 +36,7 @@ func (a *Application) List() response.Response {
 	var applications []res.Application
 	daoApps, err := a.Repository.List()
 	if err != nil {
+		zap.L().Error("Failed to list applications", zap.Error(err))
 		return response.Error(returnApplicationErrCode(err))
 	}
 	for _, daoA := range daoApps {
@@ -45,6 +48,7 @@ func (a *Application) List() response.Response {
 func (a *Application) Get(id uint) response.Response {
 	daoA, err := a.Repository.Get(id)
 	if err != nil {
+		zap.L().Error("Failed to get application", zap.Uint("id", id), zap.Error(err))
 		return response.Error(returnApplicationErrCode(err))
 	}
 	appRes := a.modelToResponse(daoA)
@@ -57,6 +61,7 @@ func (a *Application) Delete(id uint) response.Response {
 	// 删除应用记录
 	err := a.Repository.Delete(id)
 	if err != nil {
+		zap.L().Error("Failed to delete application", zap.Uint("id", id), zap.Error(err))
 		return response.Error(returnApplicationErrCode(err))
 	}
 
@@ -68,6 +73,7 @@ func (a *Application) Add(request req.Application) response.Response {
 
 	err := a.Repository.Add(&modelReq)
 	if err != nil {
+		zap.L().Error("Failed to add application", zap.String("name", request.Name), zap.Error(err))
 		return response.Error(returnApplicationErrCode(err))
 	}
 
@@ -80,6 +86,7 @@ func (a *Application) Update(request req.Application) response.Response {
 	err := a.Repository.Update(&modelReq)
 
 	if err != nil {
+		zap.L().Error("Failed to update application", zap.Uint("id", request.ID), zap.String("name", request.Name), zap.Error(err))
 		return response.Error(returnApplicationErrCode(err))
 	}
 

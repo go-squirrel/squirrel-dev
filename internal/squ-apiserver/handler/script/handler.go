@@ -23,7 +23,10 @@ func GetHandler(service *Script) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidScriptContent))
 			return
 		}
@@ -37,7 +40,10 @@ func DeleteHandler(service *Script) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidScriptContent))
 			return
 		}
@@ -51,7 +57,9 @@ func AddHandler(service *Script) func(c *gin.Context) {
 		request := req.Script{}
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to bind request JSON",
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidScriptContent))
 			return
 		}
@@ -65,14 +73,19 @@ func UpdateHandler(service *Script) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidScriptContent))
 			return
 		}
 		request := req.Script{}
 		err = c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to bind request JSON",
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidScriptContent))
 			return
 		}
@@ -87,7 +100,9 @@ func ExecuteHandler(service *Script) func(c *gin.Context) {
 		request := req.ExecuteScript{}
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to bind request JSON",
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidScriptContent))
 			return
 		}
@@ -101,7 +116,9 @@ func ReceiveResultHandler(service *Script) func(c *gin.Context) {
 		request := req.ScriptResultReport{}
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to bind request JSON",
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidScriptContent))
 			return
 		}
@@ -115,7 +132,10 @@ func GetResultsHandler(service *Script) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidScriptContent))
 			return
 		}

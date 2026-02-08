@@ -27,9 +27,11 @@ func (s *Server) migrate() {
 	script.RegisterMigrations(registry)
 
 	if err := migration.RunMigrations(s.DB.GetDB(), registry); err != nil {
-		zap.S().Errorf("迁移失败: %v", err)
+		zap.L().Error("failed to run database migrations",
+			zap.Error(err),
+		)
 	} else {
-		zap.S().Infof("迁移成功完成")
+		zap.L().Info("database migrations completed successfully")
 	}
 
 }

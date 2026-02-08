@@ -13,28 +13,40 @@ import (
 
 // Execute 执行脚本
 func (s *Script) Execute(request req.ExecuteScript) response.Response {
-	// 1. 检查脚本是否存在
+	// 1. Check if script exists
 	script, err := s.Repository.Get(request.ScriptID)
 	if err != nil {
+		zap.L().Error("failed to get script for execution",
+			zap.Uint("script_id", request.ScriptID),
+			zap.Uint("server_id", request.ServerID),
+			zap.Error(err),
+		)
 		return response.Error(returnScriptErrCode(err))
 	}
 
-	// 2. 检查服务器是否存在
+	// 2. Check if server exists
 	server, err := s.ServerRepo.Get(request.ServerID)
 	if err != nil {
+		zap.L().Error("failed to get server for script execution",
+			zap.Uint("script_id", request.ScriptID),
+			zap.Uint("server_id", request.ServerID),
+			zap.Error(err),
+		)
 		return response.Error(res.ErrServerNotFound)
 	}
 
-	// 3. 生成唯一的 TaskID
+	// 3. Generate unique TaskID
 	taskID, err := utils.IDGenerate()
 	if err != nil {
-		zap.L().Error("生成 TaskID 失败",
+		zap.L().Error("failed to generate task ID",
+			zap.Uint("script_id", request.ScriptID),
+			zap.Uint("server_id", request.ServerID),
 			zap.Error(err),
 		)
 		return response.Error(res.ErrScriptExecutionFailed)
 	}
 
-	// 4. 先在数据库中创建执行记录，状态为 running
+	// 4. Create execution record in database with status running
 	result := model.ScriptResult{
 		TaskID:    taskID,
 		ScriptID:  request.ScriptID,
@@ -44,7 +56,7 @@ func (s *Script) Execute(request req.ExecuteScript) response.Response {
 		Status:    "running",
 	}
 	if err := s.Repository.AddScriptResult(&result); err != nil {
-		zap.L().Error("创建脚本执行记录失败",
+		zap.L().Error("failed to create script execution record",
 			zap.Uint64("task_id", taskID),
 			zap.Uint("script_id", request.ScriptID),
 			zap.Uint("server_id", request.ServerID),
@@ -53,77 +65,82 @@ func (s *Script) Execute(request req.ExecuteScript) response.Response {
 		return response.Error(returnScriptErrCode(err))
 	}
 
-	// 5. 构建发送给 Agent 的请求
+	// 5. Build request for Agent
 	agentURL := utils.GenAgentUrl(s.Config.Agent.Http.Scheme,
 		server.IpAddress,
 		server.AgentPort,
 		s.Config.Agent.Http.BaseUrl,
 		"script/execute")
 	agentReq := s.modelToRequest(script)
-	agentReq.TaskID = uint(taskID) // 将生成的 TaskID 传给 Agent
+	agentReq.TaskID = uint(taskID) // Pass generated TaskID to Agent
 
 	respBody, err := s.HTTPClient.Post(agentURL, agentReq, nil)
 	if err != nil {
-		zap.L().Error("执行脚本请求发送失败",
+		zap.L().Error("failed to send script execution request",
+			zap.Uint64("task_id", taskID),
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
-		// 更新执行记录状态为 failed
+		// Update execution record status to failed
 		result.Status = "failed"
-		result.ErrorMessage = "发送执行请求失败: " + err.Error()
+		result.ErrorMessage = "failed to send execution request: " + err.Error()
 		s.Repository.UpdateScriptResultByTaskID(taskID, &result)
 		return response.Error(res.ErrScriptExecutionFailed)
 	}
 
-	// 解析响应
+	// Parse response
 	var agentResp response.Response
 	if err := json.Unmarshal(respBody, &agentResp); err != nil {
-		zap.L().Error("解析 Agent 响应失败",
+		zap.L().Error("failed to parse agent response",
+			zap.Uint64("task_id", taskID),
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
-		// 更新执行记录状态为 failed
+		// Update execution record status to failed
 		result.Status = "failed"
-		result.ErrorMessage = "解析响应失败: " + err.Error()
+		result.ErrorMessage = "failed to parse response: " + err.Error()
 		s.Repository.UpdateScriptResultByTaskID(taskID, &result)
 		return response.Error(res.ErrScriptExecutionFailed)
 	}
 
 	if agentResp.Code != 0 {
-		zap.L().Error("Agent 执行脚本失败",
+		zap.L().Error("agent failed to execute script",
+			zap.Uint64("task_id", taskID),
 			zap.String("url", agentURL),
 			zap.Int("code", agentResp.Code),
 			zap.String("message", agentResp.Message),
 		)
-		// 更新执行记录状态为 failed
+		// Update execution record status to failed
 		result.Status = "failed"
-		result.ErrorMessage = "Agent 返回错误: " + agentResp.Message
+		result.ErrorMessage = "agent returned error: " + agentResp.Message
 		s.Repository.UpdateScriptResultByTaskID(taskID, &result)
 		return response.Error(res.ErrScriptExecutionFailed)
 	}
 
-	return response.Success("脚本执行任务已提交")
+	return response.Success("script execution task submitted")
 }
 
 // ReceiveScriptResult 接收脚本执行结果
 func (s *Script) ReceiveScriptResult(request req.ScriptResultReport) response.Response {
-	// 1. 验证脚本是否存在（可选）
+	// 1. Validate script exists (optional)
 	_, err := s.Repository.Get(request.ScriptID)
 	if err != nil {
-		zap.L().Warn("接收脚本执行结果：脚本不存在",
+		zap.L().Warn("script not found when receiving execution result",
 			zap.Uint("script_id", request.ScriptID),
+			zap.Uint64("task_id", uint64(request.TaskID)),
+			zap.Error(err),
 		)
-		// 继续执行，不返回错误
+		// Continue execution, do not return error
 	}
 
-	// 2. 根据 TaskID 直接更新执行记录
+	// 2. Update execution record by TaskID
 	result := model.ScriptResult{
 		Output:       request.Output,
 		Status:       request.Status,
 		ErrorMessage: request.ErrorMessage,
 	}
 	if err := s.Repository.UpdateScriptResultByTaskID(uint64(request.TaskID), &result); err != nil {
-		zap.L().Error("更新脚本执行结果失败",
+		zap.L().Error("failed to update script execution result",
 			zap.Uint64("task_id", uint64(request.TaskID)),
 			zap.Uint("script_id", request.ScriptID),
 			zap.Error(err),
@@ -131,7 +148,7 @@ func (s *Script) ReceiveScriptResult(request req.ScriptResultReport) response.Re
 		return response.Error(returnScriptErrCode(err))
 	}
 
-	zap.L().Info("脚本执行结果已更新",
+	zap.L().Info("script execution result updated",
 		zap.Uint64("task_id", uint64(request.TaskID)),
 		zap.Uint("script_id", request.ScriptID),
 		zap.String("status", request.Status),
@@ -144,6 +161,10 @@ func (s *Script) ReceiveScriptResult(request req.ScriptResultReport) response.Re
 func (s *Script) GetResults(scriptID uint) response.Response {
 	results, err := s.Repository.GetScriptResults(scriptID)
 	if err != nil {
+		zap.L().Error("failed to get script execution results",
+			zap.Uint("script_id", scriptID),
+			zap.Error(err),
+		)
 		return response.Error(returnScriptErrCode(err))
 	}
 

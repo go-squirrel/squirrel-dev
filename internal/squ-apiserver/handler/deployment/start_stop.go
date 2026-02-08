@@ -12,19 +12,28 @@ import (
 
 // Stop 停止应用
 func (a *Deployment) Stop(deploymentID uint) response.Response {
-	// 1. 根据deployment.ID查询部署记录
+	// 1. Query deployment record by deployment ID
 	deployment, err := a.Repository.Get(deploymentID)
 	if err != nil {
+		zap.L().Error("failed to get deployment for stop",
+			zap.Uint("deployment_id", deploymentID),
+			zap.Error(err),
+		)
 		return response.Error(returnDeploymentErrCode(err))
 	}
 
-	// 2. 检查服务器是否存在
+	// 2. Check if server exists
 	server, err := a.ServerRepo.Get(deployment.ServerID)
 	if err != nil {
+		zap.L().Error("failed to get server for stop",
+			zap.Uint("deployment_id", deploymentID),
+			zap.Uint("server_id", deployment.ServerID),
+			zap.Error(err),
+		)
 		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
-	// 3. 调用 Agent 停止应用，使用deployID
+	// 3. Call agent to stop application, use deployID
 	stopUrl := fmt.Sprintf("application/stop/%d", deployment.DeployID)
 
 	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
@@ -34,17 +43,21 @@ func (a *Deployment) Stop(deploymentID uint) response.Response {
 		stopUrl)
 	respBody, err := a.HTTPClient.Post(agentURL, nil, nil)
 	if err != nil {
-		zap.L().Error("调用 Agent 停止应用失败",
+		zap.L().Error("failed to call agent to stop application",
+			zap.Uint64("deploy_id", deployment.DeployID),
+			zap.Uint("deployment_id", deploymentID),
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
 		return response.Error(res.ErrAgentStopFailed)
 	}
 
-	// 解析响应，检查是否停止成功
+	// Parse response, check if stop succeeded
 	var agentResp response.Response
 	if err := json.Unmarshal(respBody, &agentResp); err != nil {
-		zap.L().Error("解析 Agent 响应失败",
+		zap.L().Error("failed to parse agent response",
+			zap.Uint64("deploy_id", deployment.DeployID),
+			zap.Uint("deployment_id", deploymentID),
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
@@ -52,7 +65,9 @@ func (a *Deployment) Stop(deploymentID uint) response.Response {
 	}
 
 	if agentResp.Code != 0 {
-		zap.L().Error("Agent 停止失败",
+		zap.L().Error("agent stop application failed",
+			zap.Uint64("deploy_id", deployment.DeployID),
+			zap.Uint("deployment_id", deploymentID),
 			zap.String("url", agentURL),
 			zap.Int("code", agentResp.Code),
 			zap.String("message", agentResp.Message),
@@ -65,19 +80,28 @@ func (a *Deployment) Stop(deploymentID uint) response.Response {
 
 // Start 启动应用
 func (a *Deployment) Start(deploymentID uint) response.Response {
-	// 1. 根据deployment.ID查询部署记录
+	// 1. Query deployment record by deployment ID
 	deployment, err := a.Repository.Get(deploymentID)
 	if err != nil {
+		zap.L().Error("failed to get deployment for start",
+			zap.Uint("deployment_id", deploymentID),
+			zap.Error(err),
+		)
 		return response.Error(returnDeploymentErrCode(err))
 	}
 
-	// 2. 检查服务器是否存在
+	// 2. Check if server exists
 	server, err := a.ServerRepo.Get(deployment.ServerID)
 	if err != nil {
+		zap.L().Error("failed to get server for start",
+			zap.Uint("deployment_id", deploymentID),
+			zap.Uint("server_id", deployment.ServerID),
+			zap.Error(err),
+		)
 		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
-	// 3. 调用 Agent 启动应用，使用deployID
+	// 3. Call agent to start application, use deployID
 	startUrl := fmt.Sprintf("application/start/%d", deployment.DeployID)
 
 	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
@@ -87,17 +111,21 @@ func (a *Deployment) Start(deploymentID uint) response.Response {
 		startUrl)
 	respBody, err := a.HTTPClient.Post(agentURL, nil, nil)
 	if err != nil {
-		zap.L().Error("调用 Agent 启动应用失败",
+		zap.L().Error("failed to call agent to start application",
+			zap.Uint64("deploy_id", deployment.DeployID),
+			zap.Uint("deployment_id", deploymentID),
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
 		return response.Error(res.ErrAgentStartFailed)
 	}
 
-	// 解析响应，检查是否启动成功
+	// Parse response, check if start succeeded
 	var agentResp response.Response
 	if err := json.Unmarshal(respBody, &agentResp); err != nil {
-		zap.L().Error("解析 Agent 响应失败",
+		zap.L().Error("failed to parse agent response",
+			zap.Uint64("deploy_id", deployment.DeployID),
+			zap.Uint("deployment_id", deploymentID),
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
@@ -105,7 +133,9 @@ func (a *Deployment) Start(deploymentID uint) response.Response {
 	}
 
 	if agentResp.Code != 0 {
-		zap.L().Error("Agent 启动失败",
+		zap.L().Error("agent start application failed",
+			zap.Uint64("deploy_id", deployment.DeployID),
+			zap.Uint("deployment_id", deploymentID),
 			zap.String("url", agentURL),
 			zap.Int("code", agentResp.Code),
 			zap.String("message", agentResp.Message),

@@ -38,27 +38,39 @@ func New(config *config.Config, repo deploymentRepository.Repository, appRepo ap
 }
 
 func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
-	// 1. 检查应用是否存在
+	// 1. Check if application exists
 	app, err := a.AppRepo.Get(request.ApplicationID)
 	if err != nil {
+		zap.L().Error("failed to get application for deployment",
+			zap.Uint("application_id", request.ApplicationID),
+			zap.Uint("server_id", request.ServerID),
+			zap.Error(err),
+		)
 		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
-	// 2. 检查服务器是否存在
+	// 2. Check if server exists
 	server, err := a.ServerRepo.Get(request.ServerID)
 	if err != nil {
+		zap.L().Error("failed to get server for deployment",
+			zap.Uint("application_id", request.ApplicationID),
+			zap.Uint("server_id", request.ServerID),
+			zap.Error(err),
+		)
 		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
 	deployID, err := utils.IDGenerate()
 	if err != nil {
-		zap.L().Error("生成部署ID失败",
+		zap.L().Error("failed to generate deployment ID",
+			zap.Uint("application_id", request.ApplicationID),
+			zap.Uint("server_id", request.ServerID),
 			zap.Error(err),
 		)
 		return response.Error(res.ErrDeployIDGenerateFailed)
 	}
 
-	// 4. 发送部署请求到 agent
+	// 4. Send deployment request to agent
 	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
 		server.IpAddress,
 		server.AgentPort,
@@ -75,17 +87,23 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 	}
 	respBody, err := a.HTTPClient.Post(agentURL, agentReq, nil)
 	if err != nil {
-		zap.L().Error("部署请求发送失败",
+		zap.L().Error("failed to send deployment request",
+			zap.Uint64("deploy_id", deployID),
+			zap.Uint("application_id", request.ApplicationID),
+			zap.Uint("server_id", request.ServerID),
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
 		return response.Error(res.ErrAgentRequestFailed)
 	}
 
-	// 解析响应，检查是否部署成功
+	// Parse response, check if deployment succeeded
 	var agentResp response.Response
 	if err := json.Unmarshal(respBody, &agentResp); err != nil {
-		zap.L().Error("解析 Agent 响应失败",
+		zap.L().Error("failed to parse agent response",
+			zap.Uint64("deploy_id", deployID),
+			zap.Uint("application_id", request.ApplicationID),
+			zap.Uint("server_id", request.ServerID),
 			zap.String("url", agentURL),
 			zap.Error(err),
 		)
@@ -93,7 +111,10 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 	}
 
 	if agentResp.Code != 0 {
-		zap.L().Error("Agent 部署失败",
+		zap.L().Error("agent deployment failed",
+			zap.Uint64("deploy_id", deployID),
+			zap.Uint("application_id", request.ApplicationID),
+			zap.Uint("server_id", request.ServerID),
 			zap.String("url", agentURL),
 			zap.Int("code", agentResp.Code),
 			zap.String("message", agentResp.Message),
@@ -101,7 +122,7 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 		return response.Error(res.ErrAgentDeployFailed)
 	}
 
-	// 5. 创建应用服务器关联记录
+	// 5. Create application server association record
 	appServer := model.Deployment{
 		ServerID:      request.ServerID,
 		ApplicationID: request.ApplicationID,
@@ -110,13 +131,14 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 
 	err = a.Repository.Add(&appServer)
 	if err != nil {
-		zap.L().Error("创建应用服务器关联记录失败",
-			zap.Uint("server_id", request.ServerID),
+		zap.L().Error("failed to create application server association record",
+			zap.Uint64("deploy_id", deployID),
 			zap.Uint("application_id", request.ApplicationID),
+			zap.Uint("server_id", request.ServerID),
 			zap.Error(err),
 		)
 
-		// 回滚：尝试调用 Agent 删除已部署的应用
+		// Rollback: attempt to delete deployed application on agent
 		deleteUrl := fmt.Sprintf("application/delete/%s", app.Name)
 
 		agentDeleteURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
@@ -125,12 +147,18 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 			a.Config.Agent.Http.BaseUrl,
 			deleteUrl)
 
-		zap.L().Info("回滚：尝试删除 Agent 端已部署的应用",
+		zap.L().Info("rollback: attempting to delete deployed application on agent",
+			zap.Uint64("deploy_id", deployID),
+			zap.Uint("application_id", request.ApplicationID),
+			zap.Uint("server_id", request.ServerID),
 			zap.String("url", agentDeleteURL),
 		)
 		_, err = a.HTTPClient.Post(agentDeleteURL, nil, nil)
 		if err != nil {
-			zap.L().Error("回滚失败：删除 Agent 端应用失败",
+			zap.L().Error("rollback failed: failed to delete application on agent",
+				zap.Uint64("deploy_id", deployID),
+				zap.Uint("application_id", request.ApplicationID),
+				zap.Uint("server_id", request.ServerID),
 				zap.String("url", agentDeleteURL),
 				zap.Error(err),
 			)
@@ -144,15 +172,23 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 
 // ListServers 查询应用部署的服务器列表
 func (a *Deployment) ListServers(applicationID uint) response.Response {
-	// 检查应用是否存在
+	// Check if application exists
 	_, err := a.AppRepo.Get(applicationID)
 	if err != nil {
+		zap.L().Error("failed to get application for listing servers",
+			zap.Uint("application_id", applicationID),
+			zap.Error(err),
+		)
 		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
-	// 查询应用服务器关联记录
+	// Query application server association records
 	appServers, err := a.Repository.List(applicationID)
 	if err != nil {
+		zap.L().Error("failed to list application servers",
+			zap.Uint("application_id", applicationID),
+			zap.Error(err),
+		)
 		return response.Error(returnDeploymentErrCode(err))
 	}
 
@@ -160,7 +196,8 @@ func (a *Deployment) ListServers(applicationID uint) response.Response {
 	for _, appServer := range appServers {
 		server, err := a.ServerRepo.Get(appServer.ServerID)
 		if err != nil {
-			zap.L().Warn("获取服务器信息失败",
+			zap.L().Warn("failed to get server information",
+				zap.Uint("application_id", applicationID),
 				zap.Uint("server_id", appServer.ServerID),
 				zap.Error(err),
 			)
@@ -179,19 +216,28 @@ func (a *Deployment) ListServers(applicationID uint) response.Response {
 
 // Undeploy 取消部署应用
 func (a *Deployment) Undeploy(deploymentID uint) response.Response {
-	// 1. 根据deployment.ID查询部署记录
+	// 1. Query deployment record by deployment ID
 	deployment, err := a.Repository.Get(deploymentID)
 	if err != nil {
+		zap.L().Error("failed to get deployment for undeploy",
+			zap.Uint("deployment_id", deploymentID),
+			zap.Error(err),
+		)
 		return response.Error(returnDeploymentErrCode(err))
 	}
 
-	// 2. 检查服务器是否存在
+	// 2. Check if server exists
 	server, err := a.ServerRepo.Get(deployment.ServerID)
 	if err != nil {
+		zap.L().Error("failed to get server for undeploy",
+			zap.Uint("deployment_id", deploymentID),
+			zap.Uint("server_id", deployment.ServerID),
+			zap.Error(err),
+		)
 		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
-	// 3. 调用 Agent 删除应用，使用deployID
+	// 3. Call agent to delete application, use deployID
 	deleteUrl := fmt.Sprintf("application/delete/%d", deployment.DeployID)
 
 	agentDeleteURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
@@ -201,18 +247,21 @@ func (a *Deployment) Undeploy(deploymentID uint) response.Response {
 		deleteUrl)
 	_, err = a.HTTPClient.Post(agentDeleteURL, nil, nil)
 	if err != nil {
-		zap.L().Error("调用 Agent 删除应用失败",
+		zap.L().Error("failed to call agent to delete application",
+			zap.Uint64("deploy_id", deployment.DeployID),
+			zap.Uint("deployment_id", deploymentID),
 			zap.String("url", agentDeleteURL),
 			zap.Error(err),
 		)
 		return response.Error(res.ErrAgentDeleteFailed)
 	}
 
-	// 4. 删除应用服务器关联记录
+	// 4. Delete application server association record
 	err = a.Repository.Delete(deployment.ID)
 	if err != nil {
-		zap.L().Error("删除应用服务器关联记录失败",
-			zap.Uint("id", deployment.ID),
+		zap.L().Error("failed to delete application server association record",
+			zap.Uint("deployment_id", deploymentID),
+			zap.Uint64("deploy_id", deployment.DeployID),
 			zap.Error(err),
 		)
 		return response.Error(returnDeploymentErrCode(err))
@@ -222,20 +271,10 @@ func (a *Deployment) Undeploy(deploymentID uint) response.Response {
 }
 
 func (a *Deployment) ReportStatus(request req.ReportApplicationStatus) response.Response {
-	// 验证应用服务器关联记录是否存在，使用deployID
+	// Validate application server association record exists, use deployID
 	_, err := a.Repository.GetByDeployID(request.DeployID)
 	if err != nil {
-		zap.L().Error("应用服务器关联记录不存在",
-			zap.Uint64("deploy_id", request.DeployID),
-			zap.Error(err),
-		)
-		return response.Error(returnDeploymentErrCode(err))
-	}
-
-	// 更新状态，使用deployID
-	err = a.Repository.UpdateStatus(request.DeployID, request.Status)
-	if err != nil {
-		zap.L().Error("更新应用状态失败",
+		zap.L().Error("application server association record not found",
 			zap.Uint64("deploy_id", request.DeployID),
 			zap.String("status", request.Status),
 			zap.Error(err),
@@ -243,7 +282,18 @@ func (a *Deployment) ReportStatus(request req.ReportApplicationStatus) response.
 		return response.Error(returnDeploymentErrCode(err))
 	}
 
-	zap.L().Info("应用状态已更新",
+	// Update status, use deployID
+	err = a.Repository.UpdateStatus(request.DeployID, request.Status)
+	if err != nil {
+		zap.L().Error("failed to update application status",
+			zap.Uint64("deploy_id", request.DeployID),
+			zap.String("status", request.Status),
+			zap.Error(err),
+		)
+		return response.Error(returnDeploymentErrCode(err))
+	}
+
+	zap.L().Info("application status updated",
 		zap.Uint64("deploy_id", request.DeployID),
 		zap.String("status", request.Status),
 	)
@@ -253,30 +303,38 @@ func (a *Deployment) ReportStatus(request req.ReportApplicationStatus) response.
 
 // List 列出部署应用
 func (a *Deployment) List(serverID uint) response.Response {
-	// 查询部署列表
+	// Query deployment list
 	deployments, err := a.Repository.List(serverID)
 	if err != nil {
+		zap.L().Error("failed to list deployments",
+			zap.Uint("server_id", serverID),
+			zap.Error(err),
+		)
 		return response.Error(returnDeploymentErrCode(err))
 	}
 
-	// 构建响应数据
+	// Build response data
 	var result []res.Deployment
 	for _, deployment := range deployments {
-		// 获取应用信息
+	// Get application information
 		app, err := a.AppRepo.Get(deployment.ApplicationID)
 		if err != nil {
-			zap.L().Warn("获取应用信息失败",
+			zap.L().Warn("failed to get application information",
+				zap.Uint("server_id", serverID),
 				zap.Uint("application_id", deployment.ApplicationID),
+				zap.Uint64("deploy_id", deployment.DeployID),
 				zap.Error(err),
 			)
 			continue
 		}
 
-		// 获取服务器信息
+		// Get server information
 		server, err := a.ServerRepo.Get(deployment.ServerID)
 		if err != nil {
-			zap.L().Warn("获取服务器信息失败",
+			zap.L().Warn("failed to get server information",
+				zap.Uint("server_id", serverID),
 				zap.Uint("server_id", deployment.ServerID),
+				zap.Uint64("deploy_id", deployment.DeployID),
 				zap.Error(err),
 			)
 			continue

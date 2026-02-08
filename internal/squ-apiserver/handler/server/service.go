@@ -8,6 +8,7 @@ import (
 	"squirrel-dev/pkg/httpclient"
 	"time"
 
+	"go.uber.org/zap"
 	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
 )
 
@@ -30,6 +31,9 @@ func (s *Server) List() response.Response {
 	var servers []res.Server
 	daoServers, err := s.Repository.List()
 	if err != nil {
+		zap.L().Error("failed to list servers",
+			zap.Error(err),
+		)
 		return response.Error(returnServerErrCode(err))
 	}
 	for _, daoS := range daoServers {
@@ -44,6 +48,10 @@ func (s *Server) List() response.Response {
 func (s *Server) Get(id uint) response.Response {
 	daoS, err := s.Repository.Get(id)
 	if err != nil {
+		zap.L().Error("failed to get server",
+			zap.Uint("id", id),
+			zap.Error(err),
+		)
 		return response.Error(returnServerErrCode(err))
 	}
 
@@ -60,6 +68,10 @@ func (s *Server) Get(id uint) response.Response {
 func (s *Server) Delete(id uint) response.Response {
 	err := s.Repository.Delete(id)
 	if err != nil {
+		zap.L().Error("failed to delete server",
+			zap.Uint("id", id),
+			zap.Error(err),
+		)
 		return response.Error(returnServerErrCode(err))
 	}
 
@@ -71,6 +83,11 @@ func (s *Server) Add(request req.Server) response.Response {
 
 	err := s.Repository.Add(&modelReq)
 	if err != nil {
+		zap.L().Error("failed to add server",
+			zap.String("hostname", request.Hostname),
+			zap.String("ip_address", request.IpAddress),
+			zap.Error(err),
+		)
 		return response.Error(returnServerErrCode(err))
 	}
 
@@ -84,6 +101,12 @@ func (s *Server) Update(request req.Server) response.Response {
 	err := s.Repository.Update(&modelReq)
 
 	if err != nil {
+		zap.L().Error("failed to update server",
+			zap.Uint("id", request.ID),
+			zap.String("hostname", request.Hostname),
+			zap.String("ip_address", request.IpAddress),
+			zap.Error(err),
+		)
 		return response.Error(returnServerErrCode(err))
 	}
 
@@ -93,12 +116,22 @@ func (s *Server) Update(request req.Server) response.Response {
 func (s *Server) Registry(request req.Register) response.Response {
 	daoS, err := s.Repository.GetByUUID(request.UUID)
 	if err != nil {
+		zap.L().Error("failed to get server by UUID",
+			zap.String("uuid", request.UUID),
+			zap.Error(err),
+		)
 		return response.Error(returnServerErrCode(err))
 	}
 
 	daoS.AgentPort = request.AgentPort
 	err = s.Repository.Update(&daoS)
 	if err != nil {
+		zap.L().Error("failed to update server agent port",
+			zap.Uint("id", daoS.ID),
+			zap.String("uuid", request.UUID),
+			zap.Int("agent_port", request.AgentPort),
+			zap.Error(err),
+		)
 		return response.Error(returnServerErrCode(err))
 	}
 

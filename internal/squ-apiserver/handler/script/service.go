@@ -37,6 +37,9 @@ func (s *Script) List() response.Response {
 	var scripts []res.Script
 	daoScripts, err := s.Repository.List()
 	if err != nil {
+		zap.L().Error("failed to list scripts",
+			zap.Error(err),
+		)
 		return response.Error(returnScriptErrCode(err))
 	}
 	for _, daoS := range daoScripts {
@@ -48,6 +51,10 @@ func (s *Script) List() response.Response {
 func (s *Script) Get(id uint) response.Response {
 	daoS, err := s.Repository.Get(id)
 	if err != nil {
+		zap.L().Error("failed to get script",
+			zap.Uint("script_id", id),
+			zap.Error(err),
+		)
 		return response.Error(returnScriptErrCode(err))
 	}
 	scriptRes := s.modelToResponse(daoS)
@@ -58,7 +65,10 @@ func (s *Script) Get(id uint) response.Response {
 func (s *Script) Delete(id uint) response.Response {
 	err := s.Repository.Delete(id)
 	if err != nil {
-		zap.S().Error(err)
+		zap.L().Error("failed to delete script",
+			zap.Uint("script_id", id),
+			zap.Error(err),
+		)
 		return response.Error(returnScriptErrCode(err))
 	}
 
@@ -66,30 +76,40 @@ func (s *Script) Delete(id uint) response.Response {
 }
 
 func (s *Script) Add(request req.Script) response.Response {
-	// 验证脚本名称和内容
+	// Validate script name and content
 	if request.Name == "" {
-		zap.S().Error("script name is empty")
+		zap.L().Error("script name is empty",
+			zap.String("request_id", string(rune(request.ID))),
+		)
 		return response.Error(res.ErrInvalidScriptContent)
 	}
 
 	if request.Content == "" {
-		zap.S().Error("script content is empty")
+		zap.L().Error("script content is empty",
+			zap.String("name", request.Name),
+		)
 		return response.Error(res.ErrInvalidScriptContent)
 	}
 
-	// 验证脚本内容是否以 shebang 开头
+	// Validate that script content starts with shebang
 	if !strings.HasPrefix(request.Content, "#!") {
-		zap.S().Error("script must start with shebang (#!)")
+		zap.L().Error("script must start with shebang (#!)",
+			zap.String("name", request.Name),
+		)
 		return response.Error(res.ErrInvalidScriptContent)
 	}
 
-	// 清理脚本内容（去除首尾空白）
+	// Clean up script content (trim leading/trailing whitespace)
 	request.Content = strings.TrimSpace(request.Content)
 
 	modelReq := s.requestToModel(request)
 
 	err := s.Repository.Add(&modelReq)
 	if err != nil {
+		zap.L().Error("failed to add script",
+			zap.String("name", request.Name),
+			zap.Error(err),
+		)
 		return response.Error(returnScriptErrCode(err))
 	}
 
@@ -97,24 +117,32 @@ func (s *Script) Add(request req.Script) response.Response {
 }
 
 func (s *Script) Update(request req.Script) response.Response {
-	// 验证脚本名称和内容
+	// Validate script name and content
 	if request.Name == "" {
-		zap.S().Error("script name is empty")
+		zap.L().Error("script name is empty",
+			zap.Uint("script_id", request.ID),
+		)
 		return response.Error(res.ErrInvalidScriptContent)
 	}
 
 	if request.Content == "" {
-		zap.S().Error("script content is empty")
+		zap.L().Error("script content is empty",
+			zap.Uint("script_id", request.ID),
+			zap.String("name", request.Name),
+		)
 		return response.Error(res.ErrInvalidScriptContent)
 	}
 
-	// 验证脚本内容是否以 shebang 开头
+	// Validate that script content starts with shebang
 	if !strings.HasPrefix(request.Content, "#!") {
-		zap.S().Error("script must start with shebang (#!)")
+		zap.L().Error("script must start with shebang (#!)",
+			zap.Uint("script_id", request.ID),
+			zap.String("name", request.Name),
+		)
 		return response.Error(res.ErrInvalidScriptContent)
 	}
 
-	// 清理脚本内容（去除首尾空白）
+	// Clean up script content (trim leading/trailing whitespace)
 	request.Content = strings.TrimSpace(request.Content)
 
 	modelReq := s.requestToModel(request)
@@ -122,6 +150,11 @@ func (s *Script) Update(request req.Script) response.Response {
 	err := s.Repository.Update(&modelReq)
 
 	if err != nil {
+		zap.L().Error("failed to update script",
+			zap.Uint("script_id", request.ID),
+			zap.String("name", request.Name),
+			zap.Error(err),
+		)
 		return response.Error(returnScriptErrCode(err))
 	}
 

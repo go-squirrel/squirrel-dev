@@ -23,7 +23,7 @@ func GetHandler(service *Application) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse application id", zap.String("id", id), zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidApplicationConfig))
 			return
 		}
@@ -37,7 +37,7 @@ func DeleteHandler(service *Application) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse application id", zap.String("id", id), zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidApplicationConfig))
 			return
 		}
@@ -51,7 +51,7 @@ func AddHandler(service *Application) func(c *gin.Context) {
 		request := req.Application{}
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to bind application request", zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidApplicationConfig))
 			return
 		}
@@ -65,14 +65,14 @@ func UpdateHandler(service *Application) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse application id", zap.String("id", id), zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidApplicationConfig))
 			return
 		}
 		request := req.Application{}
 		err = c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to bind application request", zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidApplicationConfig))
 			return
 		}

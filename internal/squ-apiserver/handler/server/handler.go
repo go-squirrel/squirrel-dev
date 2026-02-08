@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"net/http"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/handler/server/req"
@@ -27,7 +26,10 @@ func GetHandler(service *Server) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}
@@ -42,7 +44,10 @@ func DeleteHandler(service *Server) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}
@@ -56,7 +61,9 @@ func AddHandler(service *Server) func(c *gin.Context) {
 		request := req.Server{}
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to bind request JSON",
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}
@@ -70,14 +77,19 @@ func UpdateHandler(service *Server) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}
 		request := req.Server{}
 		err = c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to bind request JSON",
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}
@@ -92,7 +104,9 @@ func RegistryHandler(service *Server) func(c *gin.Context) {
 		request := req.Register{}
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to bind request JSON",
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}
@@ -111,14 +125,19 @@ func TerminalHandler(service *Server) func(c *gin.Context) {
 		}
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
-			log.Printf("WebSocket升级失败: %v", err)
+			zap.L().Error("failed to upgrade websocket connection",
+				zap.Error(err),
+			)
 			return
 		}
 
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
 			return
 		}

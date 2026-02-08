@@ -17,7 +17,10 @@ func StatsHandler(service *Monitor) func(c *gin.Context) {
 		serverId := c.Param("serverId")
 		serverIdUint, err := utils.StringToUint(serverId)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert serverId to uint",
+				zap.String("server_id", serverId),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}
@@ -31,7 +34,10 @@ func DiskIOHandler(service *Monitor) func(c *gin.Context) {
 		serverId := c.Param("serverId")
 		serverIdUint, err := utils.StringToUint(serverId)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert serverId to uint",
+				zap.String("server_id", serverId),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}
@@ -50,7 +56,10 @@ func AllDiskIOHandler(service *Monitor) func(c *gin.Context) {
 		serverId := c.Param("serverId")
 		serverIdUint, err := utils.StringToUint(serverId)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert serverId to uint",
+				zap.String("server_id", serverId),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}
@@ -64,7 +73,10 @@ func NetIOHandler(service *Monitor) func(c *gin.Context) {
 		serverId := c.Param("serverId")
 		serverIdUint, err := utils.StringToUint(serverId)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert serverId to uint",
+				zap.String("server_id", serverId),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}
@@ -83,7 +95,10 @@ func AllNetIOHandler(service *Monitor) func(c *gin.Context) {
 		serverId := c.Param("serverId")
 		serverIdUint, err := utils.StringToUint(serverId)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert serverId to uint",
+				zap.String("server_id", serverId),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}
@@ -97,7 +112,10 @@ func BaseMonitorPageHandler(service *Monitor) func(c *gin.Context) {
 		serverId := c.Param("serverId")
 		serverIdUint, err := utils.StringToUint(serverId)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert serverId to uint",
+				zap.String("server_id", serverId),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}
@@ -111,12 +129,20 @@ func BaseMonitorPageHandler(service *Monitor) func(c *gin.Context) {
 
 		page, err := strconv.Atoi(pageStr)
 		if err != nil || page < 1 {
+			zap.L().Warn("invalid page parameter",
+				zap.String("page", pageStr),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}
 
 		count, err := strconv.Atoi(countStr)
 		if err != nil || count < 1 || count > 100 {
+			zap.L().Warn("invalid count parameter",
+				zap.String("count", countStr),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}
@@ -131,7 +157,10 @@ func DiskIOMonitorPageHandler(service *Monitor) func(c *gin.Context) {
 		serverId := c.Param("serverId")
 		serverIdUint, err := utils.StringToUint(serverId)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert serverId to uint",
+				zap.String("server_id", serverId),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}
@@ -145,12 +174,20 @@ func DiskIOMonitorPageHandler(service *Monitor) func(c *gin.Context) {
 
 		page, err := strconv.Atoi(pageStr)
 		if err != nil || page < 1 {
+			zap.L().Warn("invalid page parameter",
+				zap.String("page", pageStr),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}
 
 		count, err := strconv.Atoi(countStr)
 		if err != nil || count < 1 || count > 100 {
+			zap.L().Warn("invalid count parameter",
+				zap.String("count", countStr),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}
@@ -165,7 +202,10 @@ func NetworkMonitorPageHandler(service *Monitor) func(c *gin.Context) {
 		serverId := c.Param("serverId")
 		serverIdUint, err := utils.StringToUint(serverId)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("failed to convert serverId to uint",
+				zap.String("server_id", serverId),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}
@@ -179,12 +219,20 @@ func NetworkMonitorPageHandler(service *Monitor) func(c *gin.Context) {
 
 		page, err := strconv.Atoi(pageStr)
 		if err != nil || page < 1 {
+			zap.L().Warn("invalid page parameter",
+				zap.String("page", pageStr),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}
 
 		count, err := strconv.Atoi(countStr)
 		if err != nil || count < 1 || count > 100 {
+			zap.L().Warn("invalid count parameter",
+				zap.String("count", countStr),
+				zap.Error(err),
+			)
 			c.JSON(http.StatusOK, response.Error(res.ErrInvalidMonitorConfig))
 			return
 		}

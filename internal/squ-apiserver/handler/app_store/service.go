@@ -21,6 +21,7 @@ func (a *AppStore) List() response.Response {
 	var appStores []res.AppStore
 	daoAppStores, err := a.Repository.List()
 	if err != nil {
+		zap.L().Error("Failed to list app stores", zap.Error(err))
 		return response.Error(returnAppStoreErrCode(err))
 	}
 	for _, daoA := range daoAppStores {
@@ -33,6 +34,7 @@ func (a *AppStore) Get(id uint) response.Response {
 	var appStoreRes res.AppStore
 	daoA, err := a.Repository.Get(id)
 	if err != nil {
+		zap.L().Error("Failed to get app store", zap.Uint("id", id), zap.Error(err))
 		return response.Error(returnAppStoreErrCode(err))
 	}
 	appStoreRes = a.modelToResponse(daoA)
@@ -43,6 +45,7 @@ func (a *AppStore) Get(id uint) response.Response {
 func (a *AppStore) Delete(id uint) response.Response {
 	err := a.Repository.Delete(id)
 	if err != nil {
+		zap.L().Error("Failed to delete app store", zap.Uint("id", id), zap.Error(err))
 		return response.Error(returnAppStoreErrCode(err))
 	}
 
@@ -59,7 +62,7 @@ func (a *AppStore) Add(request req.AppStore) response.Response {
 	if request.Type == "compose" {
 		request.Content = compose.TrimSpaceContent(request.Content)
 		if err := compose.ValidateContent(request.Name, request.Content); err != nil {
-			zap.S().Error(err)
+			zap.L().Error("Failed to validate compose content", zap.String("name", request.Name), zap.Error(err))
 			return response.Error(res.ErrInvalidComposeContent)
 		}
 	}
@@ -68,6 +71,7 @@ func (a *AppStore) Add(request req.AppStore) response.Response {
 
 	err := a.Repository.Add(&modelReq)
 	if err != nil {
+		zap.L().Error("Failed to add app store", zap.String("name", request.Name), zap.Error(err))
 		return response.Error(returnAppStoreErrCode(err))
 	}
 
@@ -84,7 +88,7 @@ func (a *AppStore) Update(request req.AppStore) response.Response {
 	if request.Type == "compose" {
 		request.Content = compose.TrimSpaceContent(request.Content)
 		if err := compose.ValidateContent(request.Name, request.Content); err != nil {
-			zap.S().Error(err)
+			zap.L().Error("Failed to validate compose content", zap.String("name", request.Name), zap.Error(err))
 			return response.Error(res.ErrInvalidComposeContent)
 		}
 	}
@@ -94,6 +98,7 @@ func (a *AppStore) Update(request req.AppStore) response.Response {
 	err := a.Repository.Update(&modelReq)
 
 	if err != nil {
+		zap.L().Error("Failed to update app store", zap.Uint("id", request.ID), zap.String("name", request.Name), zap.Error(err))
 		return response.Error(returnAppStoreErrCode(err))
 	}
 

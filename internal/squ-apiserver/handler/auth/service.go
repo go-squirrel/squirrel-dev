@@ -23,6 +23,7 @@ func (a *Auth) Login(request req.Request) response.Response {
 
 	ok := a.Repository.Get(request.Username, request.Password)
 	if !ok {
+		zap.L().Warn("Invalid login credentials", zap.String("username", request.Username))
 		return response.Error(res.ErrInvalidCredentials)
 	}
 
@@ -31,7 +32,7 @@ func (a *Auth) Login(request req.Request) response.Response {
 
 	token, err := j.GenToken(request.Username, expireDuration)
 	if err != nil {
-		zap.S().Error(err)
+		zap.L().Error("Failed to generate token", zap.String("username", request.Username), zap.Error(err))
 		return response.Error(res.ErrTokenGenerateFailed)
 	}
 
