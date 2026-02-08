@@ -16,19 +16,13 @@ func (s *Script) Execute(request req.ExecuteScript) response.Response {
 	// 1. 检查脚本是否存在
 	script, err := s.Repository.Get(request.ScriptID)
 	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrScriptNotFound)
-		}
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnScriptErrCode(err))
 	}
 
 	// 2. 检查服务器是否存在
 	server, err := s.ServerRepo.Get(request.ServerID)
 	if err != nil {
-		if err.Error() == "record not found" {
-			return response.Error(res.ErrServerNotFound)
-		}
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(res.ErrServerNotFound)
 	}
 
 	// 3. 生成唯一的 TaskID
@@ -37,7 +31,7 @@ func (s *Script) Execute(request req.ExecuteScript) response.Response {
 		zap.L().Error("生成 TaskID 失败",
 			zap.Error(err),
 		)
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(res.ErrScriptExecutionFailed)
 	}
 
 	// 4. 先在数据库中创建执行记录，状态为 running
@@ -56,7 +50,7 @@ func (s *Script) Execute(request req.ExecuteScript) response.Response {
 			zap.Uint("server_id", request.ServerID),
 			zap.Error(err),
 		)
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnScriptErrCode(err))
 	}
 
 	// 5. 构建发送给 Agent 的请求
@@ -134,7 +128,7 @@ func (s *Script) ReceiveScriptResult(request req.ScriptResultReport) response.Re
 			zap.Uint("script_id", request.ScriptID),
 			zap.Error(err),
 		)
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnScriptErrCode(err))
 	}
 
 	zap.L().Info("脚本执行结果已更新",
@@ -150,7 +144,7 @@ func (s *Script) ReceiveScriptResult(request req.ScriptResultReport) response.Re
 func (s *Script) GetResults(scriptID uint) response.Response {
 	results, err := s.Repository.GetScriptResults(scriptID)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnScriptErrCode(err))
 	}
 
 	var resultRes []res.ScriptResult

@@ -4,6 +4,8 @@ import (
 	"squirrel-dev/internal/squ-apiserver/handler/script/req"
 	"squirrel-dev/internal/squ-apiserver/handler/script/res"
 	"squirrel-dev/internal/squ-apiserver/model"
+
+	"gorm.io/gorm"
 )
 
 func (s *Script) modelToResponse(daoS model.Script) res.Script {
@@ -42,4 +44,15 @@ func (s *Script) scriptResultToResponse(r model.ScriptResult) res.ScriptResult {
 		ErrorMessage: r.ErrorMessage,
 		CreatedAt:    r.CreatedAt.Format("2006-01-02 15:04:05"),
 	}
+}
+
+// returnScriptErrCode 根据错误类型返回精确的脚本错误码
+func returnScriptErrCode(err error) int {
+	switch err {
+	case gorm.ErrRecordNotFound:
+		return res.ErrScriptNotFound
+	case gorm.ErrDuplicatedKey:
+		return res.ErrDuplicateScript
+	}
+	return res.ErrInvalidScriptContent
 }

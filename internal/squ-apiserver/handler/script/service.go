@@ -8,7 +8,6 @@ import (
 	"squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/script/req"
 	"squirrel-dev/internal/squ-apiserver/handler/script/res"
-	"squirrel-dev/internal/squ-apiserver/model"
 	"squirrel-dev/pkg/httpclient"
 
 	scriptRepository "squirrel-dev/internal/squ-apiserver/repository/script"
@@ -38,7 +37,7 @@ func (s *Script) List() response.Response {
 	var scripts []res.Script
 	daoScripts, err := s.Repository.List()
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnScriptErrCode(err))
 	}
 	for _, daoS := range daoScripts {
 		scripts = append(scripts, s.modelToResponse(daoS))
@@ -49,7 +48,7 @@ func (s *Script) List() response.Response {
 func (s *Script) Get(id uint) response.Response {
 	daoS, err := s.Repository.Get(id)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnScriptErrCode(err))
 	}
 	scriptRes := s.modelToResponse(daoS)
 
@@ -60,7 +59,7 @@ func (s *Script) Delete(id uint) response.Response {
 	err := s.Repository.Delete(id)
 	if err != nil {
 		zap.S().Error(err)
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnScriptErrCode(err))
 	}
 
 	return response.Success("success")
@@ -91,7 +90,7 @@ func (s *Script) Add(request req.Script) response.Response {
 
 	err := s.Repository.Add(&modelReq)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnScriptErrCode(err))
 	}
 
 	return response.Success("success")
@@ -123,7 +122,7 @@ func (s *Script) Update(request req.Script) response.Response {
 	err := s.Repository.Update(&modelReq)
 
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnScriptErrCode(err))
 	}
 
 	return response.Success("success")
