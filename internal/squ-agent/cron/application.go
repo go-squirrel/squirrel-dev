@@ -36,19 +36,21 @@ func (c *Cron) checkApplicationStatus() {
 	// 遍历每个应用，检查容器状态
 	for _, app := range applications {
 		status := c.getContainerStatus(app.Name)
+
 		// 对于 "starting" 状态，无论检测结果如何，都更新数据库
 		// 对于 "failed" 状态，也需要重新检测
 		// 对于其他稳定状态，只有状态发生变化时才更新
-		shouldUpdate := app.Status != status
+		shouldUpdate := app.OldStatus != status
 		if shouldUpdate {
 			updatedApp := app
 			updatedApp.Status = status
+			updatedApp.OldStatus = app.OldStatus
 			err := c.AppRepository.Update(&updatedApp)
 			if err != nil {
 				zap.L().Error("更新应用状态失败",
 					zap.Uint("id", app.ID),
 					zap.String("name", app.Name),
-					zap.String("old_status", app.Status),
+					zap.String("old_status", app.OldStatus),
 					zap.String("new_status", status),
 					zap.Error(err),
 				)
@@ -67,7 +69,7 @@ func (c *Cron) checkApplicationStatus() {
 				zap.L().Error("report apiserver",
 					zap.Uint("id", app.ID),
 					zap.String("name", app.Name),
-					zap.String("old_status", app.Status),
+					zap.String("old_status", app.OldStatus),
 					zap.String("new_status", status),
 					zap.Error(err),
 				)
@@ -75,7 +77,7 @@ func (c *Cron) checkApplicationStatus() {
 			zap.L().Info("应用状态已更新",
 				zap.Uint("id", app.ID),
 				zap.String("name", app.Name),
-				zap.String("old_status", app.Status),
+				zap.String("old_status", app.OldStatus),
 				zap.String("new_status", status),
 			)
 
