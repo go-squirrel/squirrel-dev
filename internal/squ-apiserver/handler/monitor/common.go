@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/handler/monitor/res"
-	"squirrel-dev/internal/squ-apiserver/model"
 	"squirrel-dev/pkg/utils"
 
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 func (m *Monitor) callAgent(serverID uint, path string, description string) response.Response {
 	server, err := m.ServerRepo.Get(serverID)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		return response.Error(returnMonitorErrCode(err))
 	}
 
 	agentURL := utils.GenAgentUrl(m.Config.Agent.Http.Scheme,
@@ -43,4 +43,13 @@ func (m *Monitor) callAgent(serverID uint, path string, description string) resp
 	}
 
 	return agentResp
+}
+
+// returnMonitorErrCode 根据错误类型返回精确的监控错误码
+func returnMonitorErrCode(err error) int {
+	switch err {
+	case gorm.ErrRecordNotFound:
+		return res.ErrServerNotFound
+	}
+	return res.ErrMonitorFailed
 }
