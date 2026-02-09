@@ -22,6 +22,13 @@
         <Icon icon="lucide:loader-2" class="spinner" />
         <p>{{ $t('server.connecting') }}</p>
       </div>
+      <div v-else-if="authFailed" class="error-state">
+        <Icon icon="lucide:shield-alert" class="error-icon" />
+        <p>认证失败，请重新登录</p>
+        <button class="retry-btn" @click="connect">
+          {{ $t('server.reconnect') }}
+        </button>
+      </div>
       <div v-else-if="connectionError" class="error-state">
         <Icon icon="lucide:alert-circle" class="error-icon" />
         <p>{{ $t('server.connectionFailed') }}</p>
@@ -41,7 +48,7 @@ import { Icon } from '@iconify/vue'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
-import { getTerminalWebSocketUrl } from '@/api/server'
+import { getTerminalWebSocketUrl, getAuthToken } from '@/api/server'
 import type { Server } from '@/types'
 
 const props = defineProps<{
@@ -54,6 +61,7 @@ const terminalRef = ref<HTMLElement>()
 const connecting = ref(true)
 const connected = ref(false)
 const connectionError = ref(false)
+const authFailed = ref(false)
 
 let ws: WebSocket | null = null
 let term: Terminal | null = null
@@ -64,6 +72,7 @@ const connect = () => {
   connecting.value = true
   connectionError.value = false
   connected.value = false
+  authFailed.value = false
 
   if (ws) {
     ws.close()
@@ -80,17 +89,45 @@ const connect = () => {
     ws = new WebSocket(url)
 
     ws.onopen = () => {
-      connecting.value = false
-      connected.value = true
-      connectionError.value = false
-
-      // 初始化 xterm
-      initTerminal()
+      // WebSocket 连接成功后，发送认证消息
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'auth',
+          token: getAuthToken()
+        }))
+      }
     }
 
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data)
+
+        // 处理认证响应
+        if (message.type === 'auth_success') {
+          connecting.value = false
+          connected.value = true
+          connectionError.value = false
+          // 认证成功，初始化终端
+          initTerminal()
+          return
+        }
+
+        if (message.type === 'auth_failed') {
+          connecting.value = false
+          authFailed.value = true
+          connectionError.value = true
+          console.error('Authentication failed:', message.data)
+          return
+        }
+
+        if (message.type === 'error') {
+          connecting.value = false
+          connectionError.value = true
+          console.error('Server error:', message.data)
+          return
+        }
+
+        // 终端数据输出
         if (message.type === 'stdout' && message.data && term) {
           term.write(message.data)
         } else if (message.type === 'stderr' && message.data && term) {

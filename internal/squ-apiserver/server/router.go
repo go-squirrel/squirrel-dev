@@ -14,6 +14,8 @@ func (s *Server) SetupRouter() {
 
 	v1NoAuthRouter := s.Gin.Group("/api/v1")
 	router.Auth(v1NoAuthRouter, s.Config, s.DB)
+	// WebSocket 终端连接不需要 JWT 中间件认证，使用消息认证
+	router.ServerTerminalNoAuth(v1NoAuthRouter, s.Config, s.DB)
 
 	v1Router := s.Gin.Group("/api/v1")
 	v1Router.Use(jwt.JWTAuth(s.Config.Auth.Jwt.SigningKey))

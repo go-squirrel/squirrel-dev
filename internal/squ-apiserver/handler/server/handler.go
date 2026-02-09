@@ -138,7 +138,8 @@ func TerminalHandler(service *Server) func(c *gin.Context) {
 				zap.String("id", id),
 				zap.Error(err),
 			)
-			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
+			conn.WriteJSON(response.Error(res.ErrInvalidParameter))
+			conn.Close()
 			return
 		}
 		resp := service.GetTerminal(idUint, conn)
