@@ -12,8 +12,11 @@ var (
 const (
 	CodeSuccess = 0
 
-	ErrCodeParameter  = 41001
-	ErrUserOrPassword = 41002
+	ErrCodeParameter     = 41001
+	ErrUserOrPassword    = 41002
+	ErrMissingAuthHeader = 41003
+	ErrInvalidAuthFormat = 41004
+	ErrTokenInvalid      = 41005
 
 	ErrSQL           = 50000
 	ErrSQLNotFound   = 50001
@@ -33,6 +36,9 @@ func baseRes(msg map[int]string) map[int]string {
 
 	msg[ErrCodeParameter] = "parameter error"
 	msg[ErrUserOrPassword] = "user or password error"
+	msg[ErrMissingAuthHeader] = "missing authorization header"
+	msg[ErrInvalidAuthFormat] = "invalid authorization header format"
+	msg[ErrTokenInvalid] = "invalid or expired token"
 
 	msg[ErrSQL] = "sql error"
 	msg[ErrSQLNotFound] = "sql not found"
