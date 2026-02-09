@@ -4,7 +4,7 @@ import (
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/handler/server/res"
 	"squirrel-dev/pkg/ssh"
-	"squirrel-dev/pkg/terminal"
+	"squirrel-dev/internal/squ-apiserver/terminal"
 
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"

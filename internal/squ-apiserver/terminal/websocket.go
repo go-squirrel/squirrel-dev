@@ -2,10 +2,10 @@ package terminal
 
 import (
 	"io"
-	"log"
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"go.uber.org/zap"
 )
 
 const (
@@ -25,10 +25,10 @@ type WSMessage struct {
 func HandleWebSocket(conn *websocket.Conn, handler TerminalHandler) {
 	defer func() {
 		if err := handler.Close(); err != nil {
-			log.Printf("关闭终端处理器错误: %v", err)
+			zap.L().Error("failed to close terminal handler", zap.Error(err))
 		}
 		if err := conn.Close(); err != nil {
-			log.Printf("关闭WebSocket连接错误: %v", err)
+			zap.L().Error("failed to close websocket connection", zap.Error(err))
 		}
 	}()
 
@@ -47,13 +47,13 @@ func HandleWebSocket(conn *websocket.Conn, handler TerminalHandler) {
 					Data: string(buf[:n]),
 				}
 				if err := conn.WriteJSON(msg); err != nil {
-					log.Printf("写入WebSocket错误: %v", err)
+					zap.L().Error("failed to write to websocket", zap.Error(err))
 					return
 				}
 			}
 			if err != nil {
 				if err != io.EOF {
-					log.Printf("读取终端输出错误: %v", err)
+					zap.L().Error("failed to read from terminal", zap.Error(err))
 				}
 				return
 			}
@@ -68,7 +68,7 @@ func HandleWebSocket(conn *websocket.Conn, handler TerminalHandler) {
 			var msg WSMessage
 			if err := conn.ReadJSON(&msg); err != nil {
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-					log.Printf("读取WebSocket错误: %v", err)
+					zap.L().Error("failed to read from websocket", zap.Error(err))
 				}
 				return
 			}
@@ -76,15 +76,19 @@ func HandleWebSocket(conn *websocket.Conn, handler TerminalHandler) {
 			switch msg.Type {
 			case "stdin":
 				if _, err := handler.Write([]byte(msg.Data)); err != nil {
-					log.Printf("写入终端输入错误: %v", err)
+					zap.L().Error("failed to write to terminal", zap.Error(err))
 					return
 				}
 			case "resize":
 				if err := handler.Resize(msg.Cols, msg.Rows); err != nil {
-					log.Printf("调整终端大小错误: %v", err)
+					zap.L().Error("failed to resize terminal",
+						zap.Int("cols", msg.Cols),
+						zap.Int("rows", msg.Rows),
+						zap.Error(err),
+					)
 				}
 			default:
-				log.Printf("未知的消息类型: %s", msg.Type)
+				zap.L().Warn("unknown websocket message type", zap.String("type", msg.Type))
 			}
 		}
 	}()
