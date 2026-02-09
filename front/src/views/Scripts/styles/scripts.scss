@@ -1,0 +1,538 @@
+// 脚本管理页面样式
+.scripts-page {
+  padding: 20px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.search-input {
+  width: 280px;
+  padding: 8px 12px 8px 36px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1e3a5f;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4fc3f7;
+  background: #ffffff;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.clear-btn {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+// 脚本表格样式
+.script-table-container {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.script-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.script-table th {
+  padding: 14px 20px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  color: #64748b;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.script-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.script-row:hover {
+  background: #f8fafc;
+}
+
+.name-cell {
+  width: 60%;
+}
+
+.name-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.name-icon {
+  width: 20px;
+  height: 20px;
+  color: #4fc3f7;
+  flex-shrink: 0;
+}
+
+.name-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e3a5f;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action-cell {
+  width: 40%;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.edit-btn {
+  color: #4fc3f7;
+}
+
+.edit-btn:hover {
+  background: rgba(79, 195, 247, 0.1);
+}
+
+.execute-btn {
+  color: #22c55e;
+}
+
+.execute-btn:hover {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.result-btn {
+  color: #8b5cf6;
+}
+
+.result-btn:hover {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.delete-btn {
+  color: #ef4444;
+}
+
+.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+// 脚本编辑器样式
+.script-editor-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.script-editor-container {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.editor-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e3a5f;
+}
+
+.close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #f1f5f9;
+  color: #1e3a5f;
+}
+
+.editor-body {
+  padding: 24px;
+  overflow-y: auto;
+  max-height: calc(90vh - 140px);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e3a5f;
+}
+
+.form-label .required {
+  color: #ef4444;
+  margin-left: 4px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e3a5f;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4fc3f7;
+  background: #ffffff;
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 300px;
+  padding: 12px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  color: #1e3a5f;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #4fc3f7;
+  background: #ffffff;
+}
+
+.error-message {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #ef4444;
+}
+
+.editor-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+// 执行对话框样式
+.execute-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.execute-dialog-container {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e3a5f;
+}
+
+.dialog-body {
+  padding: 24px;
+}
+
+.script-preview {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.script-preview-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.script-preview-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e3a5f;
+  margin-bottom: 8px;
+}
+
+.script-preview-content {
+  font-size: 12px;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  color: #64748b;
+  background: #1e3a5f;
+  padding: 12px;
+  border-radius: 6px;
+  max-height: 120px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.server-select-wrapper {
+  margin-bottom: 8px;
+}
+
+.server-select-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e3a5f;
+}
+
+.server-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e3a5f;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.server-select:focus {
+  outline: none;
+  border-color: #4fc3f7;
+  background: #ffffff;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+// 结果列表样式
+.result-list-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.result-list-container {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.result-list-body {
+  padding: 24px;
+  overflow-y: auto;
+  max-height: calc(90vh - 140px);
+}
+
+.result-table-container {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.result-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  color: #64748b;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.result-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+  color: #1e3a5f;
+}
+
+.result-row:hover {
+  background: #f8fafc;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-running {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.status-success {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.status-failed {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.output-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.error-cell {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ef4444;
+}
+
+.empty-results {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+}
+
+.empty-results-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  color: #cbd5e1;
+}

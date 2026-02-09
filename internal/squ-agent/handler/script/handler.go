@@ -14,7 +14,7 @@ func ExecuteHandler(service *Script) func(c *gin.Context) {
 		request := scriptReq.Script{}
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to bind script request", zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}

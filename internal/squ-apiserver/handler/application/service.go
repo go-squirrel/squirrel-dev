@@ -7,11 +7,12 @@ import (
 	"squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/application/req"
 	"squirrel-dev/internal/squ-apiserver/handler/application/res"
-	"squirrel-dev/internal/squ-apiserver/model"
 	"squirrel-dev/pkg/httpclient"
 
 	appRepository "squirrel-dev/internal/squ-apiserver/repository/application"
 	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
+
+	"go.uber.org/zap"
 )
 
 type Application struct {
@@ -35,35 +36,22 @@ func (a *Application) List() response.Response {
 	var applications []res.Application
 	daoApps, err := a.Repository.List()
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		zap.L().Error("Failed to list applications", zap.Error(err))
+		return response.Error(returnApplicationErrCode(err))
 	}
 	for _, daoA := range daoApps {
-		applications = append(applications, res.Application{
-			ID:          daoA.ID,
-			Name:        daoA.Name,
-			Description: daoA.Description,
-			Type:        daoA.Type,
-			Content:     daoA.Content,
-			Version:     daoA.Version,
-		})
+		applications = append(applications, a.modelToResponse(daoA))
 	}
 	return response.Success(applications)
 }
 
 func (a *Application) Get(id uint) response.Response {
-	var appRes res.Application
 	daoA, err := a.Repository.Get(id)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		zap.L().Error("Failed to get application", zap.Uint("id", id), zap.Error(err))
+		return response.Error(returnApplicationErrCode(err))
 	}
-	appRes = res.Application{
-		ID:          daoA.ID,
-		Name:        daoA.Name,
-		Description: daoA.Description,
-		Type:        daoA.Type,
-		Content:     daoA.Content,
-		Version:     daoA.Version,
-	}
+	appRes := a.modelToResponse(daoA)
 
 	return response.Success(appRes)
 }
@@ -73,42 +61,33 @@ func (a *Application) Delete(id uint) response.Response {
 	// 删除应用记录
 	err := a.Repository.Delete(id)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		zap.L().Error("Failed to delete application", zap.Uint("id", id), zap.Error(err))
+		return response.Error(returnApplicationErrCode(err))
 	}
 
 	return response.Success("success")
 }
 
 func (a *Application) Add(request req.Application) response.Response {
-	modelReq := model.Application{
-		Name:        request.Name,
-		Description: request.Description,
-		Type:        request.Type,
-		Content:     request.Content,
-		Version:     request.Version,
-	}
+	modelReq := a.requestToModel(request)
 
 	err := a.Repository.Add(&modelReq)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		zap.L().Error("Failed to add application", zap.String("name", request.Name), zap.Error(err))
+		return response.Error(returnApplicationErrCode(err))
 	}
 
 	return response.Success("success")
 }
 
 func (a *Application) Update(request req.Application) response.Response {
-	modelReq := model.Application{
-		Name:        request.Name,
-		Description: request.Description,
-		Type:        request.Type,
-		Content:     request.Content,
-		Version:     request.Version,
-	}
+	modelReq := a.requestToModel(request)
 	modelReq.ID = request.ID
 	err := a.Repository.Update(&modelReq)
 
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		zap.L().Error("Failed to update application", zap.Uint("id", request.ID), zap.String("name", request.Name), zap.Error(err))
+		return response.Error(returnApplicationErrCode(err))
 	}
 
 	return response.Success("success")

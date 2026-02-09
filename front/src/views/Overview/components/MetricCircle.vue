@@ -60,13 +60,13 @@ const getCircleProgress = (percentage: number) => {
   align-items: center;
   gap: 8px;
   position: relative;
-  padding: 16px;
+  padding: 10px;
 }
 
 .metric-circle {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
 }
 
 .metric-circle svg {
@@ -100,7 +100,7 @@ const getCircleProgress = (percentage: number) => {
 }
 
 .metric-value .value {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
   color: #1e3a5f;
 }

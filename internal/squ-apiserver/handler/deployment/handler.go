@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/handler/deployment/req"
+	"squirrel-dev/internal/squ-apiserver/handler/deployment/res"
 	"squirrel-dev/pkg/utils"
 
 	"github.com/gin-gonic/gin"
@@ -19,14 +20,17 @@ func ListHandler(service *Deployment) func(c *gin.Context) {
 		if serverID != "" {
 			serverIDUint, err = utils.StringToUint(serverID)
 			if err != nil {
-				zap.S().Warn(err)
-				c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+				zap.L().Warn("failed to convert server_id to uint",
+					zap.String("server_id", serverID),
+					zap.Error(err),
+				)
+				c.JSON(http.StatusOK, response.Error(res.ErrInvalidDeploymentConfig))
 				return
 			}
 		}
 
-		res := service.List(serverIDUint)
-		c.JSON(http.StatusOK, res)
+		resp := service.List(serverIDUint)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -35,20 +39,25 @@ func DeployHandler(service *Deployment) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidDeploymentConfig))
 			return
 		}
 		request := req.DeployApplication{}
 		err = c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			zap.L().Warn("failed to bind request JSON",
+				zap.Error(err),
+			)
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidDeploymentConfig))
 			return
 		}
 		request.ApplicationID = idUint
-		res := service.Deploy(request)
-		c.JSON(http.StatusOK, res)
+		resp := service.Deploy(request)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -57,12 +66,15 @@ func ListServersHandler(service *Deployment) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidDeploymentConfig))
 			return
 		}
-		res := service.ListServers(idUint)
-		c.JSON(http.StatusOK, res)
+		resp := service.ListServers(idUint)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -72,13 +84,16 @@ func UndeployHandler(service *Deployment) func(c *gin.Context) {
 
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidDeploymentConfig))
 			return
 		}
 
-		res := service.Undeploy(idUint)
-		c.JSON(http.StatusOK, res)
+		resp := service.Undeploy(idUint)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -88,13 +103,16 @@ func StopHandler(service *Deployment) func(c *gin.Context) {
 
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidDeploymentConfig))
 			return
 		}
 
-		res := service.Stop(idUint)
-		c.JSON(http.StatusOK, res)
+		resp := service.Stop(idUint)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -104,13 +122,16 @@ func StartHandler(service *Deployment) func(c *gin.Context) {
 
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidDeploymentConfig))
 			return
 		}
 
-		res := service.Start(idUint)
-		c.JSON(http.StatusOK, res)
+		resp := service.Start(idUint)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -119,11 +140,13 @@ func ReportStatusHandler(service *Deployment) func(c *gin.Context) {
 		request := req.ReportApplicationStatus{}
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			zap.L().Warn("failed to bind request JSON",
+				zap.Error(err),
+			)
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidDeploymentConfig))
 			return
 		}
-		res := service.ReportStatus(request)
-		c.JSON(http.StatusOK, res)
+		resp := service.ReportStatus(request)
+		c.JSON(http.StatusOK, resp)
 	}
 }

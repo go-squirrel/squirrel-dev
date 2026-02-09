@@ -12,10 +12,8 @@ export type {
 
 // 基础统计数据
 export interface BaseStats {
-  website: number
-  database: number
-  cron: number
-  installedApps: number
+  script: number
+  deployment: number
 }
 
 // 监控指标

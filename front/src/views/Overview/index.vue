@@ -1,4 +1,8 @@
 <template>
+  <div class="overview-grid">
+    <StatsCard :stats="baseStats" />
+  </div>
+
   <div class="overview-page">
     <ServerList 
       :servers="serverList" 
@@ -9,8 +13,7 @@
     <main class="main-area">
       <Loading v-if="loading" :text="$t('overview.loading')" />
       <template v-else>
-        <StatsCard :stats="baseStats" />
-
+        
         <MetricsPanel
           :monitor-data="monitorData"
           :load-metric="loadMetric"
@@ -68,10 +71,8 @@ const { loading, withLoading } = useLoading()
 
 // 基础统计数据
 const baseStats = ref({
-  website: 1,
-  database: 2,
-  cron: 1,
-  installedApps: 6
+  script: 1,
+  deployment: 2
 })
 
 // 使用 composables
@@ -177,6 +178,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.overview-grid {
+  margin-bottom: 14px;
+}
+
 .overview-page {
   display: flex;
   height: 100%;

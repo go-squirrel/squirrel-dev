@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -11,6 +10,8 @@ import (
 	"squirrel-dev/internal/pkg/middleware/log"
 	"squirrel-dev/internal/squ-agent/config"
 	"squirrel-dev/internal/squ-agent/cron"
+
+	"go.uber.org/zap"
 )
 
 type Server struct {
@@ -54,6 +55,6 @@ func (s *Server) Run() {
 
 	err := s.Gin.Run(s.Config.Server.Bind + ":" + s.Config.Server.Port)
 	if err != nil {
-		fmt.Println(err)
+		zap.L().Error("Failed to start server", zap.Error(err))
 	}
 }

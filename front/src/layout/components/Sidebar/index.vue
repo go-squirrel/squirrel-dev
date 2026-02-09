@@ -42,7 +42,7 @@ const navItems = computed<NavItem[]>(() => [
   { path: '/scripts', label: t('layout.scripts'), icon: 'lucide:terminal' },
   { path: '/configs', label: t('layout.configs'), icon: 'lucide:settings' },
   { path: '/deployments', label: t('layout.deployments'), icon: 'lucide:rocket' },
-  { path: '/appstore', label: t('layout.appstore'), icon: 'lucide:shopping-bag' }
+  { path: '/app-store', label: t('layout.appStore'), icon: 'lucide:shopping-bag' }
 ])
 
 const isActive = (path: string) => {

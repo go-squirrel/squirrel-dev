@@ -28,6 +28,7 @@ func (a *Application) List() response.Response {
 	var applications []res.Application
 	daoApps, err := a.Repository.List()
 	if err != nil {
+		zap.L().Error("Failed to list applications", zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 	for _, daoA := range daoApps {
@@ -48,6 +49,7 @@ func (a *Application) Get(id uint) response.Response {
 	var appRes res.Application
 	daoA, err := a.Repository.Get(id)
 	if err != nil {
+		zap.L().Error("Failed to get application", zap.Uint("id", id), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 	appRes = res.Application{
@@ -67,11 +69,12 @@ func (a *Application) Delete(id uint) response.Response {
 	// 先获取应用信息
 	app, err := a.Repository.Get(id)
 	if err != nil {
+		zap.L().Error("Failed to get application", zap.Uint("id", id), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 如果应用正在运行，先停止服务
-	if app.Status == "running" {
+	if app.Status == model.AppStatusRunning {
 		stopRes := a.Stop(app.DeployID)
 		if stopRes.Code != 200 {
 			return stopRes
@@ -81,6 +84,7 @@ func (a *Application) Delete(id uint) response.Response {
 	// 删除数据库记录
 	err = a.Repository.Delete(id)
 	if err != nil {
+		zap.L().Error("Failed to delete application", zap.Uint("id", id), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -96,14 +100,15 @@ func (a *Application) DeleteByDeployID(deployID uint64) response.Response {
 			// 应用不存在，视为成功（幂等性）
 			return response.Success("application not found, skip delete")
 		}
+		zap.L().Error("Failed to get application by deploy id", zap.Uint64("deploy_id", deployID), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 如果应用正在运行，先停止服务
-	if app.Status == "running" {
+	if app.Status == model.AppStatusRunning {
 		stopRes := a.Stop(deployID)
 		if stopRes.Code != 200 {
-			zap.L().Warn("删除时停止应用失败，继续删除",
+			zap.L().Warn("Failed to stop application during deletion, continuing with deletion",
 				zap.Uint("id", app.ID),
 				zap.String("name", app.Name),
 				zap.Uint64("deploy_id", deployID),
@@ -114,6 +119,7 @@ func (a *Application) DeleteByDeployID(deployID uint64) response.Response {
 	// 删除数据库记录
 	err = a.Repository.Delete(app.ID)
 	if err != nil {
+		zap.L().Error("Failed to delete application", zap.Uint("id", app.ID), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -123,13 +129,13 @@ func (a *Application) DeleteByDeployID(deployID uint64) response.Response {
 func (a *Application) Add(request req.Application) response.Response {
 	// 1. 检测 Docker 是否已安装
 	if !checkDockerInstalled() {
-		zap.L().Error("Docker 未安装")
+		zap.L().Error("Docker is not installed")
 		return response.Error(res.ErrDockerNotInstalled)
 	}
 
 	// 2. 检测 PATH 中是否有 docker-compose 命令
 	if !checkDockerComposeAvailable() {
-		zap.L().Error("docker-compose 命令未找到")
+		zap.L().Error("docker-compose command not found")
 		return response.Error(res.ErrDockerComposeNotFound)
 	}
 
@@ -142,7 +148,7 @@ func (a *Application) Add(request req.Application) response.Response {
 
 	// 确保目录存在
 	if err := os.MkdirAll(composePath, 0755); err != nil {
-		zap.L().Error("创建 compose 目录失败", zap.Error(err))
+		zap.L().Error("Failed to create compose directory", zap.String("path", composePath), zap.Error(err))
 		return response.Error(response.ErrSQL)
 	}
 
@@ -152,12 +158,12 @@ func (a *Application) Add(request req.Application) response.Response {
 
 	// 如果文件已存在，先删除（支持重试）
 	if _, err := os.Stat(composeFilePath); err == nil {
-		zap.L().Info("docker-compose 文件已存在，先删除",
+		zap.L().Info("docker-compose file already exists, deleting it",
 			zap.String("path", composeFilePath),
 			zap.String("name", request.Name),
 		)
 		if err := os.Remove(composeFilePath); err != nil {
-			zap.L().Error("删除已存在的 docker-compose 文件失败",
+			zap.L().Error("Failed to delete existing docker-compose file",
 				zap.String("path", composeFilePath),
 				zap.Error(err),
 			)
@@ -166,14 +172,14 @@ func (a *Application) Add(request req.Application) response.Response {
 	}
 
 	if err := os.WriteFile(composeFilePath, []byte(request.Content), 0644); err != nil {
-		zap.L().Error("创建 docker-compose 文件失败",
+		zap.L().Error("Failed to create docker-compose file",
 			zap.String("path", composeFilePath),
 			zap.Error(err),
 		)
 		return response.Error(res.ErrDockerComposeCreate)
 	}
 
-	zap.L().Info("docker-compose 文件已创建",
+	zap.L().Info("docker-compose file created",
 		zap.String("path", composeFilePath),
 		zap.String("name", request.Name),
 	)
@@ -183,7 +189,7 @@ func (a *Application) Add(request req.Application) response.Response {
 		Name:        request.Name,
 		Description: request.Description,
 		Type:        request.Type,
-		Status:      "starting",
+		Status:      model.AppStatusStarting,
 		Content:     request.Content,
 		Version:     request.Version,
 		DeployID:    request.DeployID,
@@ -191,6 +197,7 @@ func (a *Application) Add(request req.Application) response.Response {
 
 	err := a.Repository.Add(&modelReq)
 	if err != nil {
+		zap.L().Error("Failed to add application to database", zap.String("name", request.Name), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -200,18 +207,19 @@ func (a *Application) Add(request req.Application) response.Response {
 	}
 	err = a.ConfRepository.CreateOrUpdate(&confModel)
 	if err != nil {
+		zap.L().Error("Failed to create or update config", zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
 	// 6. 在协程中异步启动应用
 	go func(appName, composePath, composeFileName string) {
-		zap.L().Info("开始异步启动应用",
+		zap.L().Info("Starting application asynchronously",
 			zap.String("name", appName),
 		)
 
 		// 执行 docker-compose up -d 命令启动容器
 		if err := runDockerComposeUp(composePath, composeFileName); err != nil {
-			zap.L().Error("启动 docker-compose 失败",
+			zap.L().Error("Failed to start docker-compose",
 				zap.String("path", composePath),
 				zap.String("file", composeFileName),
 				zap.Error(err),
@@ -219,7 +227,7 @@ func (a *Application) Add(request req.Application) response.Response {
 			// 启动失败，清理已创建的文件
 			composeFilePath := filepath.Join(composePath, composeFileName)
 			if removeErr := os.Remove(composeFilePath); removeErr != nil {
-				zap.L().Error("启动失败后清理文件失败",
+				zap.L().Error("Failed to cleanup file after start failure",
 					zap.String("path", composeFilePath),
 					zap.Error(removeErr),
 				)
@@ -227,14 +235,14 @@ func (a *Application) Add(request req.Application) response.Response {
 			// 更新数据库状态为 "failed"
 			apps, err := a.Repository.List()
 			if err != nil {
-				zap.L().Error("获取应用列表失败", zap.Error(err))
+				zap.L().Error("Failed to list applications", zap.Error(err))
 				return
 			}
 			for i := range apps {
 				if apps[i].Name == appName {
-					apps[i].Status = "failed"
+					apps[i].Status = model.AppStatusFailed
 					if updateErr := a.Repository.Update(&apps[i]); updateErr != nil {
-						zap.L().Error("更新应用状态为 failed 失败", zap.Error(updateErr))
+						zap.L().Error("Failed to update application status to failed", zap.Error(updateErr))
 					}
 					break
 				}
@@ -242,18 +250,18 @@ func (a *Application) Add(request req.Application) response.Response {
 			return
 		}
 
-		zap.L().Info("docker-compose up 命令执行成功",
+		zap.L().Info("docker-compose up command executed successfully",
 			zap.String("name", appName),
 		)
 		// 启动命令执行成功，但不立即更新数据库
 		// 由 cron 定时任务 checkApplicationStatus 检测实际容器状态并更新
 	}(request.Name, composePath, composeFileName)
 
-	zap.L().Info("应用添加成功，正在后台启动",
+	zap.L().Info("Application added successfully, starting in background",
 		zap.String("name", request.Name),
 	)
 
-	return response.Success("应用添加成功，正在后台启动")
+	return response.Success("Application added successfully, starting in background")
 }
 
 // checkDockerInstalled 检测 Docker 是否已安装
@@ -275,6 +283,7 @@ func (a *Application) Update(request req.Application) response.Response {
 	err := a.Repository.Update(&modelReq)
 
 	if err != nil {
+		zap.L().Error("Failed to update application", zap.Uint("id", request.ID), zap.String("name", request.Name), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 

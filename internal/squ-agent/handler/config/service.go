@@ -8,6 +8,8 @@ import (
 	"squirrel-dev/internal/squ-agent/model"
 
 	configRepository "squirrel-dev/internal/squ-agent/repository/config"
+
+	"go.uber.org/zap"
 )
 
 type Config struct {
@@ -19,6 +21,7 @@ func (c *Config) List() response.Response {
 	var configs []res.Config
 	daoConfigs, err := c.Repository.List()
 	if err != nil {
+		zap.L().Error("Failed to list configs", zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 	for _, daoC := range daoConfigs {
@@ -35,6 +38,7 @@ func (c *Config) Get(id uint) response.Response {
 	var configRes res.Config
 	daoC, err := c.Repository.Get(id)
 	if err != nil {
+		zap.L().Error("Failed to get config", zap.Uint("id", id), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 	configRes = res.Config{
@@ -49,6 +53,7 @@ func (c *Config) Get(id uint) response.Response {
 func (c *Config) Delete(id uint) response.Response {
 	err := c.Repository.Delete(id)
 	if err != nil {
+		zap.L().Error("Failed to delete config", zap.Uint("id", id), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -63,6 +68,7 @@ func (c *Config) Add(request req.Config) response.Response {
 
 	err := c.Repository.Add(&modelReq)
 	if err != nil {
+		zap.L().Error("Failed to add config", zap.String("key", request.Key), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -78,6 +84,7 @@ func (c *Config) Update(request req.Config) response.Response {
 	err := c.Repository.Update(&modelReq)
 
 	if err != nil {
+		zap.L().Error("Failed to update config", zap.Uint("id", request.ID), zap.String("key", request.Key), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 

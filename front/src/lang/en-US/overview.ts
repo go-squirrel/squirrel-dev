@@ -1,10 +1,8 @@
 export default {
   loading: 'Loading...',
   serverList: 'Server List',
-  website: 'Websites',
-  database: 'Databases · All',
-  cron: 'Cron Jobs',
-  installedApps: 'Installed Apps',
+  script: 'Scripts',
+  deployment: 'Deployments',
   status: 'Status',
   load: 'Load',
   cpu: 'CPU',

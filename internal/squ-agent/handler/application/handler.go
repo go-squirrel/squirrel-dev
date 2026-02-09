@@ -22,7 +22,7 @@ func GetHandler(service *Application) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse application id", zap.String("id", id), zap.Error(err))
 			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
 			return
 		}
@@ -36,7 +36,7 @@ func DeleteHandler(service *Application) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse application id", zap.String("id", id), zap.Error(err))
 			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
 			return
 		}
@@ -50,7 +50,7 @@ func AddHandler(service *Application) func(c *gin.Context) {
 		request := req.Application{}
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to bind application request", zap.Error(err))
 			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
 			return
 		}
@@ -64,14 +64,14 @@ func UpdateHandler(service *Application) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse application id", zap.String("id", id), zap.Error(err))
 			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
 			return
 		}
 		request := req.Application{}
 		err = c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to bind application request", zap.Error(err))
 			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
 			return
 		}
@@ -86,7 +86,7 @@ func StopHandler(service *Application) func(c *gin.Context) {
 		deployID := c.Param("deployId")
 		deployIDUint64, err := utils.StringToUint64(deployID)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse deploy id", zap.String("deployId", deployID), zap.Error(err))
 			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
 			return
 		}
@@ -100,7 +100,7 @@ func StartHandler(service *Application) func(c *gin.Context) {
 		deployID := c.Param("deployId")
 		deployIDUint64, err := utils.StringToUint64(deployID)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse deploy id", zap.String("deployId", deployID), zap.Error(err))
 			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
 			return
 		}
@@ -115,7 +115,7 @@ func DeleteByNameHandler(service *Application) func(c *gin.Context) {
 		deployID := c.Param("deployId")
 		deployIDUint64, err := utils.StringToUint64(deployID)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse deploy id", zap.String("deployId", deployID), zap.Error(err))
 			c.JSON(http.StatusBadRequest, response.Error(response.ErrCodeParameter))
 			return
 		}

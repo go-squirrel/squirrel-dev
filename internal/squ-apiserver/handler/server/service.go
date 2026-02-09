@@ -5,10 +5,10 @@ import (
 	"squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/server/req"
 	"squirrel-dev/internal/squ-apiserver/handler/server/res"
-	"squirrel-dev/internal/squ-apiserver/model"
 	"squirrel-dev/pkg/httpclient"
 	"time"
 
+	"go.uber.org/zap"
 	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
 )
 
@@ -31,54 +31,33 @@ func (s *Server) List() response.Response {
 	var servers []res.Server
 	daoServers, err := s.Repository.List()
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		zap.L().Error("failed to list servers",
+			zap.Error(err),
+		)
+		return response.Error(returnServerErrCode(err))
 	}
 	for _, daoS := range daoServers {
 
 		status, _ := s.getAgentInfo(daoS.IpAddress, daoS.AgentPort)
 
-		servers = append(servers, res.Server{
-			ID:            daoS.ID,
-			Hostname:      daoS.Hostname,
-			Port:          daoS.AgentPort,
-			IpAddress:     daoS.IpAddress,
-			SshUsername:   daoS.SshUsername,
-			SshPassword:   daoS.SshPassword,
-			SshPrivateKey: daoS.SshPrivateKey,
-			ServerAlias:   daoS.ServerAlias,
-			SshPort:       daoS.SshPort,
-			AuthType:      daoS.AuthType,
-			Status:        status,
-		})
+		servers = append(servers, s.modelToResponse(daoS, status))
 	}
 	return response.Success(servers)
 }
 
 func (s *Server) Get(id uint) response.Response {
-	var serverRes res.Server
 	daoS, err := s.Repository.Get(id)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
-	}
-
-	status, _ := s.getAgentInfo(daoS.IpAddress, daoS.AgentPort)
-
-	serverRes = res.Server{
-		ID:            daoS.ID,
-		Hostname:      daoS.Hostname,
-		IpAddress:     daoS.IpAddress,
-		Port:          daoS.AgentPort,
-		SshUsername:   daoS.SshUsername,
-		SshPassword:   daoS.SshPassword,
-		SshPrivateKey: daoS.SshPrivateKey,
-		ServerAlias:   daoS.ServerAlias,
-		SshPort:       daoS.SshPort,
-		AuthType:      daoS.AuthType,
-		Status:        status,
+		zap.L().Error("failed to get server",
+			zap.Uint("id", id),
+			zap.Error(err),
+		)
+		return response.Error(returnServerErrCode(err))
 	}
 
 	status, agentResp := s.getAgentInfo(daoS.IpAddress, daoS.AgentPort)
-	serverRes.Status = status
+
+	serverRes := s.modelToResponse(daoS, status)
 	if agentResp.Data != nil {
 		serverRes.ServerInfo = agentResp.Data.(map[string]any)
 	}
@@ -89,54 +68,46 @@ func (s *Server) Get(id uint) response.Response {
 func (s *Server) Delete(id uint) response.Response {
 	err := s.Repository.Delete(id)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		zap.L().Error("failed to delete server",
+			zap.Uint("id", id),
+			zap.Error(err),
+		)
+		return response.Error(returnServerErrCode(err))
 	}
 
 	return response.Success("success")
 }
 
 func (s *Server) Add(request req.Server) response.Response {
-	modelReq := model.Server{
-		Hostname:    request.Hostname,
-		IpAddress:   request.IpAddress,
-		SshUsername: request.SshUsername,
-		SshPort:     request.SshPort,
-		AuthType:    request.AuthType,
-		Status:      request.Status,
-	}
-	if request.AuthType == model.ServerAuthTypePassword {
-		modelReq.SshPassword = &request.SshPassword
-	} else {
-		modelReq.SshPrivateKey = &request.SshPrivateKey
-	}
+	modelReq := s.requestToModel(request)
 
 	err := s.Repository.Add(&modelReq)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		zap.L().Error("failed to add server",
+			zap.String("hostname", request.Hostname),
+			zap.String("ip_address", request.IpAddress),
+			zap.Error(err),
+		)
+		return response.Error(returnServerErrCode(err))
 	}
 
 	return response.Success("success")
 }
 
 func (s *Server) Update(request req.Server) response.Response {
-	modelReq := model.Server{
-		IpAddress:   request.IpAddress,
-		SshUsername: request.SshUsername,
-		SshPort:     request.SshPort,
-		AuthType:    request.AuthType,
-		Status:      request.Status,
-	}
+	modelReq := s.requestToModel(request)
 	modelReq.ID = request.ID
-	if request.AuthType == model.ServerAuthTypePassword {
-		modelReq.SshPassword = &request.SshPassword
-	} else {
-		modelReq.SshPrivateKey = &request.SshPrivateKey
-	}
 
 	err := s.Repository.Update(&modelReq)
 
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		zap.L().Error("failed to update server",
+			zap.Uint("id", request.ID),
+			zap.String("hostname", request.Hostname),
+			zap.String("ip_address", request.IpAddress),
+			zap.Error(err),
+		)
+		return response.Error(returnServerErrCode(err))
 	}
 
 	return response.Success("success")
@@ -145,13 +116,23 @@ func (s *Server) Update(request req.Server) response.Response {
 func (s *Server) Registry(request req.Register) response.Response {
 	daoS, err := s.Repository.GetByUUID(request.UUID)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		zap.L().Error("failed to get server by UUID",
+			zap.String("uuid", request.UUID),
+			zap.Error(err),
+		)
+		return response.Error(returnServerErrCode(err))
 	}
 
 	daoS.AgentPort = request.AgentPort
 	err = s.Repository.Update(&daoS)
 	if err != nil {
-		return response.Error(model.ReturnErrCode(err))
+		zap.L().Error("failed to update server agent port",
+			zap.Uint("id", daoS.ID),
+			zap.String("uuid", request.UUID),
+			zap.Int("agent_port", request.AgentPort),
+			zap.Error(err),
+		)
+		return response.Error(returnServerErrCode(err))
 	}
 
 	return response.Success("success")

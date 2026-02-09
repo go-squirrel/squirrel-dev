@@ -2,7 +2,6 @@ package server
 
 import (
 	"embed"
-	"fmt"
 	"time"
 
 	"github.com/gin-contrib/static"
@@ -12,6 +11,7 @@ import (
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/pkg/middleware/cors"
 	"squirrel-dev/internal/pkg/middleware/log"
+	spaMiddleware "squirrel-dev/internal/pkg/middleware/static"
 	"squirrel-dev/internal/squ-apiserver/config"
 )
 
@@ -44,9 +44,16 @@ func (s *Server) Run() {
 	})
 	staticFunc, err := static.EmbedFolder(staticData, "dist")
 	if err != nil {
-		zap.S().Error(err)
+		zap.L().Error("failed to embed static folder",
+			zap.String("folder", "dist"),
+			zap.Error(err),
+		)
 	}
 	s.Gin.Use(static.Serve("/", staticFunc))
+
+	// SPA 路由回退中间件：处理前端路由
+	s.Gin.Use(spaMiddleware.Default(staticData, "dist"))
+
 	// s.Gin.Use(log.GinLogger(s.Log.Logger),
 	// 	log.GinRecovery(s.Log.Logger, true),
 	// 	c)
@@ -58,6 +65,9 @@ func (s *Server) Run() {
 
 	err = s.Gin.Run(s.Config.Server.Bind + ":" + s.Config.Server.Port)
 	if err != nil {
-		fmt.Println(err)
+		zap.L().Error("failed to start server",
+			zap.String("address", s.Config.Server.Bind+":"+s.Config.Server.Port),
+			zap.Error(err),
+		)
 	}
 }

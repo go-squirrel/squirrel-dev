@@ -31,6 +31,7 @@ export interface Server {
   status: 'online' | 'offline' | 'unknown' | 'active' | 'inactive'
   server_info?: ServerInfo | null
   server_alias?: string
+  agent_port?: number
 }
 
 // 创建服务器请求
@@ -57,7 +58,7 @@ export interface UpdateServerRequest {
   ssh_private_key?: string
 }
 
-// 应用类型
+// 应用类型（概览页显示的简化版本）
 export interface Application {
   id: number
   name: string
@@ -65,6 +66,35 @@ export interface Application {
   status: 'running' | 'stopped' | 'error'
   icon: string
   color: string
+}
+
+// 应用实例类型（应用管理页面的完整版本）
+export interface ApplicationInstance {
+  id: number
+  name: string
+  description: string
+  type: string
+  content: string
+  version: string
+}
+
+// 创建应用实例请求
+export interface CreateApplicationRequest {
+  name: string
+  description: string
+  type: string
+  content: string
+  version: string
+}
+
+// 更新应用实例请求
+export interface UpdateApplicationRequest {
+  id: number
+  name: string
+  description: string
+  type: string
+  content: string
+  version: string
 }
 
 // 监控数据类型
@@ -152,4 +182,135 @@ export interface ChartDataPoint {
   time: string
   value1: number
   value2: number
+}
+
+// 配置项类型
+export interface Config {
+  id: number
+  key: string
+  value: string
+}
+
+// 创建配置请求
+export interface CreateConfigRequest {
+  key: string
+  value: string
+}
+
+// 更新配置请求
+export interface UpdateConfigRequest {
+  id: number
+  key: string
+  value: string
+}
+
+// 脚本类型
+export interface Script {
+  id: number
+  name: string
+  content: string
+}
+
+// 创建脚本请求
+export interface CreateScriptRequest {
+  name: string
+  content: string
+}
+
+// 更新脚本请求
+export interface UpdateScriptRequest {
+  id: number
+  name: string
+  content: string
+}
+
+// 执行脚本请求
+export interface ExecuteScriptRequest {
+  script_id: number
+  server_id: number
+}
+
+// 脚本执行结果
+export interface ScriptResult {
+  id: number
+  task_id: number
+  script_id: number
+  server_id: number
+  server_ip: string
+  agent_port: number
+  output: string
+  status: 'running' | 'success' | 'failed'
+  error_message: string
+  created_at: string
+}
+
+// 应用模板类型
+export interface AppStore {
+  id: number
+  name: string
+  description: string
+  type: 'compose' | 'k8s_manifest' | 'helm_chart'
+  category: 'web' | 'database' | 'middleware' | 'devops'
+  icon?: string
+  version: string
+  content: string
+  tags: string
+  author: string
+  repo_url?: string
+  homepage_url?: string
+  is_official: boolean
+  downloads: number
+  status: 'active' | 'deprecated'
+}
+
+// 创建应用请求
+export interface CreateAppRequest {
+  name: string
+  description: string
+  type: 'compose' | 'k8s_manifest' | 'helm_chart'
+  category: 'web' | 'database' | 'middleware' | 'devops'
+  icon?: string
+  version: string
+  content: string
+  tags: string
+  author: string
+  repo_url?: string
+  homepage_url?: string
+  is_official: boolean
+}
+
+// 更新应用请求
+export interface UpdateAppRequest {
+  id: number
+  name: string
+  description: string
+  type: 'compose' | 'k8s_manifest' | 'helm_chart'
+  category: 'web' | 'database' | 'middleware' | 'devops'
+  icon?: string
+  version: string
+  content: string
+  tags: string
+  author: string
+  repo_url?: string
+  homepage_url?: string
+  is_official: boolean
+}
+
+// 部署状态
+export type DeploymentStatus = 'running' | 'stopped' | 'not_deployed' | 'error'
+
+// 部署信息
+export interface Deployment {
+  id: number
+  deploy_id: number
+  application: ApplicationInstance
+  server: Server
+  status: DeploymentStatus
+  deployed_at: string
+}
+
+// 创建部署请求
+export interface CreateDeploymentRequest {
+  application_id: number
+  server_id: number
 }

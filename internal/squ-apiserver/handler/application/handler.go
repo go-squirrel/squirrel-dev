@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/handler/application/req"
+	"squirrel-dev/internal/squ-apiserver/handler/application/res"
 	"squirrel-dev/pkg/utils"
 
 	"github.com/gin-gonic/gin"
@@ -12,8 +13,8 @@ import (
 
 func ListHandler(service *Application) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		res := service.List()
-		c.JSON(http.StatusOK, res)
+		resp := service.List()
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -22,12 +23,12 @@ func GetHandler(service *Application) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			zap.L().Warn("Failed to parse application id", zap.String("id", id), zap.Error(err))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidApplicationConfig))
 			return
 		}
-		res := service.Get(idUint)
-		c.JSON(http.StatusOK, res)
+		resp := service.Get(idUint)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -36,12 +37,12 @@ func DeleteHandler(service *Application) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			zap.L().Warn("Failed to parse application id", zap.String("id", id), zap.Error(err))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidApplicationConfig))
 			return
 		}
-		res := service.Delete(idUint)
-		c.JSON(http.StatusOK, res)
+		resp := service.Delete(idUint)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -50,12 +51,12 @@ func AddHandler(service *Application) func(c *gin.Context) {
 		request := req.Application{}
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			zap.L().Warn("Failed to bind application request", zap.Error(err))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidApplicationConfig))
 			return
 		}
-		res := service.Add(request)
-		c.JSON(http.StatusOK, res)
+		resp := service.Add(request)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -64,19 +65,19 @@ func UpdateHandler(service *Application) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			zap.L().Warn("Failed to parse application id", zap.String("id", id), zap.Error(err))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidApplicationConfig))
 			return
 		}
 		request := req.Application{}
 		err = c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
-			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
+			zap.L().Warn("Failed to bind application request", zap.Error(err))
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidApplicationConfig))
 			return
 		}
 		request.ID = idUint
-		res := service.Update(request)
-		c.JSON(http.StatusOK, res)
+		resp := service.Update(request)
+		c.JSON(http.StatusOK, resp)
 	}
 }

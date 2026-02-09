@@ -16,11 +16,15 @@ func (c *Cron) startMonitor() error {
 	// 从配置中获取监控间隔时间
 	intervalSeconds, err := c.getConfigByRepoToInt("monitor_interval")
 	if err != nil || intervalSeconds == 0 {
-		zap.L().Error("获取监控间隔配置失败，使用默认值300秒", zap.Error(err))
+		zap.L().Error("failed to get monitor interval config, using default 300 seconds",
+			zap.String("cron", "host_monitor"),
+			zap.Error(err))
 		intervalSeconds = 300
 	}
 
-	zap.L().Info("启动主机监控定时任务", zap.Int("interval_seconds", intervalSeconds))
+	zap.L().Info("started cron task for host monitor",
+		zap.String("cron", "host_monitor"),
+		zap.Int("interval_seconds", intervalSeconds))
 
 	// 添加定时任务，按照配置的间隔时间执行
 	intervalminites := intervalSeconds / 60
@@ -29,7 +33,9 @@ func (c *Cron) startMonitor() error {
 		c.collectAndSaveMonitorData()
 	})
 	if err != nil {
-		zap.L().Error("启动主机监控定时任务失败", zap.Error(err))
+		zap.L().Error("failed to start cron task for host monitor",
+			zap.String("cron", "host_monitor"),
+			zap.Error(err))
 		return err
 	}
 
@@ -38,13 +44,16 @@ func (c *Cron) startMonitor() error {
 
 // collectAndSaveMonitorData 收集并保存监控数据
 func (c *Cron) collectAndSaveMonitorData() {
-	zap.L().Info("开始收集监控数据")
+	zap.L().Info("started collecting monitor data",
+		zap.String("cron", "host_monitor"))
 
 	// 收集CPU信息
 	cpuCollector := collector.NewCPUCollector()
 	cpuInfo, err := cpuCollector.CollectCPU()
 	if err != nil {
-		zap.L().Error("收集CPU信息失败", zap.Error(err))
+		zap.L().Error("failed to collect CPU info",
+			zap.String("cron", "host_monitor"),
+			zap.Error(err))
 		return
 	}
 
@@ -52,7 +61,9 @@ func (c *Cron) collectAndSaveMonitorData() {
 	memCollector := collector.NewMemoryCollector()
 	memInfo, err := memCollector.CollectMemory()
 	if err != nil {
-		zap.L().Error("收集内存信息失败", zap.Error(err))
+		zap.L().Error("failed to collect memory info",
+			zap.String("cron", "host_monitor"),
+			zap.Error(err))
 		return
 	}
 
@@ -60,7 +71,9 @@ func (c *Cron) collectAndSaveMonitorData() {
 	diskCollector := collector.NewDiskCollector()
 	diskInfo, err := diskCollector.CollectDisk()
 	if err != nil {
-		zap.L().Error("收集磁盘信息失败", zap.Error(err))
+		zap.L().Error("failed to collect disk info",
+			zap.String("cron", "host_monitor"),
+			zap.Error(err))
 		return
 	}
 
@@ -68,14 +81,18 @@ func (c *Cron) collectAndSaveMonitorData() {
 	ioCollector := collector.NewIOCollector()
 	diskIOStats, err := ioCollector.CollectAllDiskIO()
 	if err != nil {
-		zap.L().Error("收集磁盘IO信息失败", zap.Error(err))
+		zap.L().Error("failed to collect disk IO info",
+			zap.String("cron", "host_monitor"),
+			zap.Error(err))
 		return
 	}
 
 	// 收集网卡流量信息
 	netIOStats, err := ioCollector.CollectAllNetIO()
 	if err != nil {
-		zap.L().Error("收集网卡流量信息失败", zap.Error(err))
+		zap.L().Error("failed to collect network interface info",
+			zap.String("cron", "host_monitor"),
+			zap.Error(err))
 		return
 	}
 
@@ -94,11 +111,14 @@ func (c *Cron) collectAndSaveMonitorData() {
 	// 保存监控数据
 	err = c.MonitorRepo.CreateBaseMonitor(baseMonitor)
 	if err != nil {
-		zap.L().Error("保存监控数据失败", zap.Error(err))
+		zap.L().Error("failed to save base monitor data",
+			zap.String("cron", "host_monitor"),
+			zap.Error(err))
 		return
 	}
 
-	zap.L().Info("监控数据保存成功",
+	zap.L().Info("base monitor data saved successfully",
+		zap.String("cron", "host_monitor"),
 		zap.Float64("cpu_usage", cpuInfo.Usage),
 		zap.Float64("memory_usage", memInfo.Usage),
 		zap.Float64("disk_usage", diskInfo.Usage),
@@ -125,13 +145,16 @@ func (c *Cron) collectAndSaveMonitorData() {
 
 		err = c.MonitorRepo.CreateDiskIOMonitor(diskIOMonitor)
 		if err != nil {
-			zap.L().Error("保存磁盘IO监控数据失败",
+			zap.L().Error("failed to save disk IO monitor data",
+				zap.String("cron", "host_monitor"),
 				zap.String("disk_name", diskIO.Device),
 				zap.Error(err))
 		}
 	}
 
-	zap.L().Info("磁盘IO监控数据保存成功", zap.Int("count", len(diskIOStats)))
+	zap.L().Info("disk IO monitor data saved successfully",
+		zap.String("cron", "host_monitor"),
+		zap.Int("count", len(diskIOStats)))
 
 	// 保存网卡流量监控数据
 	for _, netIO := range netIOStats {
@@ -157,13 +180,16 @@ func (c *Cron) collectAndSaveMonitorData() {
 
 		err = c.MonitorRepo.CreateNetworkMonitor(networkMonitor)
 		if err != nil {
-			zap.L().Error("保存网卡流量监控数据失败",
+			zap.L().Error("failed to save network interface monitor data",
+				zap.String("cron", "host_monitor"),
 				zap.String("interface_name", netIO.Name),
 				zap.Error(err))
 		}
 	}
 
-	zap.L().Info("网卡流量监控数据保存成功", zap.Int("count", len(netIOStats)))
+	zap.L().Info("network interface monitor data saved successfully",
+		zap.String("cron", "host_monitor"),
+		zap.Int("count", len(netIOStats)))
 
 	// 删除过期的监控数据
 	c.deleteExpiredMonitorData()
@@ -174,7 +200,9 @@ func (c *Cron) deleteExpiredMonitorData() {
 	// 从配置中获取数据保留时长（秒）
 	expiredSeconds, err := c.getConfigByRepoToInt("monitor_expired")
 	if err != nil || expiredSeconds == 0 {
-		zap.L().Error("监控数据的过期时间", zap.Error(err))
+		zap.L().Error("failed to get monitor expired config, using default 604800 seconds",
+			zap.String("cron", "host_monitor"),
+			zap.Error(err))
 		expiredSeconds = 604800
 	}
 	// 计算过期时间
@@ -183,11 +211,15 @@ func (c *Cron) deleteExpiredMonitorData() {
 	// 删除过期数据
 	err = c.MonitorRepo.DeleteBeforeTime(expiredTime)
 	if err != nil {
-		zap.L().Error("删除过期监控数据失败", zap.Error(err))
+		zap.L().Error("failed to delete expired monitor data",
+			zap.String("cron", "host_monitor"),
+			zap.Int("expired_seconds", expiredSeconds),
+			zap.Error(err))
 		return
 	}
 
-	zap.L().Info("删除过期监控数据成功",
+	zap.L().Info("expired monitor data deleted successfully",
+		zap.String("cron", "host_monitor"),
 		zap.Int("expired_seconds", expiredSeconds),
 		zap.Time("expired_time", expiredTime),
 	)

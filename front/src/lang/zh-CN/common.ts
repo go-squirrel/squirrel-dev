@@ -11,5 +11,6 @@ export default {
   refresh: '刷新',
   close: '关闭',
   back: '返回',
-  submit: '提交'
+  submit: '提交',
+  operation: '操作'
 }

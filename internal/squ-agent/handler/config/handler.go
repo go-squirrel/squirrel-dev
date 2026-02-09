@@ -22,7 +22,7 @@ func GetHandler(service *Config) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse config id", zap.String("id", id), zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
@@ -36,7 +36,7 @@ func DeleteHandler(service *Config) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse config id", zap.String("id", id), zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
@@ -50,7 +50,7 @@ func AddHandler(service *Config) func(c *gin.Context) {
 		request := req.Config{}
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to bind config request", zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
@@ -64,14 +64,14 @@ func UpdateHandler(service *Config) func(c *gin.Context) {
 		id := c.Param("id")
 		idUint, err := utils.StringToUint(id)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to parse config id", zap.String("id", id), zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
 		request := req.Config{}
 		err = c.ShouldBindJSON(&request)
 		if err != nil {
-			zap.S().Warn(err)
+			zap.L().Warn("Failed to bind config request", zap.Error(err))
 			c.JSON(http.StatusOK, response.Error(response.ErrCodeParameter))
 			return
 		}
