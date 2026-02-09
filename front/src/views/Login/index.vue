@@ -37,13 +37,12 @@ const handleLogin = async (formData: { username: string; password: string; remem
 
     if (data.token) {
       userStore.setToken(data.token)
-      if (data.user) {
-        userStore.setUser({
-          id: data.user.id,
-          username: data.user.username,
-          role: 'admin'
-        })
-      }
+      // 设置基本用户信息，后续可通过用户信息接口获取详细信息
+      userStore.setUser({
+        id: 0,
+        username: formData.username,
+        role: 'admin'
+      })
       router.push('/')
     }
   })

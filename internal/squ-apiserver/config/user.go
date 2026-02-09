@@ -1,9 +1,7 @@
 package config
 
 type Auth struct {
-	DefaultUn string
-	DefaultPw string
-	Jwt       Jwt
+	Jwt Jwt
 }
 
 type Jwt struct {

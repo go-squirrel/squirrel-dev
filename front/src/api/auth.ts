@@ -8,10 +8,6 @@ export interface LoginParams {
 
 export interface LoginResult {
   token: string
-  user: {
-    id: number
-    username: string
-  }
 }
 
 /**

@@ -6,6 +6,11 @@ server:
   cors:
     origins: ["*"]
     methods: ["PUT", "PATCH"]
+# 认证配置
+auth:
+  jwt:
+    signingKey: "squirrel-secret-key-change-in-production"
+    expired: 1440  # token过期时间（分钟），默认24小时
 # 数据库配置项
 db:
   type: sqlite # mysql or sqlite
