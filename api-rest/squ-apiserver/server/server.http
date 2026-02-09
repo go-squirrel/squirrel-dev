@@ -1,20 +1,37 @@
+# @name login
+POST  {{url}}/api/v1/login
+content-type: application/json
+
+{
+    "username": "demo",
+    "password": "squ123"
+}
+
+### 
+
+@token = {{login.response.body.$.data.token}}
+###
 GET   {{url}}/api/v1/server
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### 
 
 GET   {{url}}/api/v1/server/1
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### 
 
 DELETE    {{url}}/api/v1/server/1
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### 
 
 POST    {{url}}/api/v1/server
 content-type: application/json
+Authorization: Bearer {{token}}
 
 < json/create.json
 
@@ -22,6 +39,7 @@ content-type: application/json
 
 POST    {{url}}/api/v1/server/2
 content-type: application/json
+Authorization: Bearer {{token}}
 
 < json/update.json
 

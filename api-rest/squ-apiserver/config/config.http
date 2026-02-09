@@ -1,20 +1,24 @@
 GET   {{url}}/api/v1/config
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### 
 
 GET   {{url}}/api/v1/config/1
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### 
 
 DELETE    {{url}}/api/v1/config/1
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### 
 
 POST    {{url}}/api/v1/config
 content-type: application/json
+Authorization: Bearer {{token}}
 
 < json/create.json
 
@@ -22,5 +26,6 @@ content-type: application/json
 
 POST    {{url}}/api/v1/config/2
 content-type: application/json
+Authorization: Bearer {{token}}
 
 < json/update.json

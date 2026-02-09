@@ -1,14 +1,24 @@
 {
     "rest-client.environmentVariables": {
         "$shared": {
-            "username": "pkslow",
-            "password": "123456"
+            "username": "demo",
+            "password": "squ123"
           },
         "local": {
-            "url": "http://127.0.0.1:10700"
+            "url": "http://127.0.0.1:10700",
+             "token": ""
+           
         },
         "local-agent": {
-            "url": "http://127.0.0.1:10750"
+            "url": "http://127.0.0.1:10750",
+             "token": ""
         }
-    }
+    },
+    "rest-client.certificatePaths": [
+        {
+            "host": "example.com",
+            "certPath": "/path/to/cert.pem",
+            "keyPath": "/path/to/key.pem"
+        }
+    ]
 }

@@ -1,21 +1,25 @@
 # get all scripts
 GET   {{url}}/api/v1/scripts
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### get script by id
 
 GET   {{url}}/api/v1/scripts/1
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### delete script
 
 DELETE    {{url}}/api/v1/scripts/1
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### create script - success
 
 POST    {{url}}/api/v1/scripts
 content-type: application/json
+Authorization: Bearer {{token}}
 
 < json/create.json
 
@@ -23,6 +27,7 @@ content-type: application/json
 
 POST    {{url}}/api/v1/scripts
 content-type: application/json
+Authorization: Bearer {{token}}
 
 < json/create-err-no-shebang.json
 
@@ -30,6 +35,7 @@ content-type: application/json
 
 POST    {{url}}/api/v1/scripts
 content-type: application/json
+Authorization: Bearer {{token}}
 
 < json/create-err-empty.json
 
@@ -37,6 +43,7 @@ content-type: application/json
 
 POST    {{url}}/api/v1/scripts/1
 content-type: application/json
+Authorization: Bearer {{token}}
 
 < json/update.json
 
@@ -44,6 +51,7 @@ content-type: application/json
 
 POST    {{url}}/api/v1/scripts/execute
 content-type: application/json
+Authorization: Bearer {{token}}
 
 < json/execute.json
 
@@ -51,4 +59,5 @@ content-type: application/json
 
 GET   {{url}}/api/v1/scripts/1/results
 content-type: application/json
+Authorization: Bearer {{token}}
 

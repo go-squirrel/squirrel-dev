@@ -1,31 +1,39 @@
 ### get system stats
 GET   {{url}}/api/v1/monitor/stats/1
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### get single disk io - sda3
 GET   {{url}}/api/v1/monitor/stats/io/1/sda3
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### get all disk io
 GET   {{url}}/api/v1/monitor/stats/io/1/all
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### get single network io - ens33
 GET   {{url}}/api/v1/monitor/stats/net/1/ens33
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### get all network io
 GET   {{url}}/api/v1/monitor/stats/net/1/all
 content-type: application/json
+Authorization: Bearer {{token}}
 
-### 
+###
 GET   {{url}}/api/v1/monitor/base/1/1/5
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### get all network io
 GET   {{url}}/api/v1/monitor/disk/1/1/5
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### get all network io
 GET   {{url}}/api/v1/monitor/net/1/1/5
 content-type: application/json
+Authorization: Bearer {{token}}

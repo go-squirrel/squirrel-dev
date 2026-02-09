@@ -1,21 +1,25 @@
 # get all list
 GET   {{url}}/api/v1/app-store
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### get id 
 
 GET   {{url}}/api/v1/app-store/1
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### delete id 
 
 DELETE    {{url}}/api/v1/app-store/1
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### create success
 
 POST    {{url}}/api/v1/app-store
 content-type: application/json
+Authorization: Bearer {{token}}
 
 < json/create.json
 
@@ -23,6 +27,7 @@ content-type: application/json
 
 POST    {{url}}/api/v1/app-store
 content-type: application/json
+Authorization: Bearer {{token}}
 
 < json/create-err.json
 
@@ -30,5 +35,6 @@ content-type: application/json
 
 POST    {{url}}/api/v1/app-store/1
 content-type: application/json
+Authorization: Bearer {{token}}
 
 < json/update.json

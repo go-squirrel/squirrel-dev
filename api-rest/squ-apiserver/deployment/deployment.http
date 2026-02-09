@@ -2,13 +2,16 @@
 ### deploy deployment to server
 POST    {{url}}/api/v1/deployment/deploy/1
 content-type: application/json
+Authorization: Bearer {{token}}
 
 < json/deploy.json
 
 ### stop deployment
 POST    {{url}}/api/v1/deployment/stop/1
 content-type: application/json
+Authorization: Bearer {{token}}
 
 ### start deployment
 POST    {{url}}/api/v1/deployment/start/1
 content-type: application/json
+Authorization: Bearer {{token}}
