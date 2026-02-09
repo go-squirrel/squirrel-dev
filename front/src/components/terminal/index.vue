@@ -1,13 +1,13 @@
 <template>
-  <div class="terminal-container">
+  <div class="terminal-fullscreen">
     <div class="terminal-header">
       <div class="terminal-info">
         <Icon icon="lucide:terminal" class="terminal-icon" />
         <span class="terminal-title">{{ $t('server.terminal') }}</span>
-        <span class="server-name">- {{ server.hostname }}</span>
+        <span class="server-name" v-if="server">- {{ server.hostname || server.ip_address }}</span>
       </div>
       <div class="terminal-actions">
-        <button v-if="!connected" class="action-btn reconnect-btn" @click="connect">
+        <button v-if="!connected && !connecting" class="action-btn reconnect-btn" @click="connect">
           <Icon icon="lucide:refresh-cw" />
           {{ $t('server.reconnect') }}
         </button>
@@ -17,7 +17,7 @@
         </button>
       </div>
     </div>
-    <div class="terminal-body" @click="focusInput">
+    <div class="terminal-body">
       <div v-if="connecting" class="connecting-state">
         <Icon icon="lucide:loader-2" class="spinner" />
         <p>{{ $t('server.connecting') }}</p>
@@ -29,16 +29,7 @@
           {{ $t('server.reconnect') }}
         </button>
       </div>
-      <div v-else class="terminal-wrapper">
-        <div ref="terminalRef" class="xterm-container"></div>
-        <input
-          ref="inputRef"
-          v-model="inputData"
-          class="terminal-input"
-          @keydown="handleKeyDown"
-          @input="handleInput"
-        />
-      </div>
+      <div ref="terminalRef" class="xterm-container"></div>
     </div>
   </div>
 </template>
@@ -47,6 +38,9 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
+import { Terminal } from '@xterm/xterm'
+import { FitAddon } from '@xterm/addon-fit'
+import '@xterm/xterm/css/xterm.css'
 import { getTerminalWebSocketUrl } from '@/api/server'
 import type { Server } from '@/types'
 
@@ -57,19 +51,28 @@ const props = defineProps<{
 const router = useRouter()
 
 const terminalRef = ref<HTMLElement>()
-const inputRef = ref<HTMLInputElement>()
-const inputData = ref('')
 const connecting = ref(true)
 const connected = ref(false)
 const connectionError = ref(false)
+
 let ws: WebSocket | null = null
+let term: Terminal | null = null
+let fitAddon: FitAddon | null = null
+let resizeObserver: ResizeObserver | null = null
 
 const connect = () => {
   connecting.value = true
   connectionError.value = false
-  
+  connected.value = false
+
   if (ws) {
     ws.close()
+    ws = null
+  }
+
+  // 清除之前的终端
+  if (terminalRef.value) {
+    terminalRef.value.innerHTML = ''
   }
 
   try {
@@ -80,25 +83,24 @@ const connect = () => {
       connecting.value = false
       connected.value = true
       connectionError.value = false
-      // 连接成功后聚焦输入框
-      setTimeout(focusInput, 100)
+
+      // 初始化 xterm
+      initTerminal()
     }
 
     ws.onmessage = (event) => {
-      if (terminalRef.value) {
-        try {
-          const message = JSON.parse(event.data)
-          if (message.type === 'stdout' && message.data) {
-            terminalRef.value.textContent += message.data
-          } else if (message.type === 'stderr' && message.data) {
-            terminalRef.value.textContent += message.data
-          }
-        } catch {
-          // 如果不是 JSON 格式，直接显示原始数据
-          terminalRef.value.textContent += event.data
+      try {
+        const message = JSON.parse(event.data)
+        if (message.type === 'stdout' && message.data && term) {
+          term.write(message.data)
+        } else if (message.type === 'stderr' && message.data && term) {
+          term.write(message.data)
         }
-        // 自动滚动到底部
-        terminalRef.value.scrollTop = terminalRef.value.scrollHeight
+      } catch {
+        // 如果不是 JSON 格式，直接显示原始数据
+        if (term) {
+          term.write(event.data)
+        }
       }
     }
 
@@ -106,11 +108,17 @@ const connect = () => {
       connecting.value = false
       connectionError.value = true
       connected.value = false
+      if (term) {
+        term.writeln('\r\n\x1b[31m连接发生错误\x1b[0m')
+      }
     }
 
     ws.onclose = () => {
       connecting.value = false
       connected.value = false
+      if (term && !connectionError.value) {
+        term.writeln('\r\n\x1b[33m连接已关闭\x1b[0m')
+      }
     }
   } catch (error) {
     console.error('Failed to connect:', error)
@@ -119,72 +127,103 @@ const connect = () => {
   }
 }
 
-const focusInput = () => {
-  if (inputRef.value && connected.value) {
-    inputRef.value.focus()
-  }
-}
+const initTerminal = () => {
+  if (!terminalRef.value || !ws) return
 
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (!ws || ws.readyState !== WebSocket.OPEN) return
+  // 创建终端实例
+  term = new Terminal({
+    fontSize: 14,
+    fontFamily: 'SF Mono, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+    cursorBlink: true,
+    cursorStyle: 'block',
+    theme: {
+      background: '#1e1e1e',
+      foreground: '#f0f0f0',
+      cursor: '#f0f0f0',
+      selectionBackground: '#264f78',
+      black: '#000000',
+      red: '#cd3131',
+      green: '#0dbc79',
+      yellow: '#e5e510',
+      blue: '#2472c8',
+      magenta: '#bc3fbc',
+      cyan: '#11a8cd',
+      white: '#e5e5e5',
+      brightBlack: '#666666',
+      brightRed: '#f14c4c',
+      brightGreen: '#23d18b',
+      brightYellow: '#f5f543',
+      brightBlue: '#3b8eea',
+      brightMagenta: '#d670d6',
+      brightCyan: '#29b8db',
+      brightWhite: '#e5e5e5'
+    },
+    scrollback: 10000,
+    allowProposedApi: true
+  })
 
-  // 发送特殊按键
-  if (e.key === 'Enter') {
-    ws.send(JSON.stringify({ type: 'input', data: '\r' }))
-    inputData.value = ''
-  } else if (e.key === 'Backspace') {
-    ws.send(JSON.stringify({ type: 'input', data: '\b' }))
-  } else if (e.key === 'Tab') {
-    e.preventDefault()
-    ws.send(JSON.stringify({ type: 'input', data: '\t' }))
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    ws.send(JSON.stringify({ type: 'input', data: '\x1b[A' }))
-  } else if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    ws.send(JSON.stringify({ type: 'input', data: '\x1b[B' }))
-  } else if (e.key === 'ArrowRight') {
-    e.preventDefault()
-    ws.send(JSON.stringify({ type: 'input', data: '\x1b[C' }))
-  } else if (e.key === 'ArrowLeft') {
-    e.preventDefault()
-    ws.send(JSON.stringify({ type: 'input', data: '\x1b[D' }))
-  } else if (e.key === 'Home') {
-    e.preventDefault()
-    ws.send(JSON.stringify({ type: 'input', data: '\x1b[H' }))
-  } else if (e.key === 'End') {
-    e.preventDefault()
-    ws.send(JSON.stringify({ type: 'input', data: '\x1b[F' }))
-  } else if (e.key === 'Delete') {
-    ws.send(JSON.stringify({ type: 'input', data: '\x1b[3~' }))
-  } else if (e.ctrlKey && e.key === 'c') {
-    ws.send(JSON.stringify({ type: 'input', data: '\x03' }))
-  } else if (e.ctrlKey && e.key === 'd') {
-    ws.send(JSON.stringify({ type: 'input', data: '\x04' }))
-  } else if (e.ctrlKey && e.key === 'l') {
-    ws.send(JSON.stringify({ type: 'input', data: '\x0c' }))
-  }
-}
+  // 添加自适应插件
+  fitAddon = new FitAddon()
+  term.loadAddon(fitAddon)
 
-const handleInput = (e: Event) => {
-  if (!ws || ws.readyState !== WebSocket.OPEN) return
-  
-  const target = e.target as HTMLInputElement
-  const value = target.value
-  
-  // 发送输入的字符
-  if (value.length > 0) {
-    const char = value.slice(-1)
-    ws.send(JSON.stringify({ type: 'input', data: char }))
+  // 打开终端
+  term.open(terminalRef.value)
+
+  // 自适应大小
+  fitAddon.fit()
+
+  // 发送初始大小到后端
+  const dims = fitAddon.proposeDimensions()
+  if (dims && ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({
+      type: 'resize',
+      cols: dims.cols,
+      rows: dims.rows
+    }))
   }
-  
-  // 清空输入框，准备接收下一个字符
-  inputData.value = ''
+
+  // 处理输入
+  term.onData((data) => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'stdin', data }))
+    }
+  })
+
+  // 监听大小变化
+  resizeObserver = new ResizeObserver(() => {
+    if (fitAddon && term && ws && ws.readyState === WebSocket.OPEN) {
+      fitAddon.fit()
+      const dims = fitAddon.proposeDimensions()
+      if (dims) {
+        ws.send(JSON.stringify({
+          type: 'resize',
+          cols: dims.cols,
+          rows: dims.rows
+        }))
+      }
+    }
+  })
+
+  if (terminalRef.value) {
+    resizeObserver.observe(terminalRef.value)
+  }
+
+  // 聚焦终端
+  term.focus()
 }
 
 const handleClose = () => {
+  if (resizeObserver && terminalRef.value) {
+    resizeObserver.unobserve(terminalRef.value)
+    resizeObserver.disconnect()
+  }
+  if (term) {
+    term.dispose()
+    term = null
+  }
   if (ws) {
     ws.close()
+    ws = null
   }
   router.push('/servers')
 }
@@ -194,18 +233,32 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  if (resizeObserver && terminalRef.value) {
+    resizeObserver.unobserve(terminalRef.value)
+    resizeObserver.disconnect()
+  }
+  if (term) {
+    term.dispose()
+    term = null
+  }
   if (ws) {
     ws.close()
+    ws = null
   }
 })
 </script>
 
 <style scoped>
-.terminal-container {
+.terminal-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
-  height: 100%;
   background: #1e1e1e;
+  z-index: 1000;
 }
 
 .terminal-header {
@@ -215,6 +268,7 @@ onBeforeUnmount(() => {
   padding: 12px 16px;
   background: #2d2d2d;
   border-bottom: 1px solid #404040;
+  flex-shrink: 0;
 }
 
 .terminal-info {
@@ -280,25 +334,36 @@ onBeforeUnmount(() => {
 .terminal-body {
   flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
-  cursor: text;
+  position: relative;
 }
 
-.terminal-wrapper {
-  position: relative;
+.xterm-container {
   width: 100%;
   height: 100%;
+  padding: 8px;
+}
+
+:deep(.xterm) {
+  height: 100% !important;
+}
+
+:deep(.xterm-screen) {
+  height: 100% !important;
 }
 
 .connecting-state,
 .error-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
   color: #a0a0a0;
+  z-index: 10;
 }
 
 .spinner {
@@ -336,32 +401,5 @@ onBeforeUnmount(() => {
 
 .retry-btn:hover {
   background: #29b6f6;
-}
-
-.xterm-container {
-  width: 100%;
-  height: 100%;
-  padding: 16px;
-  font-family: 'SF Mono', Monaco, Consolas, monospace;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #f0f0f0;
-  white-space: pre-wrap;
-  overflow: auto;
-  background: #1e1e1e;
-}
-
-.terminal-input {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 30px;
-  opacity: 0;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: transparent;
-  caret-color: transparent;
 }
 </style>
