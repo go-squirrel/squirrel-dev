@@ -34,9 +34,7 @@
         <span class="stat-value">{{ formatBytes(currentIOStats.writeBytes) }}</span>
       </div>
     </div>
-    <div class="chart-container" ref="chartContainer">
-      <canvas ref="chartCanvas"></canvas>
-    </div>
+    <div class="chart-container" ref="chartContainer"></div>
   </section>
 </template>
 
@@ -45,6 +43,7 @@ import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import { formatBytes, formatSpeed } from '@/utils/format'
 import type { ChartDataPoint } from '@/types'
+import * as echarts from 'echarts'
 
 const props = defineProps<{
   chartData: ChartDataPoint[]
@@ -57,104 +56,188 @@ const chartType = defineModel<'net' | 'io'>('chartType', { default: 'net' })
 const chartTarget = defineModel<string>('chartTarget', { default: 'all' })
 
 const chartContainer = ref<HTMLDivElement>()
-const chartCanvas = ref<HTMLCanvasElement>()
+let chartInstance: echarts.ECharts | null = null
 
-// 绘制图表
-const drawChart = () => {
-  if (!chartCanvas.value || !chartContainer.value) return
+// 配置 ECharts 选项
+const getChartOption = () => {
+  const times = props.chartData.map(d => d.time)
+  const values1 = props.chartData.map(d => d.value1)
+  const values2 = props.chartData.map(d => d.value2)
 
-  const canvas = chartCanvas.value
-  const container = chartContainer.value
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
+  const isNet = chartType.value === 'net'
+  const color1 = '#4fc3f7'
+  const color2 = '#94a3b8'
+  const name1 = isNet ? '上传' : '读取'
+  const name2 = isNet ? '下载' : '写入'
 
-  const rect = container.getBoundingClientRect()
-  canvas.width = rect.width
-  canvas.height = rect.height
-
-  const width = canvas.width
-  const height = canvas.height
-  const padding = 40
-
-  ctx.clearRect(0, 0, width, height)
-
-  if (props.chartData.length < 2) return
-
-  const allValues = props.chartData.flatMap(d => [d.value1, d.value2])
-  const maxValue = Math.max(...allValues, 1)
-  const minValue = 0
-
-  // 绘制网格线
-  ctx.strokeStyle = '#e2e8f0'
-  ctx.lineWidth = 1
-  for (let i = 0; i <= 5; i++) {
-    const y = padding + (height - 2 * padding) * (1 - i / 5)
-    ctx.beginPath()
-    ctx.moveTo(padding, y)
-    ctx.lineTo(width - padding, y)
-    ctx.stroke()
+  return {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross'
+      },
+      formatter: (params: any) => {
+        if (!params || params.length === 0) return ''
+        let result = `<strong>${params[0].axisValue}</strong><br/>`
+        params.forEach((param: any) => {
+          const value = isNet ? formatSpeed(param.value) : formatBytes(param.value)
+          result += `${param.marker} ${param.seriesName}: ${value}<br/>`
+        })
+        return result
+      }
+    },
+    grid: {
+      left: '2%',
+      right: '2%',
+      bottom: '15%',
+      top: '10%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: times,
+      axisLine: {
+        lineStyle: {
+          color: '#e2e8f0'
+        }
+      },
+      axisLabel: {
+        color: '#64748b',
+        fontSize: 11,
+        rotate: 30
+      },
+      axisTick: {
+        show: false
+      }
+    },
+    yAxis: {
+      type: 'value',
+      splitLine: {
+        lineStyle: {
+          color: '#e2e8f0',
+          type: 'dashed'
+        }
+      },
+      axisLine: {
+        show: false
+      },
+      axisLabel: {
+        color: '#64748b',
+        fontSize: 11,
+        formatter: (value: number) => isNet ? formatSpeed(value) : formatBytes(value)
+      },
+      axisTick: {
+        show: false
+      }
+    },
+    series: [
+      {
+        name: name1,
+        type: 'line',
+        smooth: true,
+        symbol: 'none',
+        lineStyle: {
+          width: 2,
+          color: color1
+        },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              {
+                offset: 0,
+                color: 'rgba(79, 195, 247, 0.3)'
+              },
+              {
+                offset: 1,
+                color: 'rgba(79, 195, 247, 0)'
+              }
+            ]
+          }
+        },
+        data: values1
+      },
+      {
+        name: name2,
+        type: 'line',
+        smooth: true,
+        symbol: 'none',
+        lineStyle: {
+          width: 2,
+          color: color2
+        },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              {
+                offset: 0,
+                color: 'rgba(148, 163, 184, 0.3)'
+              },
+              {
+                offset: 1,
+                color: 'rgba(148, 163, 184, 0)'
+              }
+            ]
+          }
+        },
+        data: values2
+      }
+    ]
   }
+}
 
-  // 绘制数据线1
-  ctx.strokeStyle = '#4fc3f7'
-  ctx.lineWidth = 2
-  ctx.beginPath()
-  props.chartData.forEach((point, index) => {
-    const x = padding + (width - 2 * padding) * (index / (props.chartData.length - 1))
-    const y = padding + (height - 2 * padding) * (1 - (point.value1 - minValue) / (maxValue - minValue))
-    if (index === 0) {
-      ctx.moveTo(x, y)
-    } else {
-      ctx.lineTo(x, y)
-    }
-  })
-  ctx.stroke()
+// 初始化图表
+const initChart = () => {
+  if (!chartContainer.value) return
 
-  // 绘制数据线2
-  ctx.strokeStyle = '#94a3b8'
-  ctx.lineWidth = 2
-  ctx.beginPath()
-  props.chartData.forEach((point, index) => {
-    const x = padding + (width - 2 * padding) * (index / (props.chartData.length - 1))
-    const y = padding + (height - 2 * padding) * (1 - (point.value2 - minValue) / (maxValue - minValue))
-    if (index === 0) {
-      ctx.moveTo(x, y)
-    } else {
-      ctx.lineTo(x, y)
-    }
-  })
-  ctx.stroke()
+  chartInstance = echarts.init(chartContainer.value)
+  updateChart()
+}
 
-  // 绘制 X 轴标签
-  ctx.fillStyle = '#64748b'
-  ctx.font = '11px sans-serif'
-  ctx.textAlign = 'center'
-  const step = Math.ceil(props.chartData.length / 6)
-  props.chartData.forEach((point, index) => {
-    if (index % step === 0) {
-      const x = padding + (width - 2 * padding) * (index / (props.chartData.length - 1))
-      ctx.fillText(point.time, x, height - 10)
-    }
-  })
+// 更新图表
+const updateChart = () => {
+  if (!chartInstance) return
+
+  const option = getChartOption()
+  chartInstance.setOption(option)
 }
 
 // 监听数据变化
 watch(() => props.chartData, () => {
-  nextTick(() => drawChart())
+  nextTick(() => updateChart())
 }, { deep: true })
+
+// 监听图表类型变化
+watch(() => chartType.value, () => {
+  nextTick(() => updateChart())
+})
 
 // 窗口大小变化时重绘
 const handleResize = () => {
-  nextTick(() => drawChart())
+  if (chartInstance) {
+    chartInstance.resize()
+  }
 }
 
 onMounted(() => {
   window.addEventListener('resize', handleResize)
-  nextTick(() => drawChart())
+  nextTick(() => initChart())
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  if (chartInstance) {
+    chartInstance.dispose()
+  }
 })
 </script>
 
@@ -228,10 +311,6 @@ onUnmounted(() => {
 .chart-container {
   height: 200px;
   position: relative;
-}
-
-.chart-container canvas {
   width: 100%;
-  height: 100%;
 }
 </style>
