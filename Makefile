@@ -1,4 +1,4 @@
-BRANCH        := $(shell git rev-parse --abbrev-ref HEAD)
+BRANCH        := $(shell git describe --tags --exact-match 2>/dev/null || git rev-parse --abbrev-ref HEAD)
 SHORT_COMMIT  := $(shell git rev-parse --short HEAD)
 VERSION       := $(BRANCH) $(SHORT_COMMIT)
 
