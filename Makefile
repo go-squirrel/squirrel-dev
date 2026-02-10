@@ -69,6 +69,7 @@ package-all-arch: frontend all-arch
 		echo "Packaging for linux-$$arch..."; \
 		tar -czf $(OUTPUT_DIR)/squirrel-$(BRANCH)-linux-$$arch.tar.gz -C $(MULTIARCH_OUTPUT_DIR)/linux-$$arch .; \
 	done
+	echo "Done.";
 
 image: all
 	docker build -f dockerfiles/Dockerfile-apiserver -t gosquirrel/squ-apiserver .
