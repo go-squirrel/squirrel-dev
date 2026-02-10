@@ -46,22 +46,14 @@ func (c *Cron) checkApplicationStatus() {
 		// 对于 "starting" 状态，无论检测结果如何，都更新数据库
 		// 对于 "failed" 状态，也需要重新检测
 		// 对于其他稳定状态，只有状态发生变化时才更新
-		shouldUpdate := app.OldStatus != status
+		startingStatusUpdate := status == model.AppStatusStarting
+		failedStatusUpdate := status == model.AppStatusFailed
+		oldStatusNotEqual := app.OldStatus != status
+		shouldUpdate := oldStatusNotEqual || startingStatusUpdate || failedStatusUpdate
 		if shouldUpdate {
 			updatedApp := app
 			updatedApp.Status = status
-			updatedApp.OldStatus = app.OldStatus
-			err := c.AppRepository.Update(&updatedApp)
-			if err != nil {
-				zap.L().Error("failed to update application status",
-					zap.String("cron", "application_status_check"),
-					zap.Uint("id", app.ID),
-					zap.String("name", app.Name),
-					zap.String("old_status", app.OldStatus),
-					zap.String("new_status", status),
-					zap.Error(err),
-				)
-			}
+			updatedApp.OldStatus = app.Status
 			reportData := ReportApplicationStatus{
 				DeployID: updatedApp.DeployID,
 				Status:   status,
@@ -91,6 +83,17 @@ func (c *Cron) checkApplicationStatus() {
 				zap.String("old_status", app.OldStatus),
 				zap.String("new_status", status),
 			)
+			err := c.AppRepository.Update(&updatedApp)
+			if err != nil {
+				zap.L().Error("failed to update application status",
+					zap.String("cron", "application_status_check"),
+					zap.Uint("id", app.ID),
+					zap.String("name", app.Name),
+					zap.String("old_status", app.OldStatus),
+					zap.String("new_status", status),
+					zap.Error(err),
+				)
+			}
 
 		}
 	}

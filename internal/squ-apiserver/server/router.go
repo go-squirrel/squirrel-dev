@@ -3,7 +3,6 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 
-	"squirrel-dev/internal/pkg/middleware/jwt"
 	"squirrel-dev/internal/squ-apiserver/handler/health"
 	"squirrel-dev/internal/squ-apiserver/router"
 )
@@ -18,7 +17,7 @@ func (s *Server) SetupRouter() {
 	router.ServerTerminalNoAuth(v1NoAuthRouter, s.Config, s.DB)
 
 	v1Router := s.Gin.Group("/api/v1")
-	v1Router.Use(jwt.JWTAuth(s.Config.Auth.Jwt.SigningKey))
+	//v1Router.Use(jwt.JWTAuth(s.Config.Auth.Jwt.SigningKey))
 	healthRouter(v1Router)
 	router.Server(v1Router, s.Config, s.DB)
 	router.Application(v1Router, s.Config, s.DB)
