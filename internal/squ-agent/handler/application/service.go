@@ -158,31 +158,19 @@ func (a *Application) Add(request req.Application) response.Response {
 
 	// 如果文件已存在，先删除（支持重试）
 	if _, err := os.Stat(composeFilePath); err == nil {
-		zap.L().Info("docker-compose file already exists, deleting it",
-			zap.String("path", composeFilePath),
-			zap.String("name", request.Name),
-		)
+		zap.L().Info("docker-compose file already exists, deleting it", zap.String("path", composeFilePath), zap.String("name", request.Name))
 		if err := os.Remove(composeFilePath); err != nil {
-			zap.L().Error("Failed to delete existing docker-compose file",
-				zap.String("path", composeFilePath),
-				zap.Error(err),
-			)
+			zap.L().Error("Failed to delete existing docker-compose file", zap.String("path", composeFilePath), zap.Error(err))
 			return response.Error(res.ErrDockerComposeCreate)
 		}
 	}
 
 	if err := os.WriteFile(composeFilePath, []byte(request.Content), 0644); err != nil {
-		zap.L().Error("Failed to create docker-compose file",
-			zap.String("path", composeFilePath),
-			zap.Error(err),
-		)
+		zap.L().Error("Failed to create docker-compose file", zap.String("path", composeFilePath), zap.Error(err))
 		return response.Error(res.ErrDockerComposeCreate)
 	}
 
-	zap.L().Info("docker-compose file created",
-		zap.String("path", composeFilePath),
-		zap.String("name", request.Name),
-	)
+	zap.L().Info("docker-compose file created", zap.String("path", composeFilePath), zap.String("name", request.Name))
 
 	// 5. 先保存到数据库，状态设置为 "starting"（启动中）
 	modelReq := model.Application{
@@ -213,25 +201,11 @@ func (a *Application) Add(request req.Application) response.Response {
 
 	// 6. 在协程中异步启动应用
 	go func(appName, composePath, composeFileName string) {
-		zap.L().Info("Starting application asynchronously",
-			zap.String("name", appName),
-		)
+		zap.L().Info("Starting application asynchronously", zap.String("name", appName))
 
 		// 执行 docker-compose up -d 命令启动容器
 		if err := runDockerComposeUp(composePath, composeFileName); err != nil {
-			zap.L().Error("Failed to start docker-compose",
-				zap.String("path", composePath),
-				zap.String("file", composeFileName),
-				zap.Error(err),
-			)
-			// 启动失败，清理已创建的文件
-			composeFilePath := filepath.Join(composePath, composeFileName)
-			if removeErr := os.Remove(composeFilePath); removeErr != nil {
-				zap.L().Error("Failed to cleanup file after start failure",
-					zap.String("path", composeFilePath),
-					zap.Error(removeErr),
-				)
-			}
+			zap.L().Error("Failed to start docker-compose", zap.String("path", composePath), zap.String("file", composeFileName), zap.Error(err))
 			// 更新数据库状态为 "failed"
 			apps, err := a.Repository.List()
 			if err != nil {
@@ -257,9 +231,7 @@ func (a *Application) Add(request req.Application) response.Response {
 		// 由 cron 定时任务 checkApplicationStatus 检测实际容器状态并更新
 	}(request.Name, composePath, composeFileName)
 
-	zap.L().Info("Application added successfully, starting in background",
-		zap.String("name", request.Name),
-	)
+	zap.L().Info("Application added successfully, starting in background", zap.String("name", request.Name))
 
 	return response.Success("Application added successfully, starting in background")
 }
