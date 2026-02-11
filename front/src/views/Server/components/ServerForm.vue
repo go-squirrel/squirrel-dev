@@ -118,7 +118,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon } from '@iconify/vue'
 import { createServer, updateServer } from '@/api/server'
 import type { Server, CreateServerRequest, UpdateServerRequest } from '@/types'
 

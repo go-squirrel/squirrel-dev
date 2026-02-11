@@ -69,7 +69,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon } from '@iconify/vue'
 import Button from '@/components/Button/index.vue'
 import { fetchServers } from '@/api/server'
 import { post } from '@/utils/request'

@@ -75,7 +75,6 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { Icon } from '@iconify/vue'
 import PageHeader from '@/components/PageHeader/index.vue'
 import Button from '@/components/Button/index.vue'
 import Loading from '@/components/Loading/index.vue'

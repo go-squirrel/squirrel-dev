@@ -18,7 +18,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Icon } from '@iconify/vue'
 import type { Deployment } from '../types'
 import Modal from '@/components/Modal/index.vue'
 import Button from '@/components/Button/index.vue'

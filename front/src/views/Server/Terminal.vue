@@ -11,7 +11,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { Icon } from '@iconify/vue'
 import Terminal from '@/components/terminal/index.vue'
 import { fetchServerDetail } from '@/api/server'
 import type { Server } from '@/types'

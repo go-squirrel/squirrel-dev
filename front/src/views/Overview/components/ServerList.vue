@@ -25,7 +25,6 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
 import { getStatusClass } from '@/utils/format'
 import type { Server } from '@/types'
 

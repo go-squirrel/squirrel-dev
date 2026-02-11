@@ -57,7 +57,6 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
 import Button from '@/components/Button/index.vue'
 import type { ApplicationInstance } from '@/types'
 

@@ -24,7 +24,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Icon } from '@iconify/vue'
 import { deleteServer } from '@/api/server'
 import type { Server } from '@/types'
 

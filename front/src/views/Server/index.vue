@@ -51,7 +51,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Icon } from '@iconify/vue'
 import { fetchServers } from '@/api/server'
 import type { Server } from '@/types'
 import PageHeader from '@/components/PageHeader/index.vue'

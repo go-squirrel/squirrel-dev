@@ -18,7 +18,6 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { Icon } from '@iconify/vue'
 import Button from '../Button/index.vue'
 
 interface PageHeaderProps {

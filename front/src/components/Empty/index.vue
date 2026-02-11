@@ -7,7 +7,6 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
 
 interface EmptyProps {
   icon?: string

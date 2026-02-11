@@ -86,7 +86,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
 import { fetchApplications, createApplication, updateApplication, deleteApplication } from '@/api/application'
 import type { ApplicationInstance, CreateApplicationRequest, UpdateApplicationRequest } from '@/types'

@@ -87,7 +87,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
 import type { Script, CreateScriptRequest, UpdateScriptRequest, ScriptResult } from '@/types'
 import PageHeader from '@/components/PageHeader/index.vue'

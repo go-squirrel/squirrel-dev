@@ -40,7 +40,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
 import { availableLocales } from '@/lang/index'
 

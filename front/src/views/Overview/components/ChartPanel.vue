@@ -40,7 +40,6 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { Icon } from '@iconify/vue'
 import { formatBytes, formatSpeed } from '@/utils/format'
 import type { ChartDataPoint } from '@/types'
 import * as echarts from 'echarts'

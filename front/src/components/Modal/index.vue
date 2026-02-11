@@ -24,7 +24,6 @@
 
 <script setup lang="ts">
 import { computed, watch, onMounted, onUnmounted } from 'vue'
-import { Icon } from '@iconify/vue'
 
 interface ModalProps {
   modelValue?: boolean

@@ -65,7 +65,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
 import { fetchConfigs, createConfig, updateConfig, deleteConfig } from '@/api/config'
 import type { Config, CreateConfigRequest, UpdateConfigRequest } from '@/types'

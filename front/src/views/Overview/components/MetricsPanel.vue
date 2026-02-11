@@ -66,7 +66,6 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
 import MetricCircle from './MetricCircle.vue'
 import LoadDetail from './details/LoadDetail.vue'
 import CpuDetail from './details/CpuDetail.vue'

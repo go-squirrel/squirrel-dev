@@ -28,7 +28,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Icon } from '@iconify/vue'
 import Button from '@/components/Button/index.vue'
 import type { AppStore } from '@/types'
 

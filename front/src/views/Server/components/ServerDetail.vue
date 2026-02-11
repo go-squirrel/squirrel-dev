@@ -109,7 +109,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon } from '@iconify/vue'
 import { fetchServerDetail } from '@/api/server'
 import type { Server } from '@/types'
 

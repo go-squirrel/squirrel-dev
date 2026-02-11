@@ -85,7 +85,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Icon } from '@iconify/vue'
 import { useI18n } from 'vue-i18n'
 import { fetchDeployments, createDeployment, startDeployment, stopDeployment, undeployDeployment } from '@/api/deployment'
 import { fetchApplications } from '@/api/application'

@@ -36,7 +36,6 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
 import type { Script } from '@/types'
 
 defineProps<{

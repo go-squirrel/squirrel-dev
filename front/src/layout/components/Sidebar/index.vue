@@ -24,7 +24,6 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Icon } from '@iconify/vue'
 import type { NavItem } from '../../types'
 
 defineProps<{

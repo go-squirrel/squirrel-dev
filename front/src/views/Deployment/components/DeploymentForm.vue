@@ -37,7 +37,6 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Icon } from '@iconify/vue'
 import type { ApplicationInstance, Server } from '@/types'
 import type { CreateDeploymentRequest } from '../types'
 import Modal from '@/components/Modal/index.vue'

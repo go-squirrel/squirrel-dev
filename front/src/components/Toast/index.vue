@@ -8,7 +8,6 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
 
 interface Props {
   visible?: boolean
