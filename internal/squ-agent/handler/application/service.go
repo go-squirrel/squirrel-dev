@@ -148,58 +148,7 @@ func (a *Application) Add(request req.Application) response.Response {
 	// 3. 检查 deployID 是否已存在，若存在则停止后重部署
 	existingApp, err := a.Repository.GetByDeployID(request.DeployID)
 	if err == nil {
-		zap.L().Info("Application with deployID already exists, will redeploy",
-			zap.Uint64("deploy_id", request.DeployID),
-			zap.String("existing_name", existingApp.Name),
-			zap.String("new_name", request.Name))
-
-		// 如果应用正在运行，先停止
-		if existingApp.Status == model.AppStatusRunning {
-			zap.L().Info("Stopping existing application before redeploy", zap.Uint64("deploy_id", request.DeployID))
-			if stopErr := runDockerComposeStop(a.getComposePathOrDefault(),
-				fmt.Sprintf("docker-compose-%s.yml", existingApp.Name)); stopErr != nil {
-				zap.L().Warn("Failed to stop existing application, continuing with redeploy", zap.Uint64("deploy_id", request.DeployID), zap.Error(stopErr))
-			}
-		}
-
-		// 使用事务更新应用信息和保存配置
-		err = a.Repository.Transaction(func(appRepo appRepository.Repository) error {
-			// 更新现有应用的信息
-			existingApp.Name = request.Name
-			existingApp.Description = request.Description
-			existingApp.Type = request.Type
-			existingApp.Content = request.Content
-			existingApp.Version = request.Version
-			existingApp.Status = model.AppStatusStarting // 更新状态为 starting
-			if err := appRepo.Update(&existingApp); err != nil {
-				return fmt.Errorf("failed to update application: %w", err)
-			}
-
-			// 保存 server_id 配置
-			confModel := model.Config{
-				Key:   "server_id",
-				Value: fmt.Sprint(request.ServerID),
-			}
-			return a.ConfRepository.CreateOrUpdate(&confModel)
-		})
-		if err != nil {
-			zap.L().Error("Failed to update application and config in transaction", zap.Uint64("deploy_id", request.DeployID), zap.Error(err))
-			return response.Error(model.ReturnErrCode(err))
-		}
-
-		// 准备 compose 文件
-		composePath, composeFileName, err := a.prepareComposeFiles(&existingApp)
-		if err != nil {
-			zap.L().Error("Failed to prepare compose files", zap.Uint64("deploy_id", request.DeployID), zap.Error(err))
-			return response.Error(res.ErrDockerComposeCreate)
-		}
-
-		// 异步启动应用
-		a.startDockerComposeAsync(request.Name, composePath, composeFileName, request.DeployID)
-
-		zap.L().Info("Application redeployed successfully, starting in background", zap.String("name", request.Name), zap.Uint64("deploy_id", request.DeployID))
-
-		return response.Success("Application redeployed successfully, starting in background")
+		return a.redeploy(existingApp, request)
 	}
 
 	// 4. 新应用，正常部署流程
@@ -239,8 +188,7 @@ func (a *Application) Add(request req.Application) response.Response {
 		return response.Error(res.ErrDockerComposeCreate)
 	}
 
-	zap.L().Info("Application added successfully, starting in background",
-		zap.String("name", request.Name))
+	zap.L().Info("Application added successfully, starting in background", zap.String("name", request.Name))
 
 	return response.Success("Application added successfully, starting in background")
 }
