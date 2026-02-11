@@ -24,4 +24,5 @@ type Deployment struct {
 	Server      ServerInfo      `json:"server"`
 	Status      string          `json:"status"`
 	DeployedAt  string          `json:"deployed_at"`
+	Content     string          `json:"content"`
 }

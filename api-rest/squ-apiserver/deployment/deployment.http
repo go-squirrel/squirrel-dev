@@ -1,5 +1,10 @@
 
 ### deploy deployment to server
+GET     {{url}}/api/v1/deployment
+content-type: application/json
+Authorization: Bearer {{token}}
+
+### deploy deployment to server
 POST    {{url}}/api/v1/deployment/deploy/1
 content-type: application/json
 Authorization: Bearer {{token}}

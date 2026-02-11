@@ -18,19 +18,19 @@ import (
 )
 
 type Deployment struct {
-	Config     *config.Config
-	Repository deploymentRepository.Repository
-	AppRepo    appRepository.Repository
-	ServerRepo serverRepository.Repository
+	Config      *config.Config
+	Repository  deploymentRepository.Repository
+	AppRepo     appRepository.Repository
+	ServerRepo  serverRepository.Repository
 	AgentClient *agent.Client
 }
 
 func New(config *config.Config, repo deploymentRepository.Repository, appRepo appRepository.Repository, serverRepo serverRepository.Repository) *Deployment {
 	return &Deployment{
-		Config:     config,
-		Repository: repo,
-		AppRepo:    appRepo,
-		ServerRepo: serverRepo,
+		Config:      config,
+		Repository:  repo,
+		AppRepo:     appRepo,
+		ServerRepo:  serverRepo,
 		AgentClient: agent.NewClient(config),
 	}
 }
@@ -338,6 +338,7 @@ func (a *Deployment) List(serverID uint) response.Response {
 				AgentPort: server.AgentPort,
 			},
 			Status:     deployment.Status,
+			Content:    deployment.Content,
 			DeployedAt: deployment.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
 	}
