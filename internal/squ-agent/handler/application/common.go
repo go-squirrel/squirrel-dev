@@ -3,6 +3,8 @@ package application
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"squirrel-dev/internal/squ-agent/model"
 	"squirrel-dev/pkg/execute"
 
 	"go.uber.org/zap"
@@ -105,4 +107,114 @@ func (a *Application) getComposePath() string {
 // runDockerComposeUp 执行 docker-compose up -d 命令
 func runDockerComposeUp(workDir, composeFile string) error {
 	return runDockerComposeCommand(workDir, composeFile, "up", "-d")
+}
+
+// prepareComposePath 准备 docker-compose 文件目录并返回路径
+func (a *Application) prepareComposePath() (string, error) {
+	composePath := a.getComposePathOrDefault()
+
+	if err := os.MkdirAll(composePath, 0755); err != nil {
+		return "", fmt.Errorf("failed to create compose directory: %w", err)
+	}
+	return composePath, nil
+}
+
+// getComposePathOrDefault 获取 compose 路径，如果为空则返回默认值
+func (a *Application) getComposePathOrDefault() string {
+	composePath := a.getComposePath()
+	if composePath == "" {
+		return "."
+	}
+	return composePath
+}
+
+// createOrUpdateComposeFile 创建或更新 docker-compose 文件
+func (a *Application) createOrUpdateComposeFile(name, content, composePath string) (string, error) {
+	composeFileName := fmt.Sprintf("docker-compose-%s.yml", name)
+	composeFilePath := filepath.Join(composePath, composeFileName)
+
+	// 如果文件已存在，先删除（支持重试）
+	if _, err := os.Stat(composeFilePath); err == nil {
+		zap.L().Info("docker-compose file already exists, deleting it",
+			zap.String("path", composeFilePath),
+			zap.String("name", name))
+		if err := os.Remove(composeFilePath); err != nil {
+			return "", fmt.Errorf("failed to delete existing docker-compose file: %w", err)
+		}
+	}
+
+	if err := os.WriteFile(composeFilePath, []byte(content), 0644); err != nil {
+		return "", fmt.Errorf("failed to create docker-compose file: %w", err)
+	}
+
+	zap.L().Info("docker-compose file created/updated",
+		zap.String("path", composeFilePath),
+		zap.String("name", name))
+
+	return composeFilePath, nil
+}
+
+// deployApplication 部署应用（创建 compose 文件并启动）
+func (a *Application) deployApplication(app *model.Application) (composePath, composeFileName string, err error) {
+	// 准备 compose 目录
+	composePath, err = a.prepareComposePath()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to prepare compose path: %w", err)
+	}
+
+	// 创建/更新 compose 文件
+	_, err = a.createOrUpdateComposeFile(app.Name, app.Content, composePath)
+	if err != nil {
+		return "", "", err
+	}
+
+	composeFileName = fmt.Sprintf("docker-compose-%s.yml", app.Name)
+
+	// 更新数据库状态为 starting
+	app.Status = model.AppStatusStarting
+	if updateErr := a.Repository.Update(app); updateErr != nil {
+		return "", "", fmt.Errorf("failed to update application status: %w", updateErr)
+	}
+
+	// 异步启动应用
+	go func(appName, composePath, composeFileName string, deployID uint64) {
+		zap.L().Info("Starting application asynchronously", zap.String("name", appName), zap.Uint64("deploy_id", deployID))
+
+		if err := runDockerComposeUp(composePath, composeFileName); err != nil {
+			zap.L().Error("Failed to start docker-compose",
+				zap.String("path", composePath),
+				zap.String("file", composeFileName),
+				zap.Uint64("deploy_id", deployID),
+				zap.Error(err))
+
+			a.updateApplicationStatusToFailed(deployID)
+			return
+		}
+
+		zap.L().Info("docker-compose up command executed successfully",
+			zap.String("name", appName),
+			zap.Uint64("deploy_id", deployID))
+	}(app.Name, composePath, composeFileName, app.DeployID)
+
+	return composePath, composeFileName, nil
+}
+
+// updateApplicationStatusToFailed 更新应用状态为失败
+func (a *Application) updateApplicationStatusToFailed(deployID uint64) {
+	apps, err := a.Repository.List()
+	if err != nil {
+		zap.L().Error("Failed to list applications when updating to failed status", zap.Error(err))
+		return
+	}
+	for i := range apps {
+		if apps[i].DeployID == deployID {
+			apps[i].Status = model.AppStatusFailed
+			if updateErr := a.Repository.Update(&apps[i]); updateErr != nil {
+				zap.L().Error("Failed to update application status to failed",
+					zap.Uint64("deploy_id", deployID),
+					zap.Error(updateErr))
+			}
+			break
+		}
+	}
 }

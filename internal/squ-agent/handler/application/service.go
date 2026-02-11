@@ -2,8 +2,6 @@ package application
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-agent/config"
@@ -147,99 +145,90 @@ func (a *Application) Add(request req.Application) response.Response {
 		return response.Error(res.ErrDockerComposeNotFound)
 	}
 
-	// 3. 确定 docker-compose 文件存储路径
-	composePath := a.getComposePath()
-	if composePath == "" {
-		// 如果配置文件中没有设置，使用当前目录
-		composePath = "."
-	}
+	// 3. 检查 deployID 是否已存在，若存在则停止后重部署
+	existingApp, err := a.Repository.GetByDeployID(request.DeployID)
+	if err == nil {
+		zap.L().Info("Application with deployID already exists, will redeploy",
+			zap.Uint64("deploy_id", request.DeployID),
+			zap.String("existing_name", existingApp.Name),
+			zap.String("new_name", request.Name))
 
-	// 确保目录存在
-	if err := os.MkdirAll(composePath, 0755); err != nil {
-		zap.L().Error("Failed to create compose directory", zap.String("path", composePath), zap.Error(err))
-		return response.Error(response.ErrSQL)
-	}
+		// 如果应用正在运行，先停止
+		if existingApp.Status == model.AppStatusRunning {
+			zap.L().Info("Stopping existing application before redeploy", zap.Uint64("deploy_id", request.DeployID))
+			if stopErr := runDockerComposeStop(a.getComposePathOrDefault(),
+				fmt.Sprintf("docker-compose-%s.yml", existingApp.Name)); stopErr != nil {
+				zap.L().Warn("Failed to stop existing application, continuing with redeploy", zap.Uint64("deploy_id", request.DeployID), zap.Error(stopErr))
+			}
+		}
 
-	// 4. 创建 docker-compose 文件
-	composeFileName := fmt.Sprintf("docker-compose-%s.yml", request.Name)
-	composeFilePath := filepath.Join(composePath, composeFileName)
+		// 更新现有应用的信息
+		existingApp.Name = request.Name
+		existingApp.Description = request.Description
+		existingApp.Type = request.Type
+		existingApp.Content = request.Content
+		existingApp.Version = request.Version
 
-	// 如果文件已存在，先删除（支持重试）
-	if _, err := os.Stat(composeFilePath); err == nil {
-		zap.L().Info("docker-compose file already exists, deleting it", zap.String("path", composeFilePath), zap.String("name", request.Name))
-		if err := os.Remove(composeFilePath); err != nil {
-			zap.L().Error("Failed to delete existing docker-compose file", zap.String("path", composeFilePath), zap.Error(err))
+		// 部署应用
+		if _, _, err := a.deployApplication(&existingApp); err != nil {
+			zap.L().Error("Failed to redeploy application", zap.Uint64("deploy_id", request.DeployID), zap.Error(err))
 			return response.Error(res.ErrDockerComposeCreate)
 		}
+
+		// 保存 server_id 配置
+		confModel := model.Config{
+			Key:   "server_id",
+			Value: fmt.Sprint(request.ServerID),
+		}
+		if err := a.ConfRepository.CreateOrUpdate(&confModel); err != nil {
+			zap.L().Error("Failed to create or update config", zap.Error(err))
+			return response.Error(model.ReturnErrCode(err))
+		}
+
+		zap.L().Info("Application redeployed successfully, starting in background", zap.String("name", request.Name), zap.Uint64("deploy_id", request.DeployID))
+
+		return response.Success("Application redeployed successfully, starting in background")
 	}
 
-	if err := os.WriteFile(composeFilePath, []byte(request.Content), 0644); err != nil {
-		zap.L().Error("Failed to create docker-compose file", zap.String("path", composeFilePath), zap.Error(err))
-		return response.Error(res.ErrDockerComposeCreate)
-	}
-
-	zap.L().Info("docker-compose file created", zap.String("path", composeFilePath), zap.String("name", request.Name))
-
-	// 5. 先保存到数据库，状态设置为 "starting"（启动中）
+	// 4. 新应用，正常部署流程
 	modelReq := model.Application{
 		Name:        request.Name,
 		Description: request.Description,
 		Type:        request.Type,
-		Status:      model.AppStatusStarting,
+		Status:      model.AppStatusStopped, // 初始状态为 stopped
 		Content:     request.Content,
 		Version:     request.Version,
 		DeployID:    request.DeployID,
 	}
 
-	err := a.Repository.Add(&modelReq)
+	err = a.Repository.Add(&modelReq)
 	if err != nil {
-		zap.L().Error("Failed to add application to database", zap.String("name", request.Name), zap.Error(err))
+		zap.L().Error("Failed to add application to database",
+			zap.String("name", request.Name),
+			zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
+	// 保存 server_id 配置
 	confModel := model.Config{
 		Key:   "server_id",
 		Value: fmt.Sprint(request.ServerID),
 	}
-	err = a.ConfRepository.CreateOrUpdate(&confModel)
-	if err != nil {
+	if err := a.ConfRepository.CreateOrUpdate(&confModel); err != nil {
 		zap.L().Error("Failed to create or update config", zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	// 6. 在协程中异步启动应用
-	go func(appName, composePath, composeFileName string) {
-		zap.L().Info("Starting application asynchronously", zap.String("name", appName))
+	// 部署应用
+	if _, _, err := a.deployApplication(&modelReq); err != nil {
+		zap.L().Error("Failed to deploy application",
+			zap.String("name", request.Name),
+			zap.Error(err))
+		return response.Error(res.ErrDockerComposeCreate)
+	}
 
-		// 执行 docker-compose up -d 命令启动容器
-		if err := runDockerComposeUp(composePath, composeFileName); err != nil {
-			zap.L().Error("Failed to start docker-compose", zap.String("path", composePath), zap.String("file", composeFileName), zap.Error(err))
-			// 更新数据库状态为 "failed"
-			apps, err := a.Repository.List()
-			if err != nil {
-				zap.L().Error("Failed to list applications", zap.Error(err))
-				return
-			}
-			for i := range apps {
-				if apps[i].Name == appName {
-					apps[i].Status = model.AppStatusFailed
-					if updateErr := a.Repository.Update(&apps[i]); updateErr != nil {
-						zap.L().Error("Failed to update application status to failed", zap.Error(updateErr))
-					}
-					break
-				}
-			}
-			return
-		}
-
-		zap.L().Info("docker-compose up command executed successfully",
-			zap.String("name", appName),
-		)
-		// 启动命令执行成功，但不立即更新数据库
-		// 由 cron 定时任务 checkApplicationStatus 检测实际容器状态并更新
-	}(request.Name, composePath, composeFileName)
-
-	zap.L().Info("Application added successfully, starting in background", zap.String("name", request.Name))
+	zap.L().Info("Application added successfully, starting in background",
+		zap.String("name", request.Name))
 
 	return response.Success("Application added successfully, starting in background")
 }

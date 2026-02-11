@@ -30,10 +30,7 @@ func (a *Application) Start(deployID uint64) response.Response {
 	}
 
 	// 确定 docker-compose 文件路径
-	composePath := a.getComposePath()
-	if composePath == "" {
-		composePath = "."
-	}
+	composePath := a.getComposePathOrDefault()
 	composeFileName := fmt.Sprintf("docker-compose-%s.yml", app.Name)
 	composeFilePath := filepath.Join(composePath, composeFileName)
 
@@ -72,20 +69,7 @@ func (a *Application) Start(deployID uint64) response.Response {
 				zap.Error(err),
 			)
 			// 启动失败，更新数据库状态
-			apps, err := a.Repository.List()
-			if err != nil {
-				zap.L().Error("Failed to list applications", zap.Error(err))
-				return
-			}
-			for i := range apps {
-				if apps[i].DeployID == deployID {
-					apps[i].Status = model.AppStatusFailed
-					if updateErr := a.Repository.Update(&apps[i]); updateErr != nil {
-						zap.L().Error("Failed to update application status to failed", zap.Error(updateErr))
-					}
-					break
-				}
-			}
+			a.updateApplicationStatusToFailed(deployID)
 			return
 		}
 
@@ -124,10 +108,7 @@ func (a *Application) Stop(deployID uint64) response.Response {
 	}
 
 	// 确定 docker-compose 文件路径
-	composePath := a.getComposePath()
-	if composePath == "" {
-		composePath = "."
-	}
+	composePath := a.getComposePathOrDefault()
 	composeFileName := fmt.Sprintf("docker-compose-%s.yml", app.Name)
 	composeFilePath := filepath.Join(composePath, composeFileName)
 
