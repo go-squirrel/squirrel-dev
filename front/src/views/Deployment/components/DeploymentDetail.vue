@@ -66,6 +66,13 @@
           </div>
         </div>
       </div>
+
+      <div class="detail-section">
+        <h3 class="section-title">{{ $t('deployment.configContent') }}</h3>
+        <div class="content-wrapper">
+          <pre class="content-code">{{ deployment.content || '-' }}</pre>
+        </div>
+      </div>
     </div>
 
     <template #footer>
@@ -239,5 +246,24 @@ const getTypeLabel = (type: string) => {
 .type-badge--binary {
   background: #fef3c7;
   color: #92400e;
+}
+
+.content-wrapper {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px;
+  max-height: 300px;
+  overflow: auto;
+}
+
+.content-code {
+  margin: 0;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #334155;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 </style>

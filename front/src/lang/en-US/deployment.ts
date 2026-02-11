@@ -42,5 +42,6 @@ export default {
   deploy: 'Deploy',
   filterByServer: 'Filter by Server',
   allServers: 'All Servers',
-  searchPlaceholder: 'Search deployments...'
+  searchPlaceholder: 'Search deployments...',
+  configContent: 'Config Content'
 }

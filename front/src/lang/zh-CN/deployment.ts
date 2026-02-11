@@ -42,5 +42,6 @@ export default {
   deploy: '部署',
   filterByServer: '按服务器筛选',
   allServers: '全部服务器',
-  searchPlaceholder: '搜索部署...'
+  searchPlaceholder: '搜索部署...',
+  configContent: '配置内容'
 }

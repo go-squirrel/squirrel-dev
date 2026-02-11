@@ -11,6 +11,7 @@ export interface Deployment {
   server: Server
   status: DeploymentStatus
   deployed_at: string
+  content: string
 }
 
 // 创建部署请求
