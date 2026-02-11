@@ -17,6 +17,14 @@ type Monitor struct {
 	Factory    *collector.CollectorFactory
 }
 
+func New(config *config.Config, repo monitorRepository.Repository, factory *collector.CollectorFactory) *Monitor {
+	return &Monitor{
+		Config:     config,
+		Repository: repo,
+		Factory:    factory,
+	}
+}
+
 // GetBaseMonitorPage 获取基础监控数据分页
 func (m *Monitor) GetBaseMonitorPage(page, count int) response.Response {
 	monitors, total, err := m.Repository.GetBaseMonitorPage(page, count)

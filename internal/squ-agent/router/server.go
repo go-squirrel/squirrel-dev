@@ -17,11 +17,8 @@ func Server(group *gin.RouterGroup, conf *config.Config) {
 	factory.Register(collector.NewHostCollector())
 
 	// 创建server服务实例
-	service := server.Server{
-		Config:  conf,
-		Factory: factory,
-	}
+	service := server.New(conf, factory)
 
 	// 注册路由
-	group.GET("/server/info", server.InfoHandler(&service))
+	group.GET("/server/info", server.InfoHandler(service))
 }

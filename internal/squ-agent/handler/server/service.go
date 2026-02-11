@@ -15,6 +15,13 @@ type Server struct {
 	Factory *collector.CollectorFactory
 }
 
+func New(config *config.Config, factory *collector.CollectorFactory) *Server {
+	return &Server{
+		Config:  config,
+		Factory: factory,
+	}
+}
+
 func (s *Server) GetInfo() response.Response {
 	if s.Factory == nil {
 		zap.L().Error("Factory is nil")

@@ -17,6 +17,13 @@ type Config struct {
 	Repository configRepository.Repository
 }
 
+func New(config *config.Config, repo configRepository.Repository) *Config {
+	return &Config{
+		Config:     config,
+		Repository: repo,
+	}
+}
+
 func (c *Config) List() response.Response {
 	var configs []res.Config
 	daoConfigs, err := c.Repository.List()

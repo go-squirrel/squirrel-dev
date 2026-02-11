@@ -24,6 +24,14 @@ type Application struct {
 	ConfRepository confRepository.Repository
 }
 
+func New(config *config.Config, repo appRepository.Repository, confRepo confRepository.Repository) *Application {
+	return &Application{
+		Config:         config,
+		Repository:     repo,
+		ConfRepository: confRepo,
+	}
+}
+
 func (a *Application) List() response.Response {
 	var applications []res.Application
 	daoApps, err := a.Repository.List()
