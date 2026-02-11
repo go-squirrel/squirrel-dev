@@ -4,12 +4,16 @@ import "squirrel-dev/internal/pkg/response"
 
 const (
 	// 72000-72019: 基础操作
-	ErrDeploymentNotFound           = 72001
-	ErrAlreadyDeployed              = 72002
-	ErrApplicationNotDeployed       = 72003
-	ErrDeployIDGenerateFailed       = 72004
-	ErrCreateDeploymentRecordFailed = 72005
-	ErrInvalidDeploymentConfig      = 72006
+	ErrDeploymentNotFound            = 72001
+	ErrAlreadyDeployed               = 72002
+	ErrApplicationNotDeployed         = 72003
+	ErrDeployIDGenerateFailed        = 72004
+	ErrCreateDeploymentRecordFailed  = 72005
+	ErrInvalidDeploymentConfig       = 72006
+	ErrComposeContainerNameConflict  = 72007
+	ErrComposePortConflict           = 72008
+	ErrComposeVolumeConflict         = 72009
+	ErrComposeNetworkConflict        = 72010
 
 	// 72020-72039: Agent 相关
 	ErrAgentRequestFailed       = 72021
@@ -29,6 +33,10 @@ func RegisterCode() {
 	response.Register(ErrDeployIDGenerateFailed, "failed to generate deploy ID")
 	response.Register(ErrCreateDeploymentRecordFailed, "failed to create deployment record")
 	response.Register(ErrInvalidDeploymentConfig, "invalid deployment configuration")
+	response.Register(ErrComposeContainerNameConflict, "docker-compose container name conflict detected")
+	response.Register(ErrComposePortConflict, "docker-compose port conflict detected")
+	response.Register(ErrComposeVolumeConflict, "docker-compose volume conflict detected")
+	response.Register(ErrComposeNetworkConflict, "docker-compose network conflict detected")
 
 	// 72020-72039: Agent 相关
 	response.Register(ErrAgentRequestFailed, "failed to send request to agent")

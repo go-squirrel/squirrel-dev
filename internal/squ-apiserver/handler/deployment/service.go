@@ -41,11 +41,7 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 	// 1. Check if application exists
 	app, err := a.AppRepo.Get(request.ApplicationID)
 	if err != nil {
-		zap.L().Error("failed to get application for deployment",
-			zap.Uint("application_id", request.ApplicationID),
-			zap.Uint("server_id", request.ServerID),
-			zap.Error(err),
-		)
+		zap.L().Error("failed to get application for deployment", zap.Uint("application_id", request.ApplicationID), zap.Uint("server_id", request.ServerID), zap.Error(err))
 		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
@@ -60,6 +56,47 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 		return response.Error(res.ErrApplicationNotDeployed)
 	}
 
+	// 3. Check compose content conflicts with existing deployments on this server
+	existingDeployments, err := a.Repository.List(request.ServerID)
+	if err != nil {
+		zap.L().Error("failed to list existing deployments for conflict check",
+			zap.Uint("application_id", request.ApplicationID),
+			zap.Uint("server_id", request.ServerID),
+			zap.Error(err),
+		)
+		return response.Error(returnDeploymentErrCode(err))
+	}
+
+	for _, deployment := range existingDeployments {
+
+		// 获取已部署应用的信息
+		existingApp, err := a.AppRepo.Get(deployment.ApplicationID)
+		if err != nil {
+			zap.L().Warn("failed to get existing application for conflict check",
+				zap.Uint("application_id", deployment.ApplicationID),
+				zap.Uint("server_id", request.ServerID),
+				zap.Error(err),
+			)
+			continue
+		}
+
+		// 检查 compose 内容冲突
+		if existingApp.Type == "compose" && app.Type == "compose" {
+			conflictCode := checkComposeContent(app.Content, existingApp.Content)
+			if conflictCode != 0 {
+				zap.L().Warn("compose conflict detected",
+					zap.Uint("application_id", request.ApplicationID),
+					zap.String("application_name", app.Name),
+					zap.Uint("existing_application_id", existingApp.ID),
+					zap.String("existing_application_name", existingApp.Name),
+					zap.Uint("server_id", request.ServerID),
+					zap.Int("conflict_code", conflictCode),
+				)
+				return response.Error(conflictCode)
+			}
+		}
+	}
+
 	deployID, err := utils.IDGenerate()
 	if err != nil {
 		zap.L().Error("failed to generate deployment ID",
@@ -70,7 +107,7 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 		return response.Error(res.ErrDeployIDGenerateFailed)
 	}
 
-	// 4. Send deployment request to agent
+	// 5. Send deployment request to agent
 	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
 		server.IpAddress,
 		server.AgentPort,
@@ -122,7 +159,7 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 		return response.Error(res.ErrAgentDeployFailed)
 	}
 
-	// 5. Create application server association record
+	// 6. Create application server association record
 	appServer := model.Deployment{
 		ServerID:      request.ServerID,
 		ApplicationID: request.ApplicationID,
@@ -316,7 +353,7 @@ func (a *Deployment) List(serverID uint) response.Response {
 	// Build response data
 	var result []res.Deployment
 	for _, deployment := range deployments {
-	// Get application information
+		// Get application information
 		app, err := a.AppRepo.Get(deployment.ApplicationID)
 		if err != nil {
 			zap.L().Warn("failed to get application information",
