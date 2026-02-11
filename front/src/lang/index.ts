@@ -7,12 +7,14 @@ const messages = {
   'en-US': enUS
 }
 
-export const i18n = createI18n({
+const i18n = createI18n({
   legacy: false,
   locale: localStorage.getItem('locale') || 'zh-CN',
   fallbackLocale: 'zh-CN',
   messages
 })
+
+export default i18n
 
 export const availableLocales = [
   { code: 'zh-CN', name: '简体中文' },

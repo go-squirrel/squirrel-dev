@@ -8,6 +8,7 @@ import scripts from './scripts'
 import appStore from './app-store'
 import application from './application'
 import deployment from './deployment'
+import error from './error'
 
 export default {
   common,
@@ -19,5 +20,6 @@ export default {
   scripts,
   appStore,
   application,
-  deployment
+  deployment,
+  error
 }

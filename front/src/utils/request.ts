@@ -1,9 +1,7 @@
 // HTTP 请求工具
+import { getErrorMessage, isAuthError as checkAuthError, type ApiError } from './errorHandler'
 
 const API_BASE = '/api/v1'
-
-// 认证错误码
-const AUTH_ERROR_CODES = [41003, 41004, 41005] // JWT相关错误码
 
 /**
  * 处理认证失败：清除token并跳转到登录页
@@ -14,10 +12,30 @@ function handleAuthError(): void {
 }
 
 /**
- * 检查响应是否为认证错误
+ * 处理请求响应
  */
-function isAuthError(code: number, status: number): boolean {
-  return status === 401 || AUTH_ERROR_CODES.includes(code)
+async function handleResponse<T>(response: Response): Promise<T> {
+  // HTTP 401 未授权
+  if (response.status === 401) {
+    handleAuthError()
+    throw new Error(getErrorMessage(66004))
+  }
+
+  if (!response.ok) {
+    throw new Error(getErrorMessage({ code: response.status, message: `HTTP error! status: ${response.status}` }))
+  }
+
+  const result = await response.json()
+  if (result.code !== 0) {
+    const apiError: ApiError = { code: result.code, message: result.message }
+    // 后端返回的认证错误码
+    if (checkAuthError(apiError)) {
+      handleAuthError()
+    }
+    throw new Error(getErrorMessage(apiError))
+  }
+
+  return result.data
 }
 
 /**
@@ -29,27 +47,8 @@ export async function get<T>(url: string): Promise<T> {
       'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
     }
   })
-  
-  // HTTP 401 未授权
-  if (response.status === 401) {
-    handleAuthError()
-    throw new Error('认证失败，请重新登录')
-  }
-  
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
-  }
-  
-  const result = await response.json()
-  if (result.code !== 0) {
-    // 后端返回的认证错误码
-    if (isAuthError(result.code, 200)) {
-      handleAuthError()
-    }
-    throw new Error(result.message || '请求失败')
-  }
-  
-  return result.data
+
+  return handleResponse<T>(response)
 }
 
 /**
@@ -64,27 +63,8 @@ export async function post<T>(url: string, data?: any): Promise<T> {
     },
     body: data ? JSON.stringify(data) : undefined
   })
-  
-  // HTTP 401 未授权
-  if (response.status === 401) {
-    handleAuthError()
-    throw new Error('认证失败，请重新登录')
-  }
-  
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
-  }
-  
-  const result = await response.json()
-  if (result.code !== 0) {
-    // 后端返回的认证错误码
-    if (isAuthError(result.code, 200)) {
-      handleAuthError()
-    }
-    throw new Error(result.message || '请求失败')
-  }
-  
-  return result.data
+
+  return handleResponse<T>(response)
 }
 
 /**
@@ -97,27 +77,8 @@ export async function del<T>(url: string): Promise<T> {
       'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
     }
   })
-  
-  // HTTP 401 未授权
-  if (response.status === 401) {
-    handleAuthError()
-    throw new Error('认证失败，请重新登录')
-  }
-  
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
-  }
-  
-  const result = await response.json()
-  if (result.code !== 0) {
-    // 后端返回的认证错误码
-    if (isAuthError(result.code, 200)) {
-      handleAuthError()
-    }
-    throw new Error(result.message || '请求失败')
-  }
-  
-  return result.data
+
+  return handleResponse<T>(response)
 }
 
 /**
@@ -132,32 +93,14 @@ export async function put<T>(url: string, data?: any): Promise<T> {
     },
     body: data ? JSON.stringify(data) : undefined
   })
-  
-  // HTTP 401 未授权
-  if (response.status === 401) {
-    handleAuthError()
-    throw new Error('认证失败，请重新登录')
-  }
-  
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
-  }
-  
-  const result = await response.json()
-  if (result.code !== 0) {
-    if (isAuthError(result.code, 200)) {
-      handleAuthError()
-    }
-    throw new Error(result.message || '请求失败')
-  }
-  
-  return result.data
+
+  return handleResponse<T>(response)
 }
 
 /**
  * 发送 PATCH 请求
  */
-export async function patch<T>(url: string, data?: any): Promise<T> {
+export async function patchRequest<T>(url: string, data?: any): Promise<T> {
   const response = await fetch(`${API_BASE}${url}`, {
     method: 'PATCH',
     headers: {
@@ -166,24 +109,6 @@ export async function patch<T>(url: string, data?: any): Promise<T> {
     },
     body: data ? JSON.stringify(data) : undefined
   })
-  
-  // HTTP 401 未授权
-  if (response.status === 401) {
-    handleAuthError()
-    throw new Error('认证失败，请重新登录')
-  }
-  
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
-  }
-  
-  const result = await response.json()
-  if (result.code !== 0) {
-    if (isAuthError(result.code, 200)) {
-      handleAuthError()
-    }
-    throw new Error(result.message || '请求失败')
-  }
-  
-  return result.data
+
+  return handleResponse<T>(response)
 }
