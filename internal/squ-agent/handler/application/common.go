@@ -146,8 +146,8 @@ func (a *Application) createOrUpdateComposeFile(name, content, composePath strin
 	return composeFilePath, nil
 }
 
-// deployApplication 部署应用（创建 compose 文件并启动）
-func (a *Application) deployApplication(app *model.Application) (composePath, composeFileName string, err error) {
+// prepareComposeFiles 准备 compose 文件（不涉及数据库操作）
+func (a *Application) prepareComposeFiles(app *model.Application) (composePath, composeFileName string, err error) {
 	// 准备 compose 目录
 	composePath, err = a.prepareComposePath()
 	if err != nil {
@@ -161,15 +161,12 @@ func (a *Application) deployApplication(app *model.Application) (composePath, co
 	}
 
 	composeFileName = fmt.Sprintf("docker-compose-%s.yml", app.Name)
+	return composePath, composeFileName, nil
+}
 
-	// 更新数据库状态为 starting
-	app.Status = model.AppStatusStarting
-	if updateErr := a.Repository.Update(app); updateErr != nil {
-		return "", "", fmt.Errorf("failed to update application status: %w", updateErr)
-	}
-
-	// 异步启动应用
-	go func(appName, composePath, composeFileName string, deployID uint64) {
+// startDockerComposeAsync 异步启动 docker-compose
+func (a *Application) startDockerComposeAsync(appName, composePath, composeFileName string, deployID uint64) {
+	go func() {
 		zap.L().Info("Starting application asynchronously", zap.String("name", appName), zap.Uint64("deploy_id", deployID))
 
 		if err := runDockerComposeUp(composePath, composeFileName); err != nil {
@@ -186,7 +183,24 @@ func (a *Application) deployApplication(app *model.Application) (composePath, co
 		zap.L().Info("docker-compose up command executed successfully",
 			zap.String("name", appName),
 			zap.Uint64("deploy_id", deployID))
-	}(app.Name, composePath, composeFileName, app.DeployID)
+	}()
+}
+
+// deployApplication 部署应用（创建 compose 文件并启动）
+func (a *Application) deployApplication(app *model.Application) (composePath, composeFileName string, err error) {
+	composePath, composeFileName, err = a.prepareComposeFiles(app)
+	if err != nil {
+		return "", "", err
+	}
+
+	// 更新数据库状态为 starting
+	app.Status = model.AppStatusStarting
+	if updateErr := a.Repository.Update(app); updateErr != nil {
+		return "", "", fmt.Errorf("failed to update application status: %w", updateErr)
+	}
+
+	// 异步启动应用
+	a.startDockerComposeAsync(app.Name, composePath, composeFileName, app.DeployID)
 
 	return composePath, composeFileName, nil
 }

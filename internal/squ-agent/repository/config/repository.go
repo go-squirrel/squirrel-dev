@@ -15,6 +15,7 @@ type Repository interface {
 	Update(req *model.Config) (err error)
 	GetByKey(key string) (string, error)
 	CreateOrUpdate(req *model.Config) (err error)
+	Transaction(fn func(repo Repository) error) error
 }
 
 func New(db *gorm.DB) Repository {

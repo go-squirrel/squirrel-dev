@@ -36,3 +36,10 @@ func (c *Client) Add(req *model.Application) (err error) {
 func (c *Client) Update(req *model.Application) (err error) {
 	return c.DB.Updates(req).Error
 }
+
+func (c *Client) Transaction(fn func(repo Repository) error) error {
+	return c.DB.Transaction(func(tx *gorm.DB) error {
+		txRepo := &Client{DB: tx}
+		return fn(txRepo)
+	})
+}

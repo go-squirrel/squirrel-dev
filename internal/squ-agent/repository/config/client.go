@@ -50,3 +50,10 @@ func (c *Client) GetByKey(key string) (string, error) {
 	}
 	return config.Value, nil
 }
+
+func (c *Client) Transaction(fn func(repo Repository) error) error {
+	return c.DB.Transaction(func(tx *gorm.DB) error {
+		txRepo := &Client{DB: tx}
+		return fn(txRepo)
+	})
+}

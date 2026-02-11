@@ -14,6 +14,7 @@ type Repository interface {
 	Delete(id uint) (err error)
 	Add(req *model.Application) (err error)
 	Update(req *model.Application) (err error)
+	Transaction(fn func(repo Repository) error) error
 }
 
 func New(db *gorm.DB) Repository {
