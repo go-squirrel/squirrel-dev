@@ -2,9 +2,12 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { fetchMonitorStats, fetchNetStats, fetchIOStats } from '@/api'
 import { formatBytes } from '@/utils/format'
+import { useMonitorCache } from './useMonitorCache'
 import type { MonitorData, ChartDataPoint, ChartType } from '../types'
 
 export function useMonitor(serverId: Ref<number>) {
+  const { getCache, setCache } = useMonitorCache()
+
   const monitorData = ref<MonitorData>({})
   const chartData = ref<ChartDataPoint[]>([])
   const chartType = ref<ChartType>('net')
@@ -57,6 +60,8 @@ export function useMonitor(serverId: Ref<number>) {
     try {
       const data = await fetchMonitorStats(serverId.value)
       monitorData.value = data
+      // 缓存监控数据
+      setCache(serverId.value, { monitorData: data })
     } catch (error) {
       console.error('Failed to fetch monitor stats:', error)
     }
@@ -69,7 +74,7 @@ export function useMonitor(serverId: Ref<number>) {
       if (chartType.value === 'net') {
         const data = await fetchNetStats(serverId.value, chartTarget.value)
         const now = Date.now()
-        
+
         // 更新网卡列表
         if (data.ifnames && Array.isArray(data.ifnames)) {
           chartTargetList.value = [...data.ifnames].sort()
@@ -88,10 +93,18 @@ export function useMonitor(serverId: Ref<number>) {
           updateChartData(sentSpeed, recvSpeed)
         }
         lastNetStats = { bytesSent, bytesRecv, timestamp: now }
+
+        // 缓存图表相关数据
+        setCache(serverId.value, {
+          chartData: chartData.value,
+          currentNetStats: currentNetStats.value,
+          lastNetStats,
+          chartTargetList: chartTargetList.value
+        })
       } else {
         const data = await fetchIOStats(serverId.value, chartTarget.value)
         const now = Date.now()
-        
+
         // 更新磁盘列表
         if (data.devices && Array.isArray(data.devices)) {
           chartTargetList.value = [...data.devices].sort()
@@ -110,6 +123,14 @@ export function useMonitor(serverId: Ref<number>) {
           updateChartData(readSpeed, writeSpeed)
         }
         lastIOStats = { readBytes, writeBytes, timestamp: now }
+
+        // 缓存图表相关数据
+        setCache(serverId.value, {
+          chartData: chartData.value,
+          currentIOStats: currentIOStats.value,
+          lastIOStats,
+          chartTargetList: chartTargetList.value
+        })
       }
     } catch (error) {
       console.error('Failed to fetch chart data:', error)
@@ -134,6 +155,45 @@ export function useMonitor(serverId: Ref<number>) {
     lastIOStats = { readBytes: 0, writeBytes: 0, timestamp: 0 }
     currentNetStats.value = { bytesSent: 0, bytesRecv: 0 }
     currentIOStats.value = { readBytes: 0, writeBytes: 0 }
+  }
+
+  // 从缓存恢复数据
+  const restoreFromCache = (id: number) => {
+    const cache = getCache(id)
+    if (!cache) return false
+
+    // 恢复监控数据
+    if (cache.monitorData && Object.keys(cache.monitorData).length > 0) {
+      monitorData.value = cache.monitorData
+    }
+
+    // 恢复图表数据
+    if (cache.chartData && cache.chartData.length > 0) {
+      chartData.value = [...cache.chartData]
+    }
+
+    // 恢复网卡/磁盘列表
+    if (cache.chartTargetList && cache.chartTargetList.length > 0) {
+      chartTargetList.value = [...cache.chartTargetList]
+    }
+
+    // 恢复当前统计值
+    if (cache.currentNetStats) {
+      currentNetStats.value = { ...cache.currentNetStats }
+    }
+    if (cache.currentIOStats) {
+      currentIOStats.value = { ...cache.currentIOStats }
+    }
+
+    // 恢复上次统计值（用于计算速度）
+    if (cache.lastNetStats) {
+      lastNetStats = { ...cache.lastNetStats }
+    }
+    if (cache.lastIOStats) {
+      lastIOStats = { ...cache.lastIOStats }
+    }
+
+    return true
   }
 
   // 监听图表类型变化，重置目标为 'all' 并清空图表数据
@@ -163,9 +223,17 @@ export function useMonitor(serverId: Ref<number>) {
 
   onMounted(() => {
     if (serverId.value) {
+      // 优先从缓存恢复数据
+      restoreFromCache(serverId.value)
+
+      // 无论是否从缓存恢复，都重新加载数据以确保最新
       loadMonitorStats()
       loadChartData()
-      startTimers()
+
+      // 如果没有启动定时器，则启动
+      if (!monitorTimer && !chartTimer) {
+        startTimers()
+      }
     }
   })
 
