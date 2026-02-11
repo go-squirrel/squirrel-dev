@@ -82,12 +82,12 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 
 		// 检查 compose 内容冲突
 		if existingApp.Type == "compose" && app.Type == "compose" {
-			conflictCode := checkComposeContent(app.Content, existingApp.Content)
+			conflictCode := checkComposeContent(app.Content, deployment.Content)
 			if conflictCode != 0 {
 				zap.L().Warn("compose conflict detected",
 					zap.Uint("application_id", request.ApplicationID),
 					zap.String("application_name", app.Name),
-					zap.Uint("existing_application_id", existingApp.ID),
+					zap.Uint("existing_application_id", deployment.ID),
 					zap.String("existing_application_name", existingApp.Name),
 					zap.Uint("server_id", request.ServerID),
 					zap.Int("conflict_code", conflictCode),
@@ -163,6 +163,7 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 	appServer := model.Deployment{
 		ServerID:      request.ServerID,
 		ApplicationID: request.ApplicationID,
+		Content:       app.Content,
 		DeployID:      deployID,
 	}
 
