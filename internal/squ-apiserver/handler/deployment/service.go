@@ -1,9 +1,10 @@
 package deployment
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"squirrel-dev/internal/pkg/response"
+	"squirrel-dev/internal/squ-apiserver/agent"
 	"squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/deployment/req"
 	"squirrel-dev/internal/squ-apiserver/handler/deployment/res"
@@ -11,9 +12,7 @@ import (
 	appRepository "squirrel-dev/internal/squ-apiserver/repository/application"
 	deploymentRepository "squirrel-dev/internal/squ-apiserver/repository/deployment"
 	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
-	"squirrel-dev/pkg/httpclient"
 	"squirrel-dev/pkg/utils"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -23,17 +22,16 @@ type Deployment struct {
 	Repository deploymentRepository.Repository
 	AppRepo    appRepository.Repository
 	ServerRepo serverRepository.Repository
-	HTTPClient *httpclient.Client
+	AgentClient *agent.Client
 }
 
 func New(config *config.Config, repo deploymentRepository.Repository, appRepo appRepository.Repository, serverRepo serverRepository.Repository) *Deployment {
-	hc := httpclient.NewClient(30 * time.Second)
 	return &Deployment{
 		Config:     config,
 		Repository: repo,
 		AppRepo:    appRepo,
 		ServerRepo: serverRepo,
-		HTTPClient: hc,
+		AgentClient: agent.NewClient(config),
 	}
 }
 
@@ -108,11 +106,6 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 	}
 
 	// 5. Send deployment request to agent
-	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
-		server.IpAddress,
-		server.AgentPort,
-		a.Config.Agent.Http.BaseUrl,
-		"application")
 	agentReq := req.ApplicationAgent{
 		Name:        app.Name,
 		Description: app.Description,
@@ -122,40 +115,12 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 		ServerID:    request.ServerID,
 		DeployID:    deployID,
 	}
-	respBody, err := a.HTTPClient.Post(agentURL, agentReq, nil)
-	if err != nil {
-		zap.L().Error("failed to send deployment request",
-			zap.Uint64("deploy_id", deployID),
-			zap.Uint("application_id", request.ApplicationID),
-			zap.Uint("server_id", request.ServerID),
-			zap.String("url", agentURL),
-			zap.Error(err),
-		)
-		return response.Error(res.ErrAgentRequestFailed)
-	}
-
-	// Parse response, check if deployment succeeded
-	var agentResp response.Response
-	if err := json.Unmarshal(respBody, &agentResp); err != nil {
-		zap.L().Error("failed to parse agent response",
-			zap.Uint64("deploy_id", deployID),
-			zap.Uint("application_id", request.ApplicationID),
-			zap.Uint("server_id", request.ServerID),
-			zap.String("url", agentURL),
-			zap.Error(err),
-		)
-		return response.Error(res.ErrAgentResponseParseFailed)
-	}
-
-	if agentResp.Code != 0 {
-		zap.L().Error("agent deployment failed",
-			zap.Uint64("deploy_id", deployID),
-			zap.Uint("application_id", request.ApplicationID),
-			zap.Uint("server_id", request.ServerID),
-			zap.String("url", agentURL),
-			zap.Int("code", agentResp.Code),
-			zap.String("message", agentResp.Message),
-		)
+	result := a.AgentClient.Post(context.Background(), server, "application", agentReq,
+		zap.Uint64("deploy_id", deployID),
+		zap.Uint("application_id", request.ApplicationID),
+		zap.Uint("server_id", request.ServerID),
+	)
+	if result.Err != nil {
 		return response.Error(res.ErrAgentDeployFailed)
 	}
 
@@ -178,29 +143,17 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 
 		// Rollback: attempt to delete deployed application on agent
 		deleteUrl := fmt.Sprintf("application/delete/%s", app.Name)
-
-		agentDeleteURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
-			server.IpAddress,
-			server.AgentPort,
-			a.Config.Agent.Http.BaseUrl,
-			deleteUrl)
-
 		zap.L().Info("rollback: attempting to delete deployed application on agent",
 			zap.Uint64("deploy_id", deployID),
 			zap.Uint("application_id", request.ApplicationID),
 			zap.Uint("server_id", request.ServerID),
-			zap.String("url", agentDeleteURL),
 		)
-		_, err = a.HTTPClient.Post(agentDeleteURL, nil, nil)
-		if err != nil {
-			zap.L().Error("rollback failed: failed to delete application on agent",
-				zap.Uint64("deploy_id", deployID),
-				zap.Uint("application_id", request.ApplicationID),
-				zap.Uint("server_id", request.ServerID),
-				zap.String("url", agentDeleteURL),
-				zap.Error(err),
-			)
-		}
+		_ = a.AgentClient.Post(context.Background(), server, deleteUrl, nil,
+			zap.Uint64("deploy_id", deployID),
+			zap.Uint("application_id", request.ApplicationID),
+			zap.Uint("server_id", request.ServerID),
+			zap.String("operation", "rollback"),
+		)
 
 		return response.Error(returnDeploymentErrCode(err))
 	}
@@ -277,20 +230,11 @@ func (a *Deployment) Undeploy(deploymentID uint) response.Response {
 
 	// 3. Call agent to delete application, use deployID
 	deleteUrl := fmt.Sprintf("application/delete/%d", deployment.DeployID)
-
-	agentDeleteURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
-		server.IpAddress,
-		server.AgentPort,
-		a.Config.Agent.Http.BaseUrl,
-		deleteUrl)
-	_, err = a.HTTPClient.Post(agentDeleteURL, nil, nil)
-	if err != nil {
-		zap.L().Error("failed to call agent to delete application",
-			zap.Uint64("deploy_id", deployment.DeployID),
-			zap.Uint("deployment_id", deploymentID),
-			zap.String("url", agentDeleteURL),
-			zap.Error(err),
-		)
+	result := a.AgentClient.Post(context.Background(), server, deleteUrl, nil,
+		zap.Uint64("deploy_id", deployment.DeployID),
+		zap.Uint("deployment_id", deploymentID),
+	)
+	if result.Err != nil {
 		return response.Error(res.ErrAgentDeleteFailed)
 	}
 

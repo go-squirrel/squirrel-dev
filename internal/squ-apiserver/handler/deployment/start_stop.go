@@ -1,11 +1,10 @@
 package deployment
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/handler/deployment/res"
-	"squirrel-dev/pkg/utils"
 
 	"go.uber.org/zap"
 )
@@ -36,43 +35,12 @@ func (a *Deployment) Stop(deploymentID uint) response.Response {
 	// 3. Call agent to stop application, use deployID
 	stopUrl := fmt.Sprintf("application/stop/%d", deployment.DeployID)
 
-	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
-		server.IpAddress,
-		server.AgentPort,
-		a.Config.Agent.Http.BaseUrl,
-		stopUrl)
-	respBody, err := a.HTTPClient.Post(agentURL, nil, nil)
-	if err != nil {
-		zap.L().Error("failed to call agent to stop application",
-			zap.Uint64("deploy_id", deployment.DeployID),
-			zap.Uint("deployment_id", deploymentID),
-			zap.String("url", agentURL),
-			zap.Error(err),
-		)
+	result := a.AgentClient.Post(context.Background(), server, stopUrl, nil,
+		zap.Uint64("deploy_id", deployment.DeployID),
+		zap.Uint("deployment_id", deploymentID),
+	)
+	if result.Err != nil {
 		return response.Error(res.ErrAgentStopFailed)
-	}
-
-	// Parse response, check if stop succeeded
-	var agentResp response.Response
-	if err := json.Unmarshal(respBody, &agentResp); err != nil {
-		zap.L().Error("failed to parse agent response",
-			zap.Uint64("deploy_id", deployment.DeployID),
-			zap.Uint("deployment_id", deploymentID),
-			zap.String("url", agentURL),
-			zap.Error(err),
-		)
-		return response.Error(res.ErrAgentResponseParseFailed)
-	}
-
-	if agentResp.Code != 0 {
-		zap.L().Error("agent stop application failed",
-			zap.Uint64("deploy_id", deployment.DeployID),
-			zap.Uint("deployment_id", deploymentID),
-			zap.String("url", agentURL),
-			zap.Int("code", agentResp.Code),
-			zap.String("message", agentResp.Message),
-		)
-		return response.Error(res.ErrAgentOperationFailed)
 	}
 
 	return response.Success("stop success")
@@ -104,43 +72,12 @@ func (a *Deployment) Start(deploymentID uint) response.Response {
 	// 3. Call agent to start application, use deployID
 	startUrl := fmt.Sprintf("application/start/%d", deployment.DeployID)
 
-	agentURL := utils.GenAgentUrl(a.Config.Agent.Http.Scheme,
-		server.IpAddress,
-		server.AgentPort,
-		a.Config.Agent.Http.BaseUrl,
-		startUrl)
-	respBody, err := a.HTTPClient.Post(agentURL, nil, nil)
-	if err != nil {
-		zap.L().Error("failed to call agent to start application",
-			zap.Uint64("deploy_id", deployment.DeployID),
-			zap.Uint("deployment_id", deploymentID),
-			zap.String("url", agentURL),
-			zap.Error(err),
-		)
+	result := a.AgentClient.Post(context.Background(), server, startUrl, nil,
+		zap.Uint64("deploy_id", deployment.DeployID),
+		zap.Uint("deployment_id", deploymentID),
+	)
+	if result.Err != nil {
 		return response.Error(res.ErrAgentStartFailed)
-	}
-
-	// Parse response, check if start succeeded
-	var agentResp response.Response
-	if err := json.Unmarshal(respBody, &agentResp); err != nil {
-		zap.L().Error("failed to parse agent response",
-			zap.Uint64("deploy_id", deployment.DeployID),
-			zap.Uint("deployment_id", deploymentID),
-			zap.String("url", agentURL),
-			zap.Error(err),
-		)
-		return response.Error(res.ErrAgentResponseParseFailed)
-	}
-
-	if agentResp.Code != 0 {
-		zap.L().Error("agent start application failed",
-			zap.Uint64("deploy_id", deployment.DeployID),
-			zap.Uint("deployment_id", deploymentID),
-			zap.String("url", agentURL),
-			zap.Int("code", agentResp.Code),
-			zap.String("message", agentResp.Message),
-		)
-		return response.Error(res.ErrAgentOperationFailed)
 	}
 
 	return response.Success("start success")

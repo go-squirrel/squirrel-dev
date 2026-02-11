@@ -2,13 +2,12 @@ package script
 
 import (
 	"strings"
-	"time"
 
 	"squirrel-dev/internal/pkg/response"
+	"squirrel-dev/internal/squ-apiserver/agent"
 	"squirrel-dev/internal/squ-apiserver/config"
 	"squirrel-dev/internal/squ-apiserver/handler/script/req"
 	"squirrel-dev/internal/squ-apiserver/handler/script/res"
-	"squirrel-dev/pkg/httpclient"
 
 	scriptRepository "squirrel-dev/internal/squ-apiserver/repository/script"
 	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
@@ -17,19 +16,18 @@ import (
 )
 
 type Script struct {
-	Config     *config.Config
-	Repository scriptRepository.ScriptRepository
-	ServerRepo serverRepository.Repository
-	HTTPClient *httpclient.Client
+	Config      *config.Config
+	Repository  scriptRepository.ScriptRepository
+	ServerRepo  serverRepository.Repository
+	AgentClient *agent.Client
 }
 
 func New(config *config.Config, scriptRepo scriptRepository.ScriptRepository, serverRepo serverRepository.Repository) *Script {
-	hc := httpclient.NewClient(30 * time.Second)
 	return &Script{
-		Config:     config,
-		Repository: scriptRepo,
-		ServerRepo: serverRepo,
-		HTTPClient: hc,
+		Config:      config,
+		Repository:  scriptRepo,
+		ServerRepo:  serverRepo,
+		AgentClient: agent.NewClient(config),
 	}
 }
 

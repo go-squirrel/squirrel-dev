@@ -1,7 +1,7 @@
 package script
 
 import (
-	"encoding/json"
+	"context"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-apiserver/handler/script/req"
 	"squirrel-dev/internal/squ-apiserver/handler/script/res"
@@ -66,53 +66,18 @@ func (s *Script) Execute(request req.ExecuteScript) response.Response {
 	}
 
 	// 5. Build request for Agent
-	agentURL := utils.GenAgentUrl(s.Config.Agent.Http.Scheme,
-		server.IpAddress,
-		server.AgentPort,
-		s.Config.Agent.Http.BaseUrl,
-		"script/execute")
 	agentReq := s.modelToRequest(script)
 	agentReq.TaskID = uint(taskID) // Pass generated TaskID to Agent
 
-	respBody, err := s.HTTPClient.Post(agentURL, agentReq, nil)
-	if err != nil {
-		zap.L().Error("failed to send script execution request",
-			zap.Uint64("task_id", taskID),
-			zap.String("url", agentURL),
-			zap.Error(err),
-		)
+	agentResult := s.AgentClient.Post(context.Background(), server, "script/execute", agentReq,
+		zap.Uint64("task_id", taskID),
+		zap.Uint("script_id", request.ScriptID),
+		zap.Uint("server_id", request.ServerID),
+	)
+	if agentResult.Err != nil {
 		// Update execution record status to failed
 		result.Status = "failed"
-		result.ErrorMessage = "failed to send execution request: " + err.Error()
-		s.Repository.UpdateScriptResultByTaskID(taskID, &result)
-		return response.Error(res.ErrScriptExecutionFailed)
-	}
-
-	// Parse response
-	var agentResp response.Response
-	if err := json.Unmarshal(respBody, &agentResp); err != nil {
-		zap.L().Error("failed to parse agent response",
-			zap.Uint64("task_id", taskID),
-			zap.String("url", agentURL),
-			zap.Error(err),
-		)
-		// Update execution record status to failed
-		result.Status = "failed"
-		result.ErrorMessage = "failed to parse response: " + err.Error()
-		s.Repository.UpdateScriptResultByTaskID(taskID, &result)
-		return response.Error(res.ErrScriptExecutionFailed)
-	}
-
-	if agentResp.Code != 0 {
-		zap.L().Error("agent failed to execute script",
-			zap.Uint64("task_id", taskID),
-			zap.String("url", agentURL),
-			zap.Int("code", agentResp.Code),
-			zap.String("message", agentResp.Message),
-		)
-		// Update execution record status to failed
-		result.Status = "failed"
-		result.ErrorMessage = "agent returned error: " + agentResp.Message
+		result.ErrorMessage = "agent execution failed: " + agentResult.Err.Error()
 		s.Repository.UpdateScriptResultByTaskID(taskID, &result)
 		return response.Error(res.ErrScriptExecutionFailed)
 	}

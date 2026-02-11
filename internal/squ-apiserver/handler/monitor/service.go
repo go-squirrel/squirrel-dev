@@ -2,27 +2,25 @@ package monitor
 
 import (
 	"fmt"
-	"time"
 
 	"squirrel-dev/internal/pkg/response"
+	"squirrel-dev/internal/squ-apiserver/agent"
 	"squirrel-dev/internal/squ-apiserver/config"
-	"squirrel-dev/pkg/httpclient"
 
 	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
 )
 
 type Monitor struct {
-	Config     *config.Config
-	ServerRepo serverRepository.Repository
-	HTTPClient *httpclient.Client
+	Config      *config.Config
+	ServerRepo  serverRepository.Repository
+	AgentClient *agent.Client
 }
 
 func New(conf *config.Config, serverRepo serverRepository.Repository) *Monitor {
-	hc := httpclient.NewClient(30 * time.Second)
 	return &Monitor{
-		Config:     conf,
-		ServerRepo: serverRepo,
-		HTTPClient: hc,
+		Config:      conf,
+		ServerRepo:  serverRepo,
+		AgentClient: agent.NewClient(conf),
 	}
 }
 
