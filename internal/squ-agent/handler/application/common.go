@@ -96,14 +96,6 @@ func checkDockerComposeAvailable() bool {
 	return err == nil
 }
 
-// getComposePath 获取 docker-compose 文件存储路径
-func (a *Application) getComposePath() string {
-	if a.Config.Common.ComposePath != "" {
-		return a.Config.Common.ComposePath
-	}
-	return ""
-}
-
 // runDockerComposeUp 执行 docker-compose up -d 命令
 func runDockerComposeUp(workDir, composeFile string) error {
 	return runDockerComposeCommand(workDir, composeFile, "up", "-d")
@@ -121,7 +113,7 @@ func (a *Application) prepareComposePath() (string, error) {
 
 // getComposePathOrDefault 获取 compose 路径，如果为空则返回默认值
 func (a *Application) getComposePathOrDefault() string {
-	composePath := a.getComposePath()
+	composePath := a.Config.Common.ComposePath
 	if composePath == "" {
 		return "."
 	}
