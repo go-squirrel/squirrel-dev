@@ -8,44 +8,84 @@
         <div class="login-form-wrapper">
           <h2 class="login-title">{{ $t('login.welcomeBack') }}</h2>
           <p class="login-subtitle">{{ $t('login.loginAccount') }}</p>
-          <LoginForm :loading="loading" @submit="handleLogin" />
+          <LoginForm :loading="loading" :error="loginError" @submit="handleLogin" />
           <p class="login-tip">{{ $t('login.tip') }}</p>
         </div>
       </div>
     </div>
+    <Toast
+      :visible="toastVisible"
+      :message="toastMessage"
+      :type="toastType"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/store'
 import { login } from '@/api'
+import { isNetworkError } from '@/utils/errorHandler'
 import LoginForm from './components/LoginForm.vue'
 import LoginBrand from './components/LoginBrand.vue'
+import Toast from '@/components/Toast/index.vue'
 import { useLoading } from '@/composables/useLoading'
 
+const { t } = useI18n()
 const router = useRouter()
 const userStore = useUserStore()
 const { loading, withLoading } = useLoading()
 
-const handleLogin = async (formData: { username: string; password: string; remember: boolean }) => {
-  await withLoading(async () => {
-    const data = await login({
-      username: formData.username,
-      password: formData.password
-    })
+const loginError = ref('')
+const toastVisible = ref(false)
+const toastMessage = ref('')
+const toastType = ref<'success' | 'error'>('error')
 
-    if (data.token) {
-      userStore.setToken(data.token)
-      // 设置基本用户信息，后续可通过用户信息接口获取详细信息
-      userStore.setUser({
-        id: 0,
+const showToast = (message: string, type: 'success' | 'error' = 'error') => {
+  toastMessage.value = message
+  toastType.value = type
+  toastVisible.value = true
+  setTimeout(() => {
+    toastVisible.value = false
+  }, 3000)
+}
+
+const handleLogin = async (formData: { username: string; password: string; remember: boolean }) => {
+  loginError.value = ''
+
+  try {
+    await withLoading(async () => {
+      const data = await login({
         username: formData.username,
-        role: 'admin'
+        password: formData.password
       })
-      router.push('/')
+
+      if (data.token) {
+        userStore.setToken(data.token)
+        userStore.setUser({
+          id: 0,
+          username: formData.username,
+          role: 'admin'
+        })
+        router.push('/')
+      }
+    })
+  } catch (error) {
+    console.error('Login failed:', error)
+
+    if (isNetworkError(error)) {
+      loginError.value = t('error.common.networkError')
+      showToast(t('error.common.networkError'), 'error')
+    } else if (error instanceof Error) {
+      loginError.value = error.message
+      showToast(error.message, 'error')
+    } else {
+      loginError.value = t('error.common.unknownError')
+      showToast(t('error.common.unknownError'), 'error')
     }
-  })
+  }
 }
 </script>
 

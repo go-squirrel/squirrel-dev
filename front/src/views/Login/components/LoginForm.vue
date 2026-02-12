@@ -1,5 +1,9 @@
 <template>
   <form class="login-form" @submit.prevent="handleSubmit">
+    <div v-if="error" class="error-message">
+      <Icon icon="lucide:alert-circle" class="error-icon" />
+      <span>{{ error }}</span>
+    </div>
     <div class="form-group">
       <label class="form-label">{{ $t('login.username') }}</label>
       <div class="input-wrapper">
@@ -51,6 +55,7 @@ import Button from '@/components/Button/index.vue'
 
 defineProps<{
   loading: boolean
+  error?: string
 }>()
 
 const emit = defineEmits<{
@@ -75,6 +80,23 @@ const handleSubmit = () => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fee2e2;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 13px;
+}
+
+.error-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .form-group {

@@ -8,7 +8,9 @@ const API_BASE = '/api/v1'
  */
 function handleAuthError(): void {
   localStorage.removeItem('token')
-  window.location.href = '/login'
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login'
+  }
 }
 
 /**
