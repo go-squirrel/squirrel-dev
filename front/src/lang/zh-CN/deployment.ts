@@ -35,6 +35,8 @@ export default {
   start: '启动',
   stop: '停止',
   undeploy: '卸载',
+  redeploy: '重新部署',
+  redeploySuccess: '重新部署成功',
   statusRunning: '运行中',
   statusStopped: '已停止',
   statusNotDeployed: '未部署',

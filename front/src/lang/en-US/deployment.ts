@@ -35,6 +35,8 @@ export default {
   start: 'Start',
   stop: 'Stop',
   undeploy: 'Undeploy',
+  redeploy: 'Redeploy',
+  redeploySuccess: 'Redeployed successfully',
   statusRunning: 'Running',
   statusStopped: 'Stopped',
   statusNotDeployed: 'Not Deployed',

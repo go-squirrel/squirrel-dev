@@ -69,6 +69,9 @@
             >
               <Icon icon="lucide:play" />
             </button>
+            <button class="action-btn redeploy-btn" :title="$t('deployment.redeploy')" @click="$emit('redeploy', deployment)">
+              <Icon icon="lucide:refresh-cw" />
+            </button>
             <button class="action-btn undeploy-btn" :title="$t('deployment.undeploy')" @click="$emit('undeploy', deployment)">
               <Icon icon="lucide:trash-2" />
             </button>
@@ -90,6 +93,7 @@ defineEmits<{
   view: [deployment: Deployment]
   start: [deployment: Deployment]
   stop: [deployment: Deployment]
+  redeploy: [deployment: Deployment]
   undeploy: [deployment: Deployment]
 }>()
 
@@ -346,6 +350,11 @@ const getStatusLabel = (status: string) => {
 .action-btn.stop-btn:hover {
   background: #fef3c7;
   color: #ca8a04;
+}
+
+.action-btn.redeploy-btn:hover {
+  background: #e0f2fe;
+  color: #0284c7;
 }
 
 .action-btn.undeploy-btn:hover {

@@ -47,6 +47,7 @@
       @view="handleView"
       @start="handleStart"
       @stop="handleStop"
+      @redeploy="handleRedeploy"
       @undeploy="handleUndeploy"
     />
 
@@ -64,6 +65,7 @@
       @close="showDetail = false"
       @start="handleStartFromDetail"
       @stop="handleStopFromDetail"
+      @redeploy="handleRedeployFromDetail"
       @undeploy="handleUndeployFromDetail"
     />
 
@@ -86,7 +88,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { fetchDeployments, createDeployment, startDeployment, stopDeployment, undeployDeployment } from '@/api/deployment'
+import { fetchDeployments, createDeployment, startDeployment, stopDeployment, undeployDeployment, redeployDeployment } from '@/api/deployment'
 import { fetchApplications } from '@/api/application'
 import { fetchServers } from '@/api/server'
 import type { ApplicationInstance, Server } from '@/types'
@@ -179,6 +181,17 @@ const handleStop = async (deployment: Deployment) => {
   }
 }
 
+const handleRedeploy = async (deployment: Deployment) => {
+  try {
+    await redeployDeployment(deployment.id)
+    await loadDeployments()
+    showToast(t('deployment.redeploySuccess'), 'success')
+  } catch (error) {
+    console.error('Failed to redeploy deployment:', error)
+    showToast(t('deployment.operationFailed'), 'error')
+  }
+}
+
 const handleUndeploy = (deployment: Deployment) => {
   undeployingDeployment.value = deployment
   showUndeployConfirm.value = true
@@ -192,6 +205,11 @@ const handleStartFromDetail = async (deployment: Deployment) => {
 const handleStopFromDetail = async (deployment: Deployment) => {
   showDetail.value = false
   await handleStop(deployment)
+}
+
+const handleRedeployFromDetail = async (deployment: Deployment) => {
+  showDetail.value = false
+  await handleRedeploy(deployment)
 }
 
 const handleUndeployFromDetail = (deployment: Deployment) => {

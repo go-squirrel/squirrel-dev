@@ -93,6 +93,10 @@
         <Icon icon="lucide:play" />
         {{ $t('deployment.start') }}
       </Button>
+      <Button v-if="deployment" type="secondary" @click="$emit('redeploy', deployment)">
+        <Icon icon="lucide:refresh-cw" />
+        {{ $t('deployment.redeploy') }}
+      </Button>
       <Button v-if="deployment" type="danger" @click="$emit('undeploy', deployment)">
         <Icon icon="lucide:trash-2" />
         {{ $t('deployment.undeploy') }}
@@ -115,6 +119,7 @@ const emit = defineEmits<{
   close: []
   start: [deployment: Deployment]
   stop: [deployment: Deployment]
+  redeploy: [deployment: Deployment]
   undeploy: [deployment: Deployment]
 }>()
 

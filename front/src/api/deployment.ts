@@ -32,6 +32,13 @@ export function stopDeployment(deploymentId: number): Promise<string> {
 }
 
 /**
+ * 重新部署
+ */
+export function redeployDeployment(deploymentId: number): Promise<string> {
+  return post(`/deployment/redeploy/${deploymentId}`)
+}
+
+/**
  * 卸载部署
  */
 export function undeployDeployment(deploymentId: number): Promise<string> {
