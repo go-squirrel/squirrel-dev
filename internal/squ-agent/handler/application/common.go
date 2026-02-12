@@ -101,6 +101,16 @@ func runDockerComposeUp(workDir, composeFile string) error {
 	return runDockerComposeCommand(workDir, composeFile, "up", "-d")
 }
 
+func runDockerComposeDown(workDir, composeFile string) error {
+	return runDockerComposeCommand(workDir, composeFile, "down")
+}
+
+// checkDockerInstalled 检测 Docker 是否已安装
+func checkDockerInstalled() bool {
+	_, err := execute.Command("docker", "--version")
+	return err == nil
+}
+
 // prepareComposePath 准备 docker-compose 文件目录并返回路径
 func (a *Application) prepareComposePath() (string, error) {
 	composePath := a.getComposePathOrDefault()

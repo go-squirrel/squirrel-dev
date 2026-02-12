@@ -8,7 +8,6 @@ import (
 	"squirrel-dev/internal/squ-agent/handler/application/req"
 	"squirrel-dev/internal/squ-agent/handler/application/res"
 	"squirrel-dev/internal/squ-agent/model"
-	"squirrel-dev/pkg/execute"
 
 	appRepository "squirrel-dev/internal/squ-agent/repository/application"
 	confRepository "squirrel-dev/internal/squ-agent/repository/config"
@@ -191,12 +190,6 @@ func (a *Application) Add(request req.Application) response.Response {
 	zap.L().Info("Application added successfully, starting in background", zap.String("name", request.Name))
 
 	return response.Success("Application added successfully, starting in background")
-}
-
-// checkDockerInstalled 检测 Docker 是否已安装
-func checkDockerInstalled() bool {
-	_, err := execute.Command("docker", "--version")
-	return err == nil
 }
 
 func (a *Application) Update(request req.Application) response.Response {
