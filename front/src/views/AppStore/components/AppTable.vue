@@ -124,7 +124,6 @@ const getStatusLabel = (status: string) => {
 .app-table-container {
   background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   overflow: hidden;
 }
 
@@ -140,11 +139,10 @@ const getStatusLabel = (status: string) => {
 .app-table th {
   padding: 12px 16px;
   text-align: left;
-  font-size: 12px;
   font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 13px;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .app-row {
@@ -161,7 +159,7 @@ const getStatusLabel = (status: string) => {
 }
 
 .app-table td {
-  padding: 14px 16px;
+  padding: 12px 16px;
   font-size: 13px;
   color: #1e3a5f;
 }
@@ -234,9 +232,9 @@ const getStatusLabel = (status: string) => {
 .type-tag {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -258,11 +256,11 @@ const getStatusLabel = (status: string) => {
 .category-tag {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  padding: 4px 8px;
   background: #f1f5f9;
   color: #475569;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -298,9 +296,9 @@ const getStatusLabel = (status: string) => {
 .status-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -315,64 +313,49 @@ const getStatusLabel = (status: string) => {
 }
 
 .action-cell {
-  min-width: 180px;
+  width: 140px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .action-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+  width: 28px;
+  height: 28px;
   border: none;
+  background: transparent;
+  color: #64748b;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-right: 4px;
 }
 
-.action-btn:last-child {
-  margin-right: 0;
+.action-btn:hover {
+  background: #f1f5f9;
+  color: #475569;
 }
 
-.detail-btn {
-  background: #eff6ff;
-  color: #0284c7;
-}
-
-.detail-btn:hover {
-  background: #dbeafe;
-  transform: scale(1.1);
-}
-
-.import-btn {
+.action-btn.import-btn:hover {
   background: #e0f2fe;
   color: #0284c7;
 }
 
-.import-btn:hover {
-  background: #bae6fd;
-  transform: scale(1.1);
+.action-btn.detail-btn:hover {
+  background: #e0f2fe;
+  color: #0284c7;
 }
 
-.edit-btn {
-  background: #fef9c3;
-  color: #ca8a04;
+.action-btn.edit-btn:hover {
+  background: #fef3c7;
+  color: #92400e;
 }
 
-.edit-btn:hover {
-  background: #fef08a;
-  transform: scale(1.1);
-}
-
-.delete-btn {
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-.delete-btn:hover {
+.action-btn.delete-btn:hover {
   background: #fee2e2;
-  transform: scale(1.1);
+  color: #dc2626;
 }
 
 .empty-state {

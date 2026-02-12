@@ -60,5 +60,6 @@ export default {
   addFirstServer: '添加第一台服务器',
   loading: '加载中...',
   refresh: '刷新',
-  selectAuthType: '请选择认证方式'
+  selectAuthType: '请选择认证方式',
+  searchPlaceholder: '搜索主机名、IP或别名...'
 }

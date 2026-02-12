@@ -53,8 +53,7 @@ defineEmits<{
 <style scoped>
 .script-table-container {
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -63,23 +62,36 @@ defineEmits<{
   border-collapse: collapse;
 }
 
+.script-table thead {
+  background: #f8fafc;
+}
+
 .script-table th {
-  padding: 14px 20px;
+  padding: 12px 16px;
   text-align: left;
   font-weight: 600;
   font-size: 13px;
-  color: #64748b;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
 }
 
-.script-table td {
-  padding: 16px 20px;
+.script-row {
   border-bottom: 1px solid #f1f5f9;
+  transition: background 0.2s ease;
 }
 
 .script-row:hover {
   background: #f8fafc;
+}
+
+.script-row:last-child {
+  border-bottom: none;
+}
+
+.script-table td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #1e3a5f;
 }
 
 .name-cell {
@@ -89,18 +101,17 @@ defineEmits<{
 .name-wrapper {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .name-icon {
-  width: 20px;
-  height: 20px;
-  color: #4fc3f7;
-  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: #64748b;
 }
 
 .name-text {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: #1e3a5f;
   overflow: hidden;
@@ -110,55 +121,47 @@ defineEmits<{
 
 .action-cell {
   width: 40%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .action-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  margin-right: 8px;
+  width: 28px;
+  height: 28px;
   border: none;
-  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: transparent;
 }
 
 .action-btn:hover {
-  transform: translateY(-1px);
+  background: #f1f5f9;
+  color: #475569;
 }
 
-.edit-btn {
-  color: #4fc3f7;
+.action-btn.edit-btn:hover {
+  background: #fef3c7;
+  color: #92400e;
 }
 
-.edit-btn:hover {
-  background: rgba(79, 195, 247, 0.1);
+.action-btn.execute-btn:hover {
+  background: #dcfce7;
+  color: #16a34a;
 }
 
-.execute-btn {
-  color: #22c55e;
+.action-btn.result-btn:hover {
+  background: #e0f2fe;
+  color: #0284c7;
 }
 
-.execute-btn:hover {
-  background: rgba(34, 197, 94, 0.1);
-}
-
-.result-btn {
-  color: #8b5cf6;
-}
-
-.result-btn:hover {
-  background: rgba(139, 92, 246, 0.1);
-}
-
-.delete-btn {
-  color: #ef4444;
-}
-
-.delete-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
+.action-btn.delete-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
 }
 </style>

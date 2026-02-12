@@ -60,5 +60,6 @@ export default {
   addFirstServer: 'Add your first server',
   loading: 'Loading...',
   refresh: 'Refresh',
-  selectAuthType: 'Please select auth type'
+  selectAuthType: 'Please select auth type',
+  searchPlaceholder: 'Search hostname, IP or alias...'
 }

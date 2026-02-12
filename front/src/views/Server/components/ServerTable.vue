@@ -90,7 +90,6 @@ const getStatusText = (status: string) => {
 .server-table-container {
   background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   overflow: hidden;
 }
 
@@ -106,11 +105,10 @@ const getStatusText = (status: string) => {
 .server-table th {
   padding: 12px 16px;
   text-align: left;
-  font-size: 12px;
   font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 13px;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .server-row {
@@ -127,7 +125,7 @@ const getStatusText = (status: string) => {
 }
 
 .server-table td {
-  padding: 14px 16px;
+  padding: 12px 16px;
   font-size: 13px;
   color: #1e3a5f;
 }
@@ -139,14 +137,13 @@ const getStatusText = (status: string) => {
 .hostname-wrapper {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .server-icon {
-  width: 18px;
-  height: 18px;
-  color: #4fc3f7;
-  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: #64748b;
 }
 
 .hostname-text {
@@ -156,7 +153,6 @@ const getStatusText = (status: string) => {
 
 .hostname {
   font-weight: 500;
-  color: #1e3a5f;
 }
 
 .alias {
@@ -185,20 +181,20 @@ const getStatusText = (status: string) => {
 .auth-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
   font-weight: 500;
 }
 
 .auth-badge.password {
-  background: #e0f2fe;
-  color: #0284c7;
+  background: #dbeafe;
+  color: #1e40af;
 }
 
 .auth-badge.key {
   background: #fef3c7;
-  color: #d97706;
+  color: #92400e;
 }
 
 .status-cell {
@@ -240,63 +236,48 @@ const getStatusText = (status: string) => {
 }
 
 .action-cell {
-  min-width: 140px;
+  width: 140px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .action-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+  width: 28px;
+  height: 28px;
   border: none;
+  background: transparent;
+  color: #64748b;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-right: 4px;
 }
 
-.action-btn:last-child {
-  margin-right: 0;
+.action-btn:hover {
+  background: #f1f5f9;
+  color: #475569;
 }
 
-.terminal-btn {
-  background: #f0fdf4;
+.action-btn.terminal-btn:hover {
+  background: #dcfce7;
   color: #16a34a;
 }
 
-.terminal-btn:hover {
-  background: #dcfce7;
-  transform: scale(1.1);
-}
-
-.detail-btn {
-  background: #eff6ff;
+.action-btn.detail-btn:hover {
+  background: #e0f2fe;
   color: #0284c7;
 }
 
-.detail-btn:hover {
-  background: #dbeafe;
-  transform: scale(1.1);
+.action-btn.edit-btn:hover {
+  background: #fef3c7;
+  color: #92400e;
 }
 
-.edit-btn {
-  background: #fef9c3;
-  color: #ca8a04;
-}
-
-.edit-btn:hover {
-  background: #fef08a;
-  transform: scale(1.1);
-}
-
-.delete-btn {
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-.delete-btn:hover {
+.action-btn.delete-btn:hover {
   background: #fee2e2;
-  transform: scale(1.1);
+  color: #dc2626;
 }
 </style>

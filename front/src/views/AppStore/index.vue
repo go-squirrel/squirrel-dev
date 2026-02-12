@@ -24,17 +24,15 @@
       </div>
     </PageHeader>
 
-    <div class="page-content">
-      <Loading v-if="loading" :text="$t('common.loading')" />
-      <AppTable
-        v-else
-        :apps="filteredApps"
-        @detail="handleDetail"
-        @edit="handleEdit"
-        @delete="handleDelete"
-        @import="handleImport"
-      />
-    </div>
+    <Loading v-if="loading" :text="$t('common.loading')" />
+    <AppTable
+      v-else
+      :apps="filteredApps"
+      @detail="handleDetail"
+      @edit="handleEdit"
+      @delete="handleDelete"
+      @import="handleImport"
+    />
 
     <!-- 表单弹窗 -->
     <AppForm
@@ -249,15 +247,13 @@ onMounted(() => {
 
 <style scoped>
 .app-store-page {
-  padding: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 20px;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .search-box {
@@ -269,35 +265,32 @@ onMounted(() => {
 .search-icon {
   position: absolute;
   left: 12px;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   color: #94a3b8;
   pointer-events: none;
 }
 
 .search-input {
   width: 280px;
-  padding: 10px 36px 10px 40px;
+  padding: 8px 12px 8px 36px;
   border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 14px;
+  border-radius: 6px;
+  font-size: 13px;
   color: #1e3a5f;
-  background: #ffffff;
+  background: #f8fafc;
   transition: all 0.2s ease;
 }
 
 .search-input:focus {
   outline: none;
   border-color: #4fc3f7;
-}
-
-.search-input::placeholder {
-  color: #94a3b8;
+  background: #ffffff;
 }
 
 .clear-btn {
   position: absolute;
-  right: 10px;
+  right: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -314,9 +307,5 @@ onMounted(() => {
 .clear-btn:hover {
   background: #f1f5f9;
   color: #64748b;
-}
-
-.page-content {
-  margin-top: 24px;
 }
 </style>

@@ -319,7 +319,7 @@ onMounted(() => {
 }
 
 .search-input {
-  width: 240px;
+  width: 280px;
   padding: 8px 12px 8px 36px;
   border: 2px solid #e2e8f0;
   border-radius: 6px;
