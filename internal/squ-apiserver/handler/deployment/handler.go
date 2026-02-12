@@ -150,3 +150,22 @@ func ReportStatusHandler(service *Deployment) func(c *gin.Context) {
 		c.JSON(http.StatusOK, resp)
 	}
 }
+
+func ReDeployHandler(service *Deployment) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+
+		idUint, err := utils.StringToUint(id)
+		if err != nil {
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidDeploymentConfig))
+			return
+		}
+
+		resp := service.ReDeploy(idUint)
+		c.JSON(http.StatusOK, resp)
+	}
+}

@@ -161,6 +161,48 @@ func (a *Deployment) Deploy(request req.DeployApplication) response.Response {
 	return response.Success("deploy success")
 }
 
+func (a *Deployment) ReDeploy(id uint) response.Response {
+	dm, err := a.Repository.Get(id)
+	if err != nil {
+		zap.L().Error("failed", zap.Error(err))
+		return response.Error(returnDeploymentErrCode(err))
+	}
+
+	app, err := a.AppRepo.Get(dm.ApplicationID)
+	if err != nil {
+		zap.L().Error("failed", zap.Error(err))
+		return response.Error(returnDeploymentErrCode(err))
+	}
+
+	server, err := a.ServerRepo.Get(dm.ServerID)
+	if err != nil {
+		zap.L().Error("failed to get server for deployment",
+			zap.Error(err),
+		)
+		return response.Error(res.ErrApplicationNotDeployed)
+	}
+
+	agentReq := req.ApplicationAgent{
+		Name:        app.Name,
+		Description: app.Description,
+		Type:        app.Type,
+		Content:     dm.Content,
+		Version:     app.Version,
+		ServerID:    dm.ServerID,
+		DeployID:    dm.DeployID,
+	}
+	result := a.AgentClient.Post(context.Background(), server, "application", agentReq,
+		zap.Uint64("deploy_id", dm.DeployID),
+		zap.Uint("application_id", dm.ApplicationID),
+		zap.Uint("server_id", dm.ServerID),
+	)
+	if result.Err != nil {
+		return response.Error(res.ErrAgentDeployFailed)
+	}
+
+	return response.Success("success")
+}
+
 // ListServers 查询应用部署的服务器列表
 func (a *Deployment) ListServers(applicationID uint) response.Response {
 	// Check if application exists
