@@ -1,7 +1,20 @@
 import i18n from '@/lang'
 
+// 认证相关错误码列表
+const AUTH_ERROR_CODES = [
+  41005,  // invalid or expired token
+  66001,  // auth failed
+  66002,  // invalid username or password
+  66003,  // failed to generate token
+  66004,  // invalid token
+  66005,  // token expired
+]
+
 // 错误码到模块映射
 const ERROR_CODE_MAP: Record<number, string> = {
+  // Token errors (41000-41099)
+  41005: 'auth',
+
   // Server (60000-60059)
   60001: 'server',
   60002: 'server',
@@ -138,7 +151,7 @@ export function isNetworkError(error: unknown): boolean {
  * 判断是否为认证错误
  */
 export function isAuthError(error: ApiError): boolean {
-  return error.code >= 66000 && error.code <= 66019
+  return AUTH_ERROR_CODES.includes(error.code)
 }
 
 /**

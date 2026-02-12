@@ -1,4 +1,14 @@
 export default {
+  // Auth (41000-41099)
+  auth: {
+    41005: 'Invalid or expired token',
+    66001: 'Authentication failed',
+    66002: 'Invalid username or password',
+    66003: 'Failed to generate token',
+    66004: 'Invalid token',
+    66005: 'Token expired',
+  },
+
   // Server (60000-60059)
   server: {
     60001: 'Server not found',
@@ -24,15 +34,6 @@ export default {
     65004: 'Invalid config value',
     65005: 'Config update failed',
     65006: 'Config delete failed',
-  },
-
-  // Auth (66000-66019)
-  auth: {
-    66001: 'Authentication failed',
-    66002: 'Invalid username or password',
-    66003: 'Failed to generate token',
-    66004: 'Invalid token',
-    66005: 'Token expired',
   },
 
   // Application (71000-71019)
