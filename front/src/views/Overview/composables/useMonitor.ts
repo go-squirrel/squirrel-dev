@@ -211,29 +211,26 @@ export function useMonitor(serverId: Ref<number>) {
 
   // 启动定时器
   const startTimers = () => {
+    stopTimers()
     monitorTimer = setInterval(loadMonitorStats, 5000)
     chartTimer = setInterval(loadChartData, 10000)
   }
 
   // 停止定时器
   const stopTimers = () => {
-    if (monitorTimer) clearInterval(monitorTimer)
-    if (chartTimer) clearInterval(chartTimer)
+    if (monitorTimer) {
+      clearInterval(monitorTimer)
+      monitorTimer = null
+    }
+    if (chartTimer) {
+      clearInterval(chartTimer)
+      chartTimer = null
+    }
   }
 
   onMounted(() => {
     if (serverId.value) {
-      // 优先从缓存恢复数据
       restoreFromCache(serverId.value)
-
-      // 无论是否从缓存恢复，都重新加载数据以确保最新
-      loadMonitorStats()
-      loadChartData()
-
-      // 如果没有启动定时器，则启动
-      if (!monitorTimer && !chartTimer) {
-        startTimers()
-      }
     }
   })
 
