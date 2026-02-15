@@ -226,8 +226,12 @@ const handleFormSubmit = async (data: CreateApplicationRequest | UpdateApplicati
       toastType.value = 'success'
     } catch (error) {
       console.error('Failed to update application:', error)
-      toastMessage.value = t('application.operationFailed')
+      toastMessage.value = error instanceof Error ? error.message : t('application.operationFailed')
       toastType.value = 'error'
+      toastVisible.value = true
+      setTimeout(() => {
+        toastVisible.value = false
+      }, 3000)
     }
   } else {
     try {
@@ -237,8 +241,12 @@ const handleFormSubmit = async (data: CreateApplicationRequest | UpdateApplicati
       toastType.value = 'success'
     } catch (error) {
       console.error('Failed to create application:', error)
-      toastMessage.value = t('application.operationFailed')
+      toastMessage.value = error instanceof Error ? error.message : t('application.operationFailed')
       toastType.value = 'error'
+      toastVisible.value = true
+      setTimeout(() => {
+        toastVisible.value = false
+      }, 3000)
     }
   }
 
