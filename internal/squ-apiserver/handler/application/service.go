@@ -71,6 +71,12 @@ func (a *Application) Delete(id uint) response.Response {
 func (a *Application) Add(request req.Application) response.Response {
 	modelReq := a.requestToModel(request)
 
+	// 验证 Content 的 YAML 格式
+	if err := validateYAML(modelReq.Content); err != nil {
+		zap.L().Error("Invalid YAML content", zap.String("name", request.Name), zap.Error(err))
+		return response.Error(res.ErrInvalidApplicationConfig)
+	}
+
 	err := a.Repository.Add(&modelReq)
 	if err != nil {
 		zap.L().Error("Failed to add application", zap.String("name", request.Name), zap.Error(err))
@@ -83,6 +89,13 @@ func (a *Application) Add(request req.Application) response.Response {
 func (a *Application) Update(request req.Application) response.Response {
 	modelReq := a.requestToModel(request)
 	modelReq.ID = request.ID
+
+	// 验证 Content 的 YAML 格式
+	if err := validateYAML(modelReq.Content); err != nil {
+		zap.L().Error("Invalid YAML content", zap.Uint("id", request.ID), zap.String("name", request.Name), zap.Error(err))
+		return response.Error(res.ErrInvalidApplicationConfig)
+	}
+
 	err := a.Repository.Update(&modelReq)
 
 	if err != nil {

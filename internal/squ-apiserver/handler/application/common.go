@@ -1,10 +1,13 @@
 package application
 
 import (
+	"fmt"
+
 	"squirrel-dev/internal/squ-apiserver/handler/application/req"
 	"squirrel-dev/internal/squ-apiserver/handler/application/res"
 	"squirrel-dev/internal/squ-apiserver/model"
 
+	"gopkg.in/yaml.v3"
 	"gorm.io/gorm"
 )
 
@@ -38,4 +41,16 @@ func returnApplicationErrCode(err error) int {
 		return res.ErrDuplicateApplication
 	}
 	return res.ErrApplicationUpdateFailed
+}
+
+// validateYAML 验证 YAML 格式是否正确
+func validateYAML(content string) error {
+	if content == "" {
+		return nil // 空内容视为有效
+	}
+	var result any
+	if err := yaml.Unmarshal([]byte(content), &result); err != nil {
+		return fmt.Errorf("invalid YAML format: %w", err)
+	}
+	return nil
 }
