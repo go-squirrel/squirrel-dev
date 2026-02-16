@@ -67,31 +67,15 @@ func (c *Config) Delete(id uint) response.Response {
 	return response.Success("success")
 }
 
-func (c *Config) Add(request req.Config) response.Response {
+func (c *Config) Save(request req.Config) response.Response {
 	modelReq := model.Config{
 		Key:   request.Key,
 		Value: request.Value,
 	}
 
-	err := c.Repository.Add(&modelReq)
+	err := c.Repository.CreateOrUpdate(&modelReq)
 	if err != nil {
-		zap.L().Error("Failed to add config", zap.String("key", request.Key), zap.Error(err))
-		return response.Error(model.ReturnErrCode(err))
-	}
-
-	return response.Success("success")
-}
-
-func (c *Config) Update(request req.Config) response.Response {
-	modelReq := model.Config{
-		Key:   request.Key,
-		Value: request.Value,
-	}
-	modelReq.ID = request.ID
-	err := c.Repository.Update(&modelReq)
-
-	if err != nil {
-		zap.L().Error("Failed to update config", zap.Uint("id", request.ID), zap.String("key", request.Key), zap.Error(err))
+		zap.L().Error("Failed to save config", zap.String("key", request.Key), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 

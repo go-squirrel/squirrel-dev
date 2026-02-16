@@ -15,6 +15,5 @@ func Config(group *gin.RouterGroup, conf *sysConfig.Config, db database.DB) {
 	group.GET("/config", config.ListHandler(service))
 	group.GET("/config/:id", config.GetHandler(service))
 	group.DELETE("/config/:id", config.DeleteHandler(service))
-	group.POST("/config", config.AddHandler(service))
-	group.POST("/config/:id", config.UpdateHandler(service))
+	group.POST("/config", config.SaveHandler(service))
 }
