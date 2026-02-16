@@ -41,7 +41,7 @@ func (c *Cron) checkApplicationStatus() {
 
 	// 遍历每个应用，检查容器状态
 	for _, app := range applications {
-		status := c.getContainerStatus(app.Name)
+		status := c.getContainerStatus(app.DeployID)
 
 		// 对于 "starting" 状态，无论检测结果如何，都更新数据库
 		// 对于 "failed" 状态，也需要重新检测
@@ -99,16 +99,16 @@ func (c *Cron) checkApplicationStatus() {
 	}
 }
 
-// getContainerStatus 获取指定应用名称的容器状态
-func (c *Cron) getContainerStatus(appName string) string {
+// getContainerStatus 获取指定应用的容器状态
+func (c *Cron) getContainerStatus(deployID uint64) string {
 	// 首先尝试使用 docker compose ls 检查
-	composeStatus := c.checkComposeStatus("docker", "compose", appName)
+	composeStatus := c.checkComposeStatus("docker", "compose", deployID)
 	if composeStatus != "" {
 		return composeStatus
 	}
 
 	// 如果 docker compose 不可用，尝试 docker-compose ls
-	composeStatus = c.checkComposeStatus("docker-compose", "", appName)
+	composeStatus = c.checkComposeStatus("docker-compose", "", deployID)
 	if composeStatus != "" {
 		return composeStatus
 	}
@@ -118,7 +118,7 @@ func (c *Cron) getContainerStatus(appName string) string {
 }
 
 // checkComposeStatus 使用指定的 compose 命令检查应用状态
-func (c *Cron) checkComposeStatus(command, composePrefix, appName string) string {
+func (c *Cron) checkComposeStatus(command, composePrefix string, deployID uint64) string {
 	var args []string
 	if composePrefix != "" {
 		args = []string{composePrefix, "ls", "--all", "--format", "json"}
@@ -148,9 +148,9 @@ func (c *Cron) checkComposeStatus(command, composePrefix, appName string) string
 		return model.AppStatusFailed
 	}
 
-	// 构建 compose 文件名用于匹配
-	// compose 文件命名规则: docker-compose-{appName}.yml
-	expectedComposeFile := fmt.Sprintf("docker-compose-%s.yml", appName)
+	// 构建 compose 文件路径用于匹配
+	// compose 文件路径规则: {composePath}/{deployID}/docker-compose.yml
+	expectedComposeFile := fmt.Sprintf("%d/docker-compose.yml", deployID)
 
 	for _, project := range composeProjects {
 		// 检查 ConfigFiles 是否包含预期的 compose 文件名

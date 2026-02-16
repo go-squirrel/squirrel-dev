@@ -31,10 +31,11 @@ func (a *Application) Start(deployID uint64) response.Response {
 		return response.Error(res.ErrDockerComposeStart)
 	}
 
-	// 确定 docker-compose 文件路径
+	// 确定 docker-compose 文件路径: composePath/deployID/docker-compose.yml
 	composePath := a.getComposePathOrDefault()
-	composeFileName := fmt.Sprintf("docker-compose-%s.yml", app.Name)
-	composeFilePath := filepath.Join(composePath, composeFileName)
+	appComposePath := filepath.Join(composePath, fmt.Sprintf("%d", deployID))
+	composeFileName := "docker-compose.yml"
+	composeFilePath := filepath.Join(appComposePath, composeFileName)
 
 	// 检查 docker-compose 文件是否存在
 	if _, err := os.Stat(composeFilePath); os.IsNotExist(err) {
@@ -81,7 +82,7 @@ func (a *Application) Start(deployID uint64) response.Response {
 		)
 		// 启动命令执行成功，但不立即更新数据库
 		// 由 cron 定时任务 checkApplicationStatus 检测实际容器状态并更新
-	}(app.Name, composePath, composeFileName, deployID)
+	}(app.Name, appComposePath, composeFileName, deployID)
 
 	zap.L().Info("Start request submitted, processing in background",
 		zap.String("name", app.Name),
@@ -109,10 +110,11 @@ func (a *Application) Stop(deployID uint64) response.Response {
 		return response.Error(res.ErrDockerComposeStop)
 	}
 
-	// 确定 docker-compose 文件路径
+	// 确定 docker-compose 文件路径: composePath/deployID/docker-compose.yml
 	composePath := a.getComposePathOrDefault()
-	composeFileName := fmt.Sprintf("docker-compose-%s.yml", app.Name)
-	composeFilePath := filepath.Join(composePath, composeFileName)
+	appComposePath := filepath.Join(composePath, fmt.Sprintf("%d", deployID))
+	composeFileName := "docker-compose.yml"
+	composeFilePath := filepath.Join(appComposePath, composeFileName)
 
 	// 检查 docker-compose 文件是否存在
 	if _, err := os.Stat(composeFilePath); os.IsNotExist(err) {
@@ -123,9 +125,9 @@ func (a *Application) Stop(deployID uint64) response.Response {
 	}
 
 	// 执行 docker-compose stop 命令
-	if err := runDockerComposeStop(composePath, composeFileName); err != nil {
+	if err := runDockerComposeStop(appComposePath, composeFileName); err != nil {
 		zap.L().Error("Failed to stop docker-compose",
-			zap.String("path", composePath),
+			zap.String("path", appComposePath),
 			zap.String("file", composeFileName),
 			zap.Error(err),
 		)
@@ -161,8 +163,9 @@ func (a *Application) redeploy(existingApp model.Application, request req.Applic
 	// 如果应用正在运行，先停止
 	if existingApp.Status == model.AppStatusRunning {
 		zap.L().Info("Stopping existing application before redeploy", zap.Uint64("deploy_id", request.DeployID))
-		if stopErr := runDockerComposeStop(a.getComposePathOrDefault(),
-			fmt.Sprintf("docker-compose-%s.yml", existingApp.Name)); stopErr != nil {
+		composePath := a.getComposePathOrDefault()
+		appComposePath := filepath.Join(composePath, fmt.Sprintf("%d", request.DeployID))
+		if stopErr := runDockerComposeStop(appComposePath, "docker-compose.yml"); stopErr != nil {
 			zap.L().Warn("Failed to stop existing application, continuing with redeploy", zap.Uint64("deploy_id", request.DeployID), zap.Error(stopErr))
 		}
 	}

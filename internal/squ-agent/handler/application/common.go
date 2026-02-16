@@ -112,13 +112,15 @@ func checkDockerInstalled() bool {
 }
 
 // prepareComposePath 准备 docker-compose 文件目录并返回路径
-func (a *Application) prepareComposePath() (string, error) {
+// 目录结构: composePath/deployID/
+func (a *Application) prepareComposePath(deployID uint64) (string, error) {
 	composePath := a.getComposePathOrDefault()
+	appComposePath := filepath.Join(composePath, fmt.Sprintf("%d", deployID))
 
-	if err := os.MkdirAll(composePath, 0755); err != nil {
+	if err := os.MkdirAll(appComposePath, 0755); err != nil {
 		return "", fmt.Errorf("failed to create compose directory: %w", err)
 	}
-	return composePath, nil
+	return appComposePath, nil
 }
 
 // getComposePathOrDefault 获取 compose 路径，如果为空则返回默认值
@@ -131,15 +133,15 @@ func (a *Application) getComposePathOrDefault() string {
 }
 
 // createOrUpdateComposeFile 创建或更新 docker-compose 文件
-func (a *Application) createOrUpdateComposeFile(name, content, composePath string) (string, error) {
-	composeFileName := fmt.Sprintf("docker-compose-%s.yml", name)
+// 文件名固定为 docker-compose.yml
+func (a *Application) createOrUpdateComposeFile(content, composePath string) (string, error) {
+	composeFileName := "docker-compose.yml"
 	composeFilePath := filepath.Join(composePath, composeFileName)
 
 	// 如果文件已存在，先删除（支持重试）
 	if _, err := os.Stat(composeFilePath); err == nil {
 		zap.L().Info("docker-compose file already exists, deleting it",
-			zap.String("path", composeFilePath),
-			zap.String("name", name))
+			zap.String("path", composeFilePath))
 		if err := os.Remove(composeFilePath); err != nil {
 			return "", fmt.Errorf("failed to delete existing docker-compose file: %w", err)
 		}
@@ -150,27 +152,28 @@ func (a *Application) createOrUpdateComposeFile(name, content, composePath strin
 	}
 
 	zap.L().Info("docker-compose file created/updated",
-		zap.String("path", composeFilePath),
-		zap.String("name", name))
+		zap.String("path", composeFilePath))
 
 	return composeFilePath, nil
 }
 
 // prepareComposeFiles 准备 compose 文件（不涉及数据库操作）
+// 返回 compose 目录路径和文件名，目录结构: composePath/deployID/docker-compose.yml
 func (a *Application) prepareComposeFiles(app *model.Application) (composePath, composeFileName string, err error) {
-	// 准备 compose 目录
-	composePath, err = a.prepareComposePath()
+	// 准备 compose 目录 (composePath/deployID/)
+	composePath, err = a.prepareComposePath(app.DeployID)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to prepare compose path: %w", err)
 	}
 
 	// 创建/更新 compose 文件
-	_, err = a.createOrUpdateComposeFile(app.Name, app.Content, composePath)
+	_, err = a.createOrUpdateComposeFile(app.Content, composePath)
 	if err != nil {
 		return "", "", err
 	}
 
-	composeFileName = fmt.Sprintf("docker-compose-%s.yml", app.Name)
+	// 文件名固定为 docker-compose.yml
+	composeFileName = "docker-compose.yml"
 	return composePath, composeFileName, nil
 }
 
