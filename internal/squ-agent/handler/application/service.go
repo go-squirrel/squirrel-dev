@@ -159,6 +159,7 @@ func (a *Application) Add(request req.Application) response.Response {
 		Content:     request.Content,
 		Version:     request.Version,
 		DeployID:    request.DeployID,
+		Env:         request.Env,
 	}
 
 	err = a.Repository.Add(&modelReq)

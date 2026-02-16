@@ -178,6 +178,7 @@ func (a *Application) redeploy(existingApp model.Application, request req.Applic
 		existingApp.Type = request.Type
 		existingApp.Content = request.Content
 		existingApp.Version = request.Version
+		existingApp.Env = request.Env
 		existingApp.Status = model.AppStatusStarting // 更新状态为 starting
 		if err := appRepo.Update(&existingApp); err != nil {
 			return fmt.Errorf("failed to update application: %w", err)

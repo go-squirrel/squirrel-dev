@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"squirrel-dev/internal/squ-agent/model"
 	"squirrel-dev/pkg/execute"
+	"strings"
 
 	"go.uber.org/zap"
 )
@@ -157,6 +158,38 @@ func (a *Application) createOrUpdateComposeFile(content, composePath string) (st
 	return composeFilePath, nil
 }
 
+// createOrUpdateEnvFile 创建或更新 .env 文件
+// env 格式: []map[string]string，每个 map 只有一个 key-value 对
+func (a *Application) createOrUpdateEnvFile(env []map[string]string, composePath string) error {
+	if len(env) == 0 {
+		return nil
+	}
+
+	envFilePath := filepath.Join(composePath, ".env")
+
+	var lines []string
+	for _, item := range env {
+		for key, value := range item {
+			lines = append(lines, fmt.Sprintf("%s=%s", key, value))
+		}
+	}
+
+	content := strings.Join(lines, "\n")
+	if len(content) > 0 {
+		content += "\n"
+	}
+
+	if err := os.WriteFile(envFilePath, []byte(content), 0644); err != nil {
+		return fmt.Errorf("failed to create .env file: %w", err)
+	}
+
+	zap.L().Info(".env file created/updated",
+		zap.String("path", envFilePath),
+		zap.Int("env_count", len(env)))
+
+	return nil
+}
+
 // prepareComposeFiles 准备 compose 文件（不涉及数据库操作）
 // 返回 compose 目录路径和文件名，目录结构: composePath/deployID/docker-compose.yml
 func (a *Application) prepareComposeFiles(app *model.Application) (composePath, composeFileName string, err error) {
@@ -170,6 +203,11 @@ func (a *Application) prepareComposeFiles(app *model.Application) (composePath, 
 	_, err = a.createOrUpdateComposeFile(app.Content, composePath)
 	if err != nil {
 		return "", "", err
+	}
+
+	// 创建/更新 .env 文件
+	if err := a.createOrUpdateEnvFile(app.Env, composePath); err != nil {
+		return "", "", fmt.Errorf("failed to create .env file: %w", err)
 	}
 
 	// 文件名固定为 docker-compose.yml

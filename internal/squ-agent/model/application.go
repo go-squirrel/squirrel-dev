@@ -10,6 +10,7 @@ type Application struct {
 	Content     string
 	Version     string
 	DeployID    uint64
+	Env         []map[string]string `gorm:"type:json;serializer:json"`
 }
 
 const (
