@@ -23,6 +23,7 @@ func Deployment(group *gin.RouterGroup, conf *config.Config, db database.DB) {
 		serverRepository.New(db.GetDB()),
 	)
 	group.GET("/deployment", deployment.ListHandler(service))
+	group.POST("/deployment/:id", deployment.UpdateHandler(service))
 	group.POST("/deployment/deploy/:id", deployment.DeployHandler(service))
 	group.GET("/deployment/:id/servers", deployment.ListServersHandler(service))
 	group.DELETE("/deployment/deploy/:id", deployment.UndeployHandler(service))

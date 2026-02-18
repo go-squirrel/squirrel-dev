@@ -24,3 +24,8 @@ type ApplicationAgent struct {
 	ServerID    uint   `json:"server_id"`
 	DeployID    uint64 `json:"deploy_id"`
 }
+
+type Deployment struct {
+	ID      uint   `json:"id"`
+	Content string `json:"content"`
+}

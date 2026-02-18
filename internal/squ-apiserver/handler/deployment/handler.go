@@ -34,6 +34,35 @@ func ListHandler(service *Deployment) func(c *gin.Context) {
 	}
 }
 
+// UpdateHandler 返回一个 Gin 处理函数，用于更新部署记录
+// 该处理函数会调用服务的 List 方法获取部署列表，并以 JSON 格式返回响应
+func UpdateHandler(service *Deployment) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		idUint, err := utils.StringToUint(id)
+		if err != nil {
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidDeploymentConfig))
+			return
+		}
+		request := req.Deployment{}
+		err = c.ShouldBindJSON(&request)
+		if err != nil {
+			zap.L().Warn("failed to bind request JSON",
+				zap.Error(err),
+			)
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidDeploymentConfig))
+			return
+		}
+		request.ID = idUint
+		resp := service.Update(request)
+		c.JSON(http.StatusOK, resp)
+	}
+}
+
 func DeployHandler(service *Deployment) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		id := c.Param("id")

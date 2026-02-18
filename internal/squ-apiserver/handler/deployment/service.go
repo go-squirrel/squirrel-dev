@@ -387,3 +387,24 @@ func (a *Deployment) List(serverID uint) response.Response {
 
 	return response.Success(result)
 }
+
+func (d *Deployment) Update(request req.Deployment) response.Response {
+	dm, err := d.Repository.Get(request.ID)
+	if err != nil {
+		zap.L().Error("failed to get deployment",
+			zap.Uint("id", request.ID),
+			zap.Error(err),
+		)
+		return response.Error(returnDeploymentErrCode(err))
+	}
+	dm.Content = request.Content
+	err = d.Repository.Update(&dm)
+	if err != nil {
+		zap.L().Error("failed to update deployment",
+			zap.Uint("id", request.ID),
+			zap.Error(err),
+		)
+		return response.Error(returnDeploymentErrCode(err))
+	}
+	return response.Success("success")
+}
