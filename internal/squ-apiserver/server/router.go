@@ -26,6 +26,13 @@ func (s *Server) SetupRouter() {
 	router.AppStore(v1Router, s.Config, s.DB)
 	router.Script(v1Router, s.Config, s.DB)
 	router.Monitor(v1Router, s.Config, s.DB)
+	s.SetupAgentRouter()
+}
+
+func (s *Server) SetupAgentRouter() {
+	v1Router := s.Gin.Group("/api/v1")
+	router.AgentScript(v1Router, s.Config, s.DB)
+	router.AgentDeployment(v1Router, s.Config, s.DB)
 }
 
 func healthRouter(group *gin.RouterGroup) {

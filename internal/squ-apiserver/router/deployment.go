@@ -30,5 +30,16 @@ func Deployment(group *gin.RouterGroup, conf *config.Config, db database.DB) {
 	group.POST("/deployment/stop/:id", deployment.StopHandler(service))
 	group.POST("/deployment/start/:id", deployment.StartHandler(service))
 	group.POST("/deployment/redeploy/:id", deployment.ReDeployHandler(service))
+}
+
+func AgentDeployment(group *gin.RouterGroup, conf *config.Config, db database.DB) {
+	res.RegisterCode()
+
+	service := deployment.New(
+		conf,
+		deploymentRepository.New(db.GetDB()),
+		applicationRepository.New(db.GetDB()),
+		serverRepository.New(db.GetDB()),
+	)
 	group.POST("/deployment/report", deployment.ReportStatusHandler(service))
 }
