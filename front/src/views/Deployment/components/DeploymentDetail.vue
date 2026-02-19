@@ -77,6 +77,10 @@
 
     <template #footer>
       <Button type="secondary" @click="handleClose">{{ $t('common.close') }}</Button>
+      <Button v-if="deployment" type="secondary" @click="$emit('edit', deployment)">
+        <Icon icon="lucide:edit" />
+        {{ $t('deployment.edit') }}
+      </Button>
       <Button
         v-if="deployment?.status === 'running'"
         type="primary"
@@ -117,6 +121,7 @@ defineProps<{
 
 const emit = defineEmits<{
   close: []
+  edit: [deployment: Deployment]
   start: [deployment: Deployment]
   stop: [deployment: Deployment]
   redeploy: [deployment: Deployment]

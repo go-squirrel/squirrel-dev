@@ -20,6 +20,11 @@ export interface CreateDeploymentRequest {
   server_id: number
 }
 
+// 更新部署请求
+export interface UpdateDeploymentRequest {
+  content: string
+}
+
 // 表单状态
 export interface FormState {
   visible: boolean

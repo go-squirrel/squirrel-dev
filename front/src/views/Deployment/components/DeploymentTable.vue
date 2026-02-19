@@ -53,6 +53,9 @@
             <button class="action-btn view-btn" :title="$t('deployment.viewDetail')" @click="$emit('view', deployment)">
               <Icon icon="lucide:eye" />
             </button>
+            <button class="action-btn edit-btn" :title="$t('deployment.edit')" @click="$emit('edit', deployment)">
+              <Icon icon="lucide:edit" />
+            </button>
             <button
               v-if="deployment.status === 'running'"
               class="action-btn stop-btn"
@@ -91,6 +94,7 @@ defineProps<{
 
 defineEmits<{
   view: [deployment: Deployment]
+  edit: [deployment: Deployment]
   start: [deployment: Deployment]
   stop: [deployment: Deployment]
   redeploy: [deployment: Deployment]
@@ -312,7 +316,7 @@ const getStatusLabel = (status: string) => {
 }
 
 .action-cell {
-  width: 140px;
+  width: 168px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -340,6 +344,11 @@ const getStatusLabel = (status: string) => {
 .action-btn.view-btn:hover {
   background: #e0f2fe;
   color: #0284c7;
+}
+
+.action-btn.edit-btn:hover {
+  background: #fef3c7;
+  color: #ca8a04;
 }
 
 .action-btn.start-btn:hover {

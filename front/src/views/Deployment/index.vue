@@ -45,6 +45,7 @@
       v-else
       :deployments="filteredDeployments"
       @view="handleView"
+      @edit="handleEdit"
       @start="handleStart"
       @stop="handleStop"
       @redeploy="handleRedeploy"
@@ -63,6 +64,7 @@
       :visible="showDetail"
       :deployment="viewingDeployment"
       @close="showDetail = false"
+      @edit="handleEditFromDetail"
       @start="handleStartFromDetail"
       @stop="handleStopFromDetail"
       @redeploy="handleRedeployFromDetail"
@@ -77,6 +79,12 @@
       @cancel="showUndeployConfirm = false"
     />
 
+    <DeploymentEditForm
+      v-model:visible="showEditForm"
+      :deployment="editingDeployment"
+      @submit="handleEditSubmit"
+    />
+
     <Toast
       :visible="toastVisible"
       :message="toastMessage"
@@ -88,11 +96,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { fetchDeployments, createDeployment, startDeployment, stopDeployment, undeployDeployment, redeployDeployment } from '@/api/deployment'
+import { fetchDeployments, createDeployment, startDeployment, stopDeployment, undeployDeployment, redeployDeployment, updateDeployment } from '@/api/deployment'
 import { fetchApplications } from '@/api/application'
 import { fetchServers } from '@/api/server'
 import type { ApplicationInstance, Server } from '@/types'
-import type { Deployment, CreateDeploymentRequest } from './types'
+import type { Deployment, CreateDeploymentRequest, UpdateDeploymentRequest } from './types'
 import PageHeader from '@/components/PageHeader/index.vue'
 import Button from '@/components/Button/index.vue'
 import Loading from '@/components/Loading/index.vue'
@@ -102,6 +110,7 @@ import DeploymentTable from './components/DeploymentTable.vue'
 import DeploymentForm from './components/DeploymentForm.vue'
 import DeploymentDetail from './components/DeploymentDetail.vue'
 import UndeployConfirm from './components/UndeployConfirm.vue'
+import DeploymentEditForm from './components/DeploymentEditForm.vue'
 import { useLoading } from '@/composables/useLoading'
 
 const { t } = useI18n()
@@ -113,8 +122,10 @@ const servers = ref<Server[]>([])
 const showForm = ref(false)
 const showUndeployConfirm = ref(false)
 const showDetail = ref(false)
+const showEditForm = ref(false)
 const viewingDeployment = ref<Deployment | null>(null)
 const undeployingDeployment = ref<Deployment | null>(null)
+const editingDeployment = ref<Deployment | null>(null)
 const searchKeyword = ref('')
 const filterServerId = ref<number | undefined>(undefined)
 const toastVisible = ref(false)
@@ -157,6 +168,11 @@ const handleAdd = () => {
 const handleView = (deployment: Deployment) => {
   viewingDeployment.value = deployment
   showDetail.value = true
+}
+
+const handleEdit = (deployment: Deployment) => {
+  editingDeployment.value = deployment
+  showEditForm.value = true
 }
 
 const handleStart = async (deployment: Deployment) => {
@@ -217,6 +233,11 @@ const handleUndeployFromDetail = (deployment: Deployment) => {
   handleUndeploy(deployment)
 }
 
+const handleEditFromDetail = (deployment: Deployment) => {
+  showDetail.value = false
+  handleEdit(deployment)
+}
+
 const confirmUndeploy = async () => {
   if (!undeployingDeployment.value) return
 
@@ -238,6 +259,17 @@ const handleFormSubmit = async (data: CreateDeploymentRequest) => {
     showToast(t('deployment.createSuccess'), 'success')
   } catch (error) {
     console.error('Failed to create deployment:', error)
+    showToast(t('deployment.operationFailed'), 'error')
+  }
+}
+
+const handleEditSubmit = async (id: number, data: UpdateDeploymentRequest) => {
+  try {
+    await updateDeployment(id, data)
+    await loadDeployments()
+    showToast(t('deployment.editSuccess'), 'success')
+  } catch (error) {
+    console.error('Failed to update deployment:', error)
     showToast(t('deployment.operationFailed'), 'error')
   }
 }

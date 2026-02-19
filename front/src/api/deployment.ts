@@ -1,6 +1,7 @@
 // 部署相关 API
 import { get, post, del } from '@/utils/request'
 import type { Deployment, CreateDeploymentRequest, Server } from '@/types'
+import type { UpdateDeploymentRequest } from '@/views/Deployment/types'
 
 /**
  * 获取部署列表
@@ -50,4 +51,11 @@ export function undeployDeployment(deploymentId: number): Promise<string> {
  */
 export function fetchDeploymentServers(applicationId: number): Promise<Server[]> {
   return get(`/deployment/${applicationId}/servers`)
+}
+
+/**
+ * 更新部署
+ */
+export function updateDeployment(deploymentId: number, data: UpdateDeploymentRequest): Promise<string> {
+  return post(`/deployment/${deploymentId}`, data)
 }
