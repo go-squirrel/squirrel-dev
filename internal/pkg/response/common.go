@@ -18,6 +18,11 @@ const (
 	ErrInvalidAuthFormat = 41004
 	ErrTokenInvalid      = 41005
 
+	ErrTLSRequired       = 41006
+	ErrMissingClientCert = 41007
+	ErrCertCNNotAllowed  = 41008
+	ErrCertVerifyFailed  = 41009
+
 	ErrSQL           = 50000
 	ErrSQLNotFound   = 50001
 	ErrSQLNotUnique  = 50002
@@ -39,6 +44,10 @@ func baseRes(msg map[int]string) map[int]string {
 	msg[ErrMissingAuthHeader] = "missing authorization header"
 	msg[ErrInvalidAuthFormat] = "invalid authorization header format"
 	msg[ErrTokenInvalid] = "invalid or expired token"
+	msg[ErrTLSRequired] = "tls connection required"
+	msg[ErrMissingClientCert] = "missing client certificate"
+	msg[ErrCertCNNotAllowed] = "client certificate common name not allowed"
+	msg[ErrCertVerifyFailed] = "client certificate verification failed"
 
 	msg[ErrSQL] = "sql error"
 	msg[ErrSQLNotFound] = "sql not found"

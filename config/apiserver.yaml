@@ -35,3 +35,10 @@ agent:
   http:
     scheme: http
     baseUrl: /api/v1
+# mTLS 双向认证配置（用于 Agent 连接）
+mtls:
+  enabled: false
+  caFile: ./certs/ca.crt        # CA 证书文件
+  certFile: ./certs/server.crt  # 服务端证书文件
+  keyFile: ./certs/server.key   # 服务端私钥文件
+  allowedCNs: []                # 允许的客户端证书 Common Name 列表，为空则允许所有有效证书

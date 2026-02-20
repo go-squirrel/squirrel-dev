@@ -34,6 +34,7 @@ type Config struct {
 	Server Server
 	Auth   Auth
 	Agent  Agent
+	MTLS   MTLS
 }
 
 // 获取文件绝对路径

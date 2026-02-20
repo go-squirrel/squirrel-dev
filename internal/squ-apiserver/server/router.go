@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 
+	"squirrel-dev/internal/pkg/middleware/mtls"
 	"squirrel-dev/internal/squ-apiserver/handler/health"
 	"squirrel-dev/internal/squ-apiserver/router"
 )
@@ -31,6 +32,12 @@ func (s *Server) SetupRouter() {
 
 func (s *Server) SetupAgentRouter() {
 	v1Router := s.Gin.Group("/api/v1")
+
+	// Agent 路由使用 mTLS 双向认证
+	if s.Config.MTLS.Enabled {
+		v1Router.Use(mtls.MTLSAuthWithVerify(s.Config.MTLS.AllowedCNs))
+	}
+
 	router.AgentScript(v1Router, s.Config, s.DB)
 	router.AgentDeployment(v1Router, s.Config, s.DB)
 }
