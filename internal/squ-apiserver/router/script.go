@@ -31,7 +31,6 @@ func Script(group *gin.RouterGroup, conf *config.Config, db database.DB) {
 	// 执行脚本相关操作
 	group.POST("/scripts/execute", scriptHandler.ExecuteHandler(service))
 	group.GET("/scripts/:id/results", scriptHandler.GetResultsHandler(service))
-	group.POST("/scripts/receive-result", scriptHandler.ReceiveResultHandler(service))
 }
 
 func AgentScript(group *gin.RouterGroup, conf *config.Config, db database.DB) {
