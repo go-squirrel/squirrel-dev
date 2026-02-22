@@ -27,6 +27,7 @@ func NewServerCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(versionCmd)
+	cmd.AddCommand(NewCertsCommand())
 
 	return cmd
 }
