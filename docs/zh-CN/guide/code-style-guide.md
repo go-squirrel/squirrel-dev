@@ -79,14 +79,61 @@ handler/
 └── list.go         # 列表查询相关处理函数（< 150 行）
 ```
 
-## 4. 注意事项
+## 4. 语言规范
+
+### 4.1 规则
+
+代码中**全部使用英文**，包括但不限于：
+
+- 变量名、函数名、类型名
+- 注释
+- 日志信息
+- 错误信息
+- 配置文件中的键名
+
+### 4.2 说明
+
+- **国际化友好**: 英文是开源社区的通用语言，使用英文便于全球开发者参与
+- **一致性**: 统一语言避免混合使用造成的混乱
+- **工具兼容**: 大多数开发工具、文档系统对英文支持更好
+- **搜索便利**: 使用英文更便于搜索引擎检索和问题排查
+
+### 4.3 示例
+
+✅ 推荐：
+
+```go
+// CreateDeployment creates a new deployment for the given application.
+func (s *Service) CreateDeployment(ctx context.Context, req *CreateDeploymentRequest) error {
+    if req.ServerID == "" {
+        return errors.New("server ID is required")
+    }
+    log.Info("Creating deployment", "app", req.ApplicationID)
+    return s.repo.Create(ctx, req)
+}
+```
+
+❌ 不推荐：
+
+```go
+// 创建部署 为给定的应用程序创建新的部署
+func (s *Service) CreateDeployment(ctx context.Context, req *CreateDeploymentRequest) error {
+    if req.ServerID == "" {
+        return errors.New("服务器ID不能为空")  // 错误信息使用中文
+    }
+    log.Info("创建部署", "app", req.ApplicationID)  // 日志使用中文
+    return s.repo.Create(ctx, req)
+}
+```
+
+## 5. 注意事项
 
 1. **不要为了行数而牺牲清晰度**: 如果拆分会使代码更难理解，可以适当放宽建议限制（但绝不能超过硬性上限）
 2. **注释和空行计入行数**: 文件行数包含注释和空行
 3. **生成代码可豁免**: 自动生成的代码（如 protobuf 生成的代码）不受此限制
 4. **定期审视**: 在代码审查时关注文件行数，及时进行拆分
 
-## 5. 工具支持
+## 6. 工具支持
 
 可以使用以下工具检查代码规范：
 
