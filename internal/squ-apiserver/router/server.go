@@ -20,6 +20,7 @@ func Server(group *gin.RouterGroup, conf *config.Config, db database.DB) {
 	group.DELETE("/server/:id", server.DeleteHandler(service))
 	group.POST("/server", server.AddHandler(service))
 	group.POST("/server/:id", server.UpdateHandler(service))
+	group.POST("/ssh/test/:id", server.TestSSHHandler(service))
 }
 
 // ServerTerminalNoAuth 终端 WebSocket 路由（无 JWT 中间件，使用消息认证）

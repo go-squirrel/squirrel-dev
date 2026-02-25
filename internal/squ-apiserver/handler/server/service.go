@@ -6,6 +6,7 @@ import (
 	"squirrel-dev/internal/squ-apiserver/handler/server/req"
 	"squirrel-dev/internal/squ-apiserver/handler/server/res"
 	"squirrel-dev/pkg/httpclient"
+	"squirrel-dev/pkg/ssh"
 	"time"
 
 	"go.uber.org/zap"
@@ -136,4 +137,62 @@ func (s *Server) Registry(request req.Register) response.Response {
 	}
 
 	return response.Success("success")
+}
+
+// TestSSH 测试 SSH 连接
+func (s *Server) TestSSH(id uint) response.Response {
+	// 从数据库获取服务器信息
+	daoS, err := s.Repository.Get(id)
+	if err != nil {
+		zap.L().Error("failed to get server",
+			zap.Uint("id", id),
+			zap.Error(err),
+		)
+		return response.Error(returnServerErrCode(err))
+	}
+
+	// 准备 SSH 连接参数
+	privateKey := ""
+	if daoS.SshPrivateKey != nil {
+		privateKey = *daoS.SshPrivateKey
+	}
+	password := ""
+	if daoS.SshPassword != nil {
+		password = *daoS.SshPassword
+	}
+
+	machine := &ssh.Machine{
+		Name:       daoS.Hostname,
+		IpAddress:  daoS.IpAddress,
+		User:       daoS.SshUsername,
+		Password:   password,
+		Port:       daoS.SshPort,
+		PrivateKey: privateKey,
+		Type:       daoS.AuthType,
+	}
+
+	// 尝试建立 SSH 连接
+	sshClient, err := ssh.NewSsh(machine)
+	if err != nil {
+		zap.L().Error("SSH connection test failed",
+			zap.Uint("id", id),
+			zap.String("ip_address", daoS.IpAddress),
+			zap.String("username", daoS.SshUsername),
+			zap.Error(err),
+		)
+		return response.Error(res.ErrSSHTestFailed)
+	}
+	defer sshClient.Close()
+
+	zap.L().Info("SSH connection test successful",
+		zap.Uint("id", id),
+		zap.String("ip_address", daoS.IpAddress),
+	)
+
+	return response.Success(map[string]any{
+		"message":    "SSH connection successful",
+		"hostname":   daoS.Hostname,
+		"ip_address": daoS.IpAddress,
+		"ssh_port":   daoS.SshPort,
+	})
 }

@@ -147,3 +147,21 @@ func TerminalHandler(service *Server) func(c *gin.Context) {
 		conn.WriteJSON(resp)
 	}
 }
+
+// TestSSHHandler 测试 SSH 连接处理函数
+func TestSSHHandler(service *Server) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		idUint, err := utils.StringToUint(id)
+		if err != nil {
+			zap.L().Warn("failed to convert id to uint",
+				zap.String("id", id),
+				zap.Error(err),
+			)
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
+			return
+		}
+		resp := service.TestSSH(idUint)
+		c.JSON(http.StatusOK, resp)
+	}
+}
