@@ -1,9 +1,11 @@
-// 服务器相关逻辑
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { fetchServers } from '@/api'
 import type { Server } from '@/types'
 
 export function useServers() {
+  const route = useRoute()
+  const router = useRouter()
   const serverList = ref<Server[]>([])
   const currentServerId = ref<number>(0)
   const loading = ref(false)
@@ -13,8 +15,13 @@ export function useServers() {
     try {
       const data = await fetchServers()
       serverList.value = data
-      if (data.length > 0 && currentServerId.value === 0) {
-        currentServerId.value = data[0].id
+      if (data.length > 0) {
+        const queryServerId = Number(route.query.serverId)
+        if (queryServerId && data.some(s => s.id === queryServerId)) {
+          currentServerId.value = queryServerId
+        } else if (currentServerId.value === 0) {
+          currentServerId.value = data[0].id
+        }
       }
       return data
     } catch (error) {
@@ -27,11 +34,8 @@ export function useServers() {
 
   const switchServer = (serverId: number) => {
     currentServerId.value = serverId
+    router.replace({ query: { serverId: String(serverId) } })
   }
-
-  onMounted(() => {
-    loadServers()
-  })
 
   return {
     serverList,
