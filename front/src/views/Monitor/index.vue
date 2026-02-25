@@ -13,9 +13,12 @@
 
     <template v-else-if="selectedServer">
       <TimeRangeSelector v-model="timeRange" />
-      <div class="charts-grid">
+      <div class="charts-row">
         <CPUMonitorChart :data="baseData" />
         <MemoryMonitorChart :data="baseData" />
+        <DiskUsageChart :data="diskUsageData" :mount-points="mountPoints" />
+      </div>
+      <div class="charts-row io-row">
         <DiskIOChart :data="diskData" :devices="diskDevices" />
         <NetIOChart :data="netData" :interfaces="netInterfaces" />
       </div>
@@ -36,6 +39,7 @@ import Empty from '@/components/Empty/index.vue'
 import ServerSelector from './components/ServerSelector.vue'
 import CPUMonitorChart from './components/CPUMonitorChart.vue'
 import MemoryMonitorChart from './components/MemoryMonitorChart.vue'
+import DiskUsageChart from './components/DiskUsageChart.vue'
 import DiskIOChart from './components/DiskIOChart.vue'
 import NetIOChart from './components/NetIOChart.vue'
 import TimeRangeSelector from './components/TimeRangeSelector.vue'
@@ -49,6 +53,7 @@ import type {
   BaseMonitorRecord,
   DiskIORecord,
   NetworkIORecord,
+  DiskUsageRecord,
   TimeRange
 } from '@/types/monitor'
 import type { Server } from '@/types'
@@ -58,8 +63,10 @@ const selectedServer = ref<number | null>(null)
 const timeRange = ref<TimeRange>('1h')
 const servers = ref<Server[]>([])
 const baseData = ref<BaseMonitorRecord[]>([])
+const diskUsageData = ref<DiskUsageRecord[]>([])
 const diskData = ref<DiskIORecord[]>([])
 const netData = ref<NetworkIORecord[]>([])
+const mountPoints = ref<string[]>([])
 const diskDevices = ref<string[]>([])
 const netInterfaces = ref<string[]>([])
 
@@ -90,6 +97,23 @@ const loadMonitorData = async () => {
     diskData.value = disk.list || []
     netData.value = net.list || []
 
+    // 从基础监控数据中提取磁盘使用量信息
+    diskUsageData.value = base.list?.map((item: BaseMonitorRecord) => ({
+      id: item.id,
+      device_name: 'root',
+      mount_point: '/',
+      fs_type: 'ext4',
+      total: item.disk_total,
+      used: item.disk_used,
+      free: item.disk_total - item.disk_used,
+      usage: item.disk_usage,
+      inodes_total: 0,
+      inodes_used: 0,
+      inodes_free: 0,
+      collect_time: item.collect_time
+    })) || []
+
+    mountPoints.value = [...new Set(diskUsageData.value.map((d: DiskUsageRecord) => d.mount_point))]
     diskDevices.value = [...new Set(diskData.value.map(d => d.disk_name))]
     netInterfaces.value = [...new Set(netData.value.map(d => d.interface_name))]
   } catch (error) {
@@ -137,15 +161,18 @@ onMounted(() => {
   margin: 0;
 }
 
-.charts-grid {
+.charts-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  flex: 1;
+}
+
+.charts-row.io-row {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 @media (max-width: 1200px) {
-  .charts-grid {
+  .charts-row {
     grid-template-columns: 1fr;
   }
 }

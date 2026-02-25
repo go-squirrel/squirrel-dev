@@ -30,8 +30,7 @@ const ranges = [
   { value: '1h' as TimeRange, label: t('monitor.last1Hour') },
   { value: '6h' as TimeRange, label: t('monitor.last6Hours') },
   { value: '24h' as TimeRange, label: t('monitor.last24Hours') },
-  { value: '7d' as TimeRange, label: t('monitor.last7Days') },
-  { value: '30d' as TimeRange, label: t('monitor.last30Days') }
+  { value: '7d' as TimeRange, label: t('monitor.last7Days') }
 ]
 </script>
 

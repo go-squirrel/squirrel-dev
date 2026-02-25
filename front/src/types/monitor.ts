@@ -13,6 +13,22 @@ export interface BaseMonitorRecord {
   collect_time: string
 }
 
+// 磁盘使用量历史记录
+export interface DiskUsageRecord {
+  id: number
+  device_name: string
+  mount_point: string
+  fs_type: string
+  total: number
+  used: number
+  free: number
+  usage: number
+  inodes_total: number
+  inodes_used: number
+  inodes_free: number
+  collect_time: string
+}
+
 // 磁盘IO历史记录
 export interface DiskIORecord {
   id: number
@@ -55,7 +71,7 @@ export interface PageData<T> {
 }
 
 // 时间范围
-export type TimeRange = '1h' | '6h' | '24h' | '7d' | '30d'
+export type TimeRange = '1h' | '6h' | '24h' | '7d'
 
 // 图表数据点
 export interface ChartDataPoint {
