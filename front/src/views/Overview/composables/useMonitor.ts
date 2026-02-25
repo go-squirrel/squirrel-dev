@@ -254,7 +254,9 @@ export function useMonitor(serverId: Ref<number>) {
     loadChartData,
     resetData,
     startTimers,
-    stopTimers
+    stopTimers,
+    restoreFromCache,
+    hasValidCache: (id: number) => getCache(id) !== null
   }
 }
 

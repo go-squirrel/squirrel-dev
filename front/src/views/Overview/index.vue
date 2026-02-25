@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Loading from '@/components/Loading/index.vue'
 import ServerList from './components/ServerList.vue'
@@ -93,7 +93,9 @@ const {
   stopTimers,
   startTimers,
   loadMonitorStats,
-  loadChartData
+  loadChartData,
+  restoreFromCache,
+  hasValidCache
 } = useMonitor(currentServerId)
 const { systemInfo, loadSystemInfo } = useSystemInfo(currentServerId)
 const { appList } = useApplications()
@@ -143,16 +145,21 @@ const killProcess = async (pid: number) => {
 const handleServerSwitch = async (serverId: number) => {
   switchServer(serverId)
   resetData()
+  if (hasValidCache(serverId)) {
+    restoreFromCache(serverId)
+  }
   await loadSystemInfo()
   loadMonitorStats()
   loadChartData()
 }
 
-// 初始化数据
 const initData = async () => {
   await withLoading(async () => {
     await loadServers()
     if (currentServerId.value) {
+      if (hasValidCache(currentServerId.value)) {
+        restoreFromCache(currentServerId.value)
+      }
       await loadSystemInfo()
       await loadMonitorStats()
       await loadChartData()
@@ -161,10 +168,12 @@ const initData = async () => {
   })
 }
 
-// 监听服务器变化
 watch(currentServerId, async (newId, oldId) => {
   if (newId && newId !== oldId) {
     stopTimers()
+    if (hasValidCache(newId)) {
+      restoreFromCache(newId)
+    }
     await loadSystemInfo()
     await loadMonitorStats()
     await loadChartData()
@@ -174,6 +183,10 @@ watch(currentServerId, async (newId, oldId) => {
 
 onMounted(() => {
   initData()
+})
+
+onUnmounted(() => {
+  stopTimers()
 })
 </script>
 
