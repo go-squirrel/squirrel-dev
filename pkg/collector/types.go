@@ -46,11 +46,14 @@ type DiskInfo struct {
 
 // Partition 磁盘分区信息
 type Partition struct {
-	Device     string  `json:"device"`
-	MountPoint string  `json:"mountPoint"`
-	FSType     string  `json:"fsType"`
-	Total      uint64  `json:"total"`
-	Used       uint64  `json:"used"`
-	Available  uint64  `json:"available"`
-	Usage      float64 `json:"usage"`
+	Device      string  `json:"device"`
+	MountPoint  string  `json:"mountPoint"`
+	FSType      string  `json:"fsType"`
+	Total       uint64  `json:"total"`
+	Used        uint64  `json:"used"`
+	Available   uint64  `json:"available"`
+	Usage       float64 `json:"usage"`
+	InodesTotal uint64  `json:"inodesTotal"` // inode总数
+	InodesUsed  uint64  `json:"inodesUsed"`  // inode已用量
+	InodesFree  uint64  `json:"inodesFree"`  // inode剩余量
 }

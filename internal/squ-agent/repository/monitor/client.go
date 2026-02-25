@@ -23,6 +23,10 @@ func (c *Client) CreateNetworkMonitor(data *model.NetworkMonitor) error {
 	return c.DB.Create(data).Error
 }
 
+func (c *Client) CreateDiskUsageMonitor(data *model.DiskUsageMonitor) error {
+	return c.DB.Create(data).Error
+}
+
 func (c *Client) DeleteBeforeTime(beforeTime time.Time) error {
 	// 删除 BaseMonitor 表的过期数据
 	err := c.DB.Where("collect_time < ?", beforeTime).Delete(&model.BaseMonitor{}).Error
@@ -38,6 +42,12 @@ func (c *Client) DeleteBeforeTime(beforeTime time.Time) error {
 
 	// 删除 NetworkMonitor 表的过期数据
 	err = c.DB.Where("collect_time < ?", beforeTime).Delete(&model.NetworkMonitor{}).Error
+	if err != nil {
+		return err
+	}
+
+	// 删除 DiskUsageMonitor 表的过期数据
+	err = c.DB.Where("collect_time < ?", beforeTime).Delete(&model.DiskUsageMonitor{}).Error
 	if err != nil {
 		return err
 	}
@@ -95,6 +105,27 @@ func (c *Client) GetNetworkMonitorPage(page, pageSize int) ([]model.NetworkMonit
 
 	// 获取总数
 	err := c.DB.Model(&model.NetworkMonitor{}).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 获取分页数据
+	err = c.DB.Order("collect_time DESC").Limit(pageSize).Offset(offset).Find(&monitors).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return monitors, total, nil
+}
+
+func (c *Client) GetDiskUsageMonitorPage(page, pageSize int) ([]model.DiskUsageMonitor, int64, error) {
+	var monitors []model.DiskUsageMonitor
+	var total int64
+
+	offset := (page - 1) * pageSize
+
+	// 获取总数
+	err := c.DB.Model(&model.DiskUsageMonitor{}).Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}

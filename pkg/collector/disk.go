@@ -42,13 +42,16 @@ func (d *Disk) CollectDisk() (*DiskInfo, error) {
 		}
 
 		partitionInfo := Partition{
-			Device:     partition.Device,
-			MountPoint: partition.Mountpoint,
-			FSType:     partition.Fstype,
-			Total:      usage.Total,
-			Used:       usage.Used,
-			Available:  usage.Free,
-			Usage:      usage.UsedPercent,
+			Device:      partition.Device,
+			MountPoint:  partition.Mountpoint,
+			FSType:      partition.Fstype,
+			Total:       usage.Total,
+			Used:        usage.Used,
+			Available:   usage.Free,
+			Usage:       usage.UsedPercent,
+			InodesTotal: usage.InodesTotal,
+			InodesUsed:  usage.InodesUsed,
+			InodesFree:  usage.InodesFree,
 		}
 
 		diskInfo.Partitions = append(diskInfo.Partitions, partitionInfo)

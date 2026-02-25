@@ -23,6 +23,10 @@ func RegisterMigrations(registry *migration.MigrationRegistry) {
 				return err
 			}
 			err = db.AutoMigrate(&model.DiskIOMonitor{})
+			if err != nil {
+				return err
+			}
+			err = db.AutoMigrate(&model.DiskUsageMonitor{})
 			return err
 		},
 		// 回滚函数

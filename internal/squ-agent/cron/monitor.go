@@ -47,6 +47,26 @@ func (c *Cron) collectAndSaveMonitorData() {
 	zap.L().Info("started collecting monitor data",
 		zap.String("cron", "host_monitor"))
 
+	collectTime := time.Now()
+
+	// 收集并保存基础监控数据
+	c.collectAndSaveBaseMonitorData(collectTime)
+
+	// 收集并保存磁盘使用量数据
+	c.collectAndSaveDiskUsageData(collectTime)
+
+	// 收集并保存磁盘IO数据
+	c.collectAndSaveDiskIOData(collectTime)
+
+	// 收集并保存网卡流量数据
+	c.collectAndSaveNetworkData(collectTime)
+
+	// 删除过期的监控数据
+	c.deleteExpiredMonitorData()
+}
+
+// collectAndSaveBaseMonitorData 收集并保存基础监控数据
+func (c *Cron) collectAndSaveBaseMonitorData(collectTime time.Time) {
 	// 收集CPU信息
 	cpuCollector := collector.NewCPUCollector()
 	cpuInfo, err := cpuCollector.CollectCPU()
@@ -77,25 +97,6 @@ func (c *Cron) collectAndSaveMonitorData() {
 		return
 	}
 
-	// 收集磁盘IO信息
-	ioCollector := collector.NewIOCollector()
-	diskIOStats, err := ioCollector.CollectAllDiskIO()
-	if err != nil {
-		zap.L().Error("failed to collect disk IO info",
-			zap.String("cron", "host_monitor"),
-			zap.Error(err))
-		return
-	}
-
-	// 收集网卡流量信息
-	netIOStats, err := ioCollector.CollectAllNetIO()
-	if err != nil {
-		zap.L().Error("failed to collect network interface info",
-			zap.String("cron", "host_monitor"),
-			zap.Error(err))
-		return
-	}
-
 	// 构建基础监控数据
 	baseMonitor := &model.BaseMonitor{
 		CPUUsage:    cpuInfo.Usage,
@@ -105,7 +106,7 @@ func (c *Cron) collectAndSaveMonitorData() {
 		DiskUsage:   diskInfo.Usage,
 		DiskTotal:   diskInfo.Total,
 		DiskUsed:    diskInfo.Used,
-		CollectTime: time.Now(),
+		CollectTime: collectTime,
 	}
 
 	// 保存监控数据
@@ -121,11 +122,61 @@ func (c *Cron) collectAndSaveMonitorData() {
 		zap.String("cron", "host_monitor"),
 		zap.Float64("cpu_usage", cpuInfo.Usage),
 		zap.Float64("memory_usage", memInfo.Usage),
-		zap.Float64("disk_usage", diskInfo.Usage),
-	)
+		zap.Float64("disk_usage", diskInfo.Usage))
+}
 
-	// 保存磁盘IO监控数据
-	collectTime := time.Now()
+// collectAndSaveDiskUsageData 收集并保存磁盘使用量数据
+func (c *Cron) collectAndSaveDiskUsageData(collectTime time.Time) {
+	diskCollector := collector.NewDiskCollector()
+	diskInfo, err := diskCollector.CollectDisk()
+	if err != nil {
+		zap.L().Error("failed to collect disk info for usage data",
+			zap.String("cron", "host_monitor"),
+			zap.Error(err))
+		return
+	}
+
+	for _, partition := range diskInfo.Partitions {
+		diskUsageMonitor := &model.DiskUsageMonitor{
+			DeviceName:  partition.Device,
+			MountPoint:  partition.MountPoint,
+			FsType:      partition.FSType,
+			Total:       partition.Total,
+			Used:        partition.Used,
+			Free:        partition.Available,
+			Usage:       partition.Usage,
+			InodesTotal: partition.InodesTotal,
+			InodesUsed:  partition.InodesUsed,
+			InodesFree:  partition.InodesFree,
+			CollectTime: collectTime,
+		}
+
+		err = c.MonitorRepo.CreateDiskUsageMonitor(diskUsageMonitor)
+		if err != nil {
+			zap.L().Error("failed to save disk usage monitor data",
+				zap.String("cron", "host_monitor"),
+				zap.String("device", partition.Device),
+				zap.Error(err))
+		}
+	}
+
+	zap.L().Info("disk usage monitor data saved successfully",
+		zap.String("cron", "host_monitor"),
+		zap.Int("count", len(diskInfo.Partitions)))
+}
+
+// collectAndSaveDiskIOData 收集并保存磁盘IO数据
+func (c *Cron) collectAndSaveDiskIOData(collectTime time.Time) {
+	ioCollector := collector.NewIOCollector()
+	diskIOStats, err := ioCollector.CollectAllDiskIO()
+	if err != nil {
+		zap.L().Error("failed to collect disk IO info",
+			zap.String("cron", "host_monitor"),
+			zap.Error(err))
+		return
+	}
+
+	savedCount := 0
 	for _, diskIO := range diskIOStats {
 		// 跳过虚拟设备
 		if c.shouldSkipDisk(diskIO.Device) {
@@ -149,14 +200,28 @@ func (c *Cron) collectAndSaveMonitorData() {
 				zap.String("cron", "host_monitor"),
 				zap.String("disk_name", diskIO.Device),
 				zap.Error(err))
+			continue
 		}
+		savedCount++
 	}
 
 	zap.L().Info("disk IO monitor data saved successfully",
 		zap.String("cron", "host_monitor"),
-		zap.Int("count", len(diskIOStats)))
+		zap.Int("count", savedCount))
+}
 
-	// 保存网卡流量监控数据
+// collectAndSaveNetworkData 收集并保存网卡流量数据
+func (c *Cron) collectAndSaveNetworkData(collectTime time.Time) {
+	ioCollector := collector.NewIOCollector()
+	netIOStats, err := ioCollector.CollectAllNetIO()
+	if err != nil {
+		zap.L().Error("failed to collect network interface info",
+			zap.String("cron", "host_monitor"),
+			zap.Error(err))
+		return
+	}
+
+	savedCount := 0
 	for _, netIO := range netIOStats {
 		// 跳过虚拟网卡
 		if c.shouldSkipInterface(netIO.Name) {
@@ -184,15 +249,14 @@ func (c *Cron) collectAndSaveMonitorData() {
 				zap.String("cron", "host_monitor"),
 				zap.String("interface_name", netIO.Name),
 				zap.Error(err))
+			continue
 		}
+		savedCount++
 	}
 
 	zap.L().Info("network interface monitor data saved successfully",
 		zap.String("cron", "host_monitor"),
-		zap.Int("count", len(netIOStats)))
-
-	// 删除过期的监控数据
-	c.deleteExpiredMonitorData()
+		zap.Int("count", savedCount))
 }
 
 // deleteExpiredMonitorData 删除过期的监控数据
@@ -221,8 +285,7 @@ func (c *Cron) deleteExpiredMonitorData() {
 	zap.L().Info("expired monitor data deleted successfully",
 		zap.String("cron", "host_monitor"),
 		zap.Int("expired_seconds", expiredSeconds),
-		zap.Time("expired_time", expiredTime),
-	)
+		zap.Time("expired_time", expiredTime))
 }
 
 // shouldSkipDisk 判断是否跳过磁盘设备
