@@ -61,5 +61,7 @@ export default {
   loading: 'Loading...',
   refresh: 'Refresh',
   selectAuthType: 'Please select auth type',
-  searchPlaceholder: 'Search hostname, IP or alias...'
+  searchPlaceholder: 'Search hostname, IP or alias...',
+  serverList: 'Server List',
+  selectServer: 'Select a server to connect'
 }

@@ -61,5 +61,7 @@ export default {
   loading: '加载中...',
   refresh: '刷新',
   selectAuthType: '请选择认证方式',
-  searchPlaceholder: '搜索主机名、IP或别名...'
+  searchPlaceholder: '搜索主机名、IP或别名...',
+  serverList: '服务器列表',
+  selectServer: '请选择要连接的服务器'
 }

@@ -58,10 +58,16 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/servers/:id/terminal',
+    path: '/servers/terminal',
     name: 'ServerTerminal',
     component: () => import('@/views/Server/Terminal.vue'),
-    meta: { requiresAuth: true, layout: 'full' }
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/servers/:id/terminal',
+    name: 'ServerTerminalById',
+    component: () => import('@/views/Server/Terminal.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
