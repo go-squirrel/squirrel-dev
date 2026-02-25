@@ -12,13 +12,13 @@
     <Loading v-if="loading && !baseData.length" :text="$t('common.loading')" />
 
     <template v-else-if="selectedServer">
+      <TimeRangeSelector v-model="timeRange" />
       <div class="charts-grid">
         <CPUMonitorChart :data="baseData" />
         <MemoryMonitorChart :data="baseData" />
         <DiskIOChart :data="diskData" :devices="diskDevices" />
         <NetIOChart :data="netData" :interfaces="netInterfaces" />
       </div>
-      <TimeRangeSelector v-model="timeRange" />
     </template>
 
     <Empty
