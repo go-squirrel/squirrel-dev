@@ -52,6 +52,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/monitor',
+    name: 'Monitor',
+    component: () => import('@/views/Monitor/index.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/servers/:id/terminal',
     name: 'ServerTerminal',
     component: () => import('@/views/Server/Terminal.vue'),

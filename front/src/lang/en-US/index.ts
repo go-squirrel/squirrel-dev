@@ -8,6 +8,7 @@ import scripts from './scripts'
 import appStore from './app-store'
 import application from './application'
 import deployment from './deployment'
+import monitor from './monitor'
 import error from './error'
 
 export default {
@@ -21,5 +22,6 @@ export default {
   appStore,
   application,
   deployment,
+  monitor,
   error
 }

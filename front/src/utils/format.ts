@@ -1,6 +1,14 @@
 // 格式化工具函数
 
 /**
+ * 格式化百分比
+ */
+export function formatPercent(value: number | undefined | null, decimals: number = 2): string {
+  if (value === undefined || value === null || isNaN(value)) return '0%'
+  return value.toFixed(decimals) + '%'
+}
+
+/**
  * 格式化字节大小
  */
 export function formatBytes(bytes: number | undefined | null): string {

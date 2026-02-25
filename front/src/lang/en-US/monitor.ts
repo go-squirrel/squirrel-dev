@@ -1,0 +1,22 @@
+export default {
+  title: 'Monitor Center',
+  selectServer: 'Select Server',
+  timeRange: 'Time Range',
+  last1Hour: '1 Hour',
+  last6Hours: '6 Hours',
+  last24Hours: '24 Hours',
+  last7Days: '7 Days',
+  last30Days: '30 Days',
+  cpuUsage: 'CPU Usage',
+  memoryUsage: 'Memory Usage',
+  diskUsage: 'Disk Usage',
+  diskIO: 'Disk I/O',
+  networkTraffic: 'Network Traffic',
+  read: 'Read',
+  write: 'Write',
+  upload: 'Upload',
+  download: 'Download',
+  all: 'All',
+  noServerSelected: 'Please select a server',
+  loading: 'Loading...'
+}

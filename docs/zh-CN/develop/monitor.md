@@ -60,33 +60,49 @@
 
 #### DiskIOMonitor - 磁盘 IO 监控
 
+> ⚠️ **重要说明**：以下字段存储的是**系统启动以来的累计值**，不是瞬时速率。前端绘制趋势图时需要计算相邻数据点的差值除以时间间隔，得到速率（bytes/s）。
+
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | uint | 主键 |
 | disk_name | string | 磁盘设备名 (sda, sdb...) |
-| read_count | uint64 | 读取次数 |
-| write_count | uint64 | 写入次数 |
-| read_bytes | uint64 | 读取字节数 |
-| write_bytes | uint64 | 写入字节数 |
-| read_time | uint64 | 读取时间 (ms) |
-| write_time | uint64 | 写入时间 (ms) |
+| read_count | uint64 | 累计读取次数 |
+| write_count | uint64 | 累计写入次数 |
+| read_bytes | uint64 | 累计读取字节数（系统启动以来） |
+| write_bytes | uint64 | 累计写入字节数（系统启动以来） |
+| read_time | uint64 | 累计读取时间 (ms) |
+| write_time | uint64 | 累计写入时间 (ms) |
 | collect_time | time | 采集时间 |
 
+**速率计算公式**：
+```
+读取速率 (bytes/s) = (当前 read_bytes - 上次 read_bytes) / (当前 collect_time - 上次 collect_time)
+写入速率 (bytes/s) = (当前 write_bytes - 上次 write_bytes) / (当前 collect_time - 上次 collect_time)
+```
+
 #### NetworkMonitor - 网络监控
+
+> ⚠️ **重要说明**：以下字段存储的是**系统启动以来的累计值**，不是瞬时速率。前端绘制趋势图时需要计算相邻数据点的差值除以时间间隔，得到速率（bytes/s）。
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | uint | 主键 |
 | interface_name | string | 网卡名 (eth0, eth1...) |
-| bytes_sent | uint64 | 发送字节数 |
-| bytes_recv | uint64 | 接收字节数 |
-| packets_sent | uint64 | 发送包数 |
-| packets_recv | uint64 | 接收包数 |
-| err_in | uint64 | 接收错误数 |
-| err_out | uint64 | 发送错误数 |
-| drop_in | uint64 | 接收丢包数 |
-| drop_out | uint64 | 发送丢包数 |
+| bytes_sent | uint64 | 累计发送字节数（系统启动以来） |
+| bytes_recv | uint64 | 累计接收字节数（系统启动以来） |
+| packets_sent | uint64 | 累计发送包数 |
+| packets_recv | uint64 | 累计接收包数 |
+| err_in | uint64 | 累计接收错误数 |
+| err_out | uint64 | 累计发送错误数 |
+| drop_in | uint64 | 累计接收丢包数 |
+| drop_out | uint64 | 累计发送丢包数 |
 | collect_time | time | 采集时间 |
+
+**速率计算公式**：
+```
+上传速率 (bytes/s) = (当前 bytes_sent - 上次 bytes_sent) / (当前 collect_time - 上次 collect_time)
+下载速率 (bytes/s) = (当前 bytes_recv - 上次 bytes_recv) / (当前 collect_time - 上次 collect_time)
+```
 
 ---
 
@@ -211,13 +227,23 @@ GET /api/v1/monitor/diskio/history/{serverId}?device=sda&page=1&count=100
     {
       "id": 1,
       "disk_name": "sda",
-      "read_bytes": 120000000,
-      "write_bytes": 45000000,
+      "read_bytes": 120000000,    // 累计值，非速率
+      "write_bytes": 45000000,    // 累计值，非速率
       "collect_time": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "disk_name": "sda",
+      "read_bytes": 120500000,    // 相比上一条增加了 500KB
+      "write_bytes": 45100000,    // 相比上一条增加了 100KB
+      "collect_time": "2024-01-15T10:01:00Z"
     },
     ...
   ]
 }
+# 前端计算速率示例：
+# read_speed = (120500000 - 120000000) / 60 = 8333 bytes/s ≈ 8KB/s
+# write_speed = (45100000 - 45000000) / 60 = 1666 bytes/s ≈ 1.6KB/s
 
 # 获取网络IO历史数据
 GET /api/v1/monitor/netio/history/{serverId}?interface=eth0&page=1&count=100
@@ -229,8 +255,8 @@ GET /api/v1/monitor/netio/history/{serverId}?interface=eth0&page=1&count=100
     {
       "id": 1,
       "interface_name": "eth0",
-      "bytes_sent": 1200000000,
-      "bytes_recv": 3400000000,
+      "bytes_sent": 1200000000,   // 累计值，非速率
+      "bytes_recv": 3400000000,   // 累计值，非速率
       "collect_time": "2024-01-15T10:00:00Z"
     },
     ...
@@ -300,25 +326,32 @@ export interface BaseMonitorRecord {
   collect_time: string
 }
 
-// 磁盘IO历史记录
+// 磁盘IO历史记录（累计值）
 export interface DiskIORecord {
   id: number
   disk_name: string
   read_count: number
   write_count: number
-  read_bytes: number
-  write_bytes: number
+  read_bytes: number      // 累计值，需计算速率
+  write_bytes: number     // 累计值，需计算速率
   read_time: number
   write_time: number
   collect_time: string
 }
 
-// 网络IO历史记录
+// 磁盘IO速率记录（前端计算后）
+export interface DiskIOSpeedRecord {
+  collect_time: string
+  read_speed: number      // bytes/s
+  write_speed: number     // bytes/s
+}
+
+// 网络IO历史记录（累计值）
 export interface NetworkIORecord {
   id: number
   interface_name: string
-  bytes_sent: number
-  bytes_recv: number
+  bytes_sent: number      // 累计值，需计算速率
+  bytes_recv: number      // 累计值，需计算速率
   packets_sent: number
   packets_recv: number
   err_in: number
@@ -326,6 +359,13 @@ export interface NetworkIORecord {
   drop_in: number
   drop_out: number
   collect_time: string
+}
+
+// 网络IO速率记录（前端计算后）
+export interface NetworkIOSpeedRecord {
+  collect_time: string
+  upload_speed: number    // bytes/s
+  download_speed: number  // bytes/s
 }
 
 // 设备列表
@@ -380,6 +420,76 @@ export function fetchDeviceList(serverId: number): Promise<DeviceList> {
   return get(`/monitor/devices/${serverId}`)
 }
 ```
+
+### 速率计算工具函数
+
+```typescript
+// front/src/utils/monitor.ts
+
+import type { DiskIORecord, NetworkIORecord, DiskIOSpeedRecord, NetworkIOSpeedRecord } from '@/types/monitor'
+
+/**
+ * 将磁盘IO累计值转换为速率
+ * @param records 按时间正序排列的历史记录
+ * @returns 速率记录数组
+ */
+export function calculateDiskIOSpeed(records: DiskIORecord[]): DiskIOSpeedRecord[] {
+  if (records.length < 2) return []
+  
+  const result: DiskIOSpeedRecord[] = []
+  
+  for (let i = 1; i < records.length; i++) {
+    const prev = records[i - 1]
+    const curr = records[i]
+    
+    // 计算时间差（秒）
+    const timeDiff = (new Date(curr.collect_time).getTime() - new Date(prev.collect_time).getTime()) / 1000
+    
+    if (timeDiff <= 0) continue
+    
+    // 计算速率（bytes/s）
+    result.push({
+      collect_time: curr.collect_time,
+      read_speed: Math.max(0, (curr.read_bytes - prev.read_bytes) / timeDiff),
+      write_speed: Math.max(0, (curr.write_bytes - prev.write_bytes) / timeDiff),
+    })
+  }
+  
+  return result
+}
+
+/**
+ * 将网络IO累计值转换为速率
+ * @param records 按时间正序排列的历史记录
+ * @returns 速率记录数组
+ */
+export function calculateNetworkIOSpeed(records: NetworkIORecord[]): NetworkIOSpeedRecord[] {
+  if (records.length < 2) return []
+  
+  const result: NetworkIOSpeedRecord[] = []
+  
+  for (let i = 1; i < records.length; i++) {
+    const prev = records[i - 1]
+    const curr = records[i]
+    
+    // 计算时间差（秒）
+    const timeDiff = (new Date(curr.collect_time).getTime() - new Date(prev.collect_time).getTime()) / 1000
+    
+    if (timeDiff <= 0) continue
+    
+    // 计算速率（bytes/s）
+    result.push({
+      collect_time: curr.collect_time,
+      upload_speed: Math.max(0, (curr.bytes_sent - prev.bytes_sent) / timeDiff),
+      download_speed: Math.max(0, (curr.bytes_recv - prev.bytes_recv) / timeDiff),
+    })
+  }
+  
+  return result
+}
+```
+
+> 💡 **注意**：上述计算函数要求输入数据按时间**正序**排列（旧→新）。从后端获取的数据通常是倒序（新→旧），需要先反转数组。
 
 ---
 

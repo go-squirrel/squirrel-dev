@@ -1,0 +1,22 @@
+export default {
+  title: '监控中心',
+  selectServer: '选择服务器',
+  timeRange: '时间范围',
+  last1Hour: '1小时',
+  last6Hours: '6小时',
+  last24Hours: '24小时',
+  last7Days: '7天',
+  last30Days: '30天',
+  cpuUsage: 'CPU 使用率',
+  memoryUsage: '内存使用率',
+  diskUsage: '磁盘使用率',
+  diskIO: '磁盘 IO',
+  networkTraffic: '网络流量',
+  read: '读取',
+  write: '写入',
+  upload: '上传',
+  download: '下载',
+  all: '全部',
+  noServerSelected: '请选择服务器',
+  loading: '加载中...'
+}
