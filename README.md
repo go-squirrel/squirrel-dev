@@ -1,127 +1,167 @@
 # Squirrel Dev
 
-一个轻量级、现代化的运维管理平台，支持服务器管理、应用部署、监控告警和脚本执行等功能。
+A lightweight, modern operations management platform that supports server management, application deployment, monitoring & alerting, and script execution.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.25%2B-brightgreen.svg)](https://golang.org)
 [![Vue Version](https://img.shields.io/badge/Vue-3.4%2B-green.svg)](https://vuejs.org)
 
-## 功能特性
+**[中文文档](docs/zh-CN/README.md)**
 
-- **服务器管理** - 统一管理多台服务器，支持 Web 终端连接
-- **应用部署** - 支持 Docker Compose 应用一键部署、启动、停止
-- **应用商店** - 内置常用应用模板，快速部署常用服务
-- **监控告警** - 实时采集服务器 CPU、内存、磁盘、网络等资源使用情况
-- **脚本管理** - 定时任务脚本管理，支持 Cron 表达式调度
-- **配置中心** - 集中管理应用配置，支持动态更新
-- **命令行工具** - 提供 squctl CLI 工具，方便运维操作
+## Features
 
-## 系统架构
+- **Server Management** - Unified management of multiple servers with Web terminal support
+- **Application Deployment** - One-click deployment, start, and stop for Docker Compose applications
+- **App Store** - Built-in common application templates for quick service deployment
+- **Monitoring & Alerting** - Real-time collection of CPU, memory, disk, and network resource usage
+- **Script Management** - Scheduled task management with Cron expression support
+- **Configuration Center** - Centralized application configuration management with dynamic updates
+- **CLI Tool** - squctl CLI tool for convenient operations
 
-Squirrel 采用有代理（Agent）架构设计：
+## System Architecture
 
+Squirrel adopts an agent-based architecture, supporting one API Server managing multiple Agents on different servers:
+
+```mermaid
+C4Container
+    title Squirrel System Architecture
+
+    Person(user, "Operator", "System Management")
+
+    Container(spa, "Frontend", "Vue3/TypeScript", "Web Frontend Interface")
+    Container(api, "API Server", "Go/Gin", "Console Server, provides API endpoints")
+    ContainerDb(db, "Database", "SQLite/MySQL", "Stores configuration and monitoring data")
+
+    Container(agent1, "Agent 1", "Go", "Deployed on target server, executes operations")
+    Container(agent2, "Agent 2", "Go", "Deployed on target server, executes operations")
+    Container(agentn, "Agent N", "Go", "Deployed on target server, executes operations")
+
+    Rel(user, spa, "Uses", "HTTP")
+    Rel(spa, api, "Requests API", "HTTP")
+    Rel(api, db, "Read/Write", "SQL")
+    Rel(api, agent1, "Schedule/Communicate", "HTTP")
+    Rel(api, agent2, "Schedule/Communicate", "HTTP")
+    Rel(api, agentn, "Schedule/Communicate", "HTTP")
 ```
-┌─────────────┐      HTTP       ┌─────────────┐      HTTP       ┌─────────────┐
-│   Frontend  │ ◄─────────────► │  API Server │ ◄─────────────► │    Agent    │
-│  (Vue3/TS)  │                 │  (控制台)    │                 │  (客户端)    │
-└─────────────┘                 └─────────────┘                 └─────────────┘
-                                                                      │
-                                                                      ▼
-                                                               ┌─────────────┐
-                                                               │   Servers   │
-                                                               └─────────────┘
-```
 
-### 页面展示
+### Screenshots
 
-![overview](/images/overview.png)
+![overview](/docs/en-US/images/overview.png)
 
-### 核心组件
+### Core Components
 
-| 组件 | 描述 | 默认端口 |
-|------|------|----------|
-| `squ-apiserver` | 控制台服务端，提供 API 接口和前端界面 | 10700 |
-| `squ-agent` | 客户端代理，部署在目标服务器上执行具体操作 | 10750 |
-| `squctl` | 命令行工具，用于与 apiserver 交互 | - |
+| Component | Description | Default Port |
+|-----------|-------------|--------------|
+| `squ-apiserver` | Console server providing API endpoints and frontend interface | 10700 |
+| `squ-agent` | Client agent deployed on target servers to execute operations | 10750 |
+| `squctl` | CLI tool for interacting with apiserver | - |
 
-## 技术栈
+## Tech Stack
 
-### 后端
-- **Go 1.25+** - 主要开发语言
-- **Gin** - HTTP Web 框架
-- **GORM** - ORM 数据库框架
-- **JWT** - 用户认证
-- **WebSocket** - 实时终端连接
-- **Cobra** - CLI 命令行框架
-- **Viper** - 配置管理
-- **Zap** - 日志记录
+| Category | Technology/Framework | Purpose |
+|----------|----------------------|---------|
+| **Backend** | Go 1.25+ | Primary development language |
+| | Gin | HTTP web framework |
+| | GORM | ORM database framework |
+| | JWT | User authentication |
+| | WebSocket | Real-time terminal connection |
+| | Cobra | CLI framework |
+| | Viper | Configuration management |
+| | Zap | Logging |
+| **Frontend** | Vue 3 | Progressive JavaScript framework |
+| | TypeScript | Type-safe JavaScript |
+| | Vite | Frontend build tool |
+| | Pinia | State management |
+| | Vue Router | Routing management |
+| | Vue I18n | Internationalization support |
+| | Sass | CSS preprocessor |
+| **Database** | SQLite | Default embedded database (zero configuration) |
+| | MySQL | Optional external database |
 
-### 前端
-- **Vue 3** - 渐进式 JavaScript 框架
-- **TypeScript** - 类型安全的 JavaScript
-- **Vite** - 前端构建工具
-- **Pinia** - 状态管理
-- **Vue Router** - 路由管理
-- **Vue I18n** - 国际化支持
-- **Sass** - CSS 预处理器
+## Quick Start
 
-### 数据库
-- **SQLite** - 默认嵌入式数据库（零配置）
-- **MySQL** - 可选外置数据库
+### Requirements
 
-## 快速开始
+- Go 1.25 or higher
+- Node.js 18+ and npm
+- Docker and Docker Compose (optional, for containerized deployment)
 
-### 环境要求
+### Build & Install
 
-- Go 1.25 或更高版本
-- Node.js 18+ 和 npm
-- Docker 和 Docker Compose（可选，用于容器化部署）
-
-### 构建安装
+> **Prerequisites**: Ensure your system has the following commands installed:
+> - `go` - Go 1.25+ compiler
+> - `npm` - Node.js package manager (Node.js 18+)
+>
+> Verify installation:
+> ```bash
+> go version    # Should show Go 1.25+
+> npm -v        # Should show npm version
+> ```
 
 ```bash
-# 克隆项目
+# Clone the project
 git clone https://github.com/yourusername/squirrel-dev.git
 cd squirrel-dev
 
-# 一键构建（前端 + 后端）
+# Build all (frontend + backend)
 make all
 
-# 打包输出
+# Build frontend only
+make frontend
+
+# Package output
 make package
 
-# 构建 Docker 镜像
+# Build Docker image
 make image
+
+# Clean build artifacts
+make clean
 ```
 
-构建完成后，二进制文件和配置将位于 `squirrel/` 目录下。
+#### Multi-Architecture Build
 
-### 手动启动
+Supports `amd64` and `arm64` architectures:
 
 ```bash
-# 1. 启动 API Server
+# Build all architectures
+make all-arch
+
+# Package all architectures
+make package-all-arch
+
+# Build for specific architecture
+make GOOS=linux GOARCH=arm64 all
+```
+
+After building, binaries and configurations will be located in the `squirrel/` directory.
+
+### Manual Start
+
+```bash
+# 1. Start API Server
 ./squirrel/squ-apiserver --config ./squirrel/config/apiserver.yaml
 
-# 2. 在目标服务器上启动 Agent
+# 2. Start Agent on target server
 ./squirrel/squ-agent --config ./squirrel/config/agent.yaml
 
-# 3. 使用 squctl 连接
+# 3. Connect with squctl
 ./squirrel/squctl login http://localhost:10700
 ```
 
-### Docker 部署
+### Docker Deployment
 
 ```bash
-# 构建镜像
+# Build image
 make image
 
-# 使用 Docker Compose 启动
+# Start with Docker Compose
 docker-compose up -d
 ```
 
-## 配置说明
+## Configuration
 
-### API Server 配置 (`config/apiserver.yaml`)
+### API Server Configuration (`config/apiserver.yaml`)
 
 ```yaml
 server:
@@ -130,7 +170,7 @@ server:
   mode: debug
 
 db:
-  type: sqlite  # 可选: mysql 或 sqlite
+  type: sqlite  # Options: mysql or sqlite
   sqlite:
     filePath: ./db/apiserver.db
 
@@ -139,7 +179,7 @@ log:
   level: info
 ```
 
-### Agent 配置 (`config/agent.yaml`)
+### Agent Configuration (`config/agent.yaml`)
 
 ```yaml
 server:
@@ -153,60 +193,60 @@ apiserver:
     baseUri: /api/v1
 ```
 
-## 项目结构
+## Project Structure
 
 ```
 squirrel-dev/
-├── cmd/                    # 程序入口
-│   ├── squ-apiserver/      # API 服务端入口
-│   ├── squ-agent/          # Agent 代理入口
-│   └── squctl/             # CLI 工具入口
-├── internal/               # 内部实现
-│   ├── squ-apiserver/      # API Server 业务逻辑
-│   ├── squ-agent/          # Agent 业务逻辑
-│   └── squctl/             # CLI 业务逻辑
-├── pkg/                    # 公共包
-│   └── collector/          # 监控数据采集
-├── front/                  # 前端源码 (Vue3)
-├── config/                 # 配置文件模板
-├── dockerfiles/            # Docker 构建文件
-└── api-rest/               # API 测试请求
+├── cmd/                    # Program entry points
+│   ├── squ-apiserver/      # API server entry
+│   ├── squ-agent/          # Agent entry
+│   └── squctl/             # CLI tool entry
+├── internal/               # Internal implementation
+│   ├── squ-apiserver/      # API Server business logic
+│   ├── squ-agent/          # Agent business logic
+│   └── squctl/             # CLI business logic
+├── pkg/                    # Public packages
+│   └── collector/          # Monitoring data collection
+├── front/                  # Frontend source (Vue3)
+├── config/                 # Configuration templates
+├── dockerfiles/            # Docker build files
+└── api-rest/               # API test requests
 ```
 
-## API 接口
+## API Reference
 
-项目提供完整的 RESTful API 接口，详见 `api-rest/` 目录：
+The project provides complete RESTful API endpoints, see `api-rest/` directory:
 
-- `server.http` - 服务器管理接口
-- `monitor.http` - 监控数据接口
-- `application.http` - 应用管理接口
-- `deployment.http` - 部署管理接口
-- `script.http` - 脚本管理接口
+- `server.http` - Server management API
+- `monitor.http` - Monitoring data API
+- `application.http` - Application management API
+- `deployment.http` - Deployment management API
+- `script.http` - Script management API
 
-## 开发计划
+## Roadmap
 
-- [x] 服务器管理和 Web 终端
-- [x] Docker Compose 应用部署
-- [x] 服务器资源监控
-- [x] 定时脚本任务
-- [ ] Kubernetes 集群支持
-- [ ] 告警通知（邮件/钉钉/企业微信）
-- [ ] 日志收集与分析
-- [ ] 多租户权限管理
+- [x] Server management and Web terminal
+- [x] Docker Compose application deployment
+- [x] Server resource monitoring
+- [x] Scheduled script tasks
+- [ ] Kubernetes cluster support
+- [ ] Alert notifications (Email/DingTalk/WeChat Work)
+- [ ] Log collection and analysis
+- [ ] Multi-tenant permission management
 
-## 贡献指南
+## Contributing
 
-欢迎提交 Issue 和 Pull Request！
+Issues and Pull Requests are welcome!
 
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/amazing-feature`)
-3. 提交更改 (`git commit -m 'Add some amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 创建 Pull Request
+1. Fork this repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Create a Pull Request
 
-## 许可证
+## License
 
-本项目采用 [Apache 2.0](LICENSE) 许可证开源。
+This project is open-sourced under the [Apache 2.0](LICENSE) license.
 
 ```
 Copyright 2026 agocan
@@ -218,10 +258,10 @@ You may obtain a copy of the License at
     http://www.apache.org/licenses/LICENSE-2.0
 ```
 
-## 致谢
+## Acknowledgments
 
-感谢所有为本项目做出贡献的开发者。
+Thanks to all contributors who have helped with this project.
 
 ---
 
-如果本项目对您有帮助，请给个 Star ⭐️ 支持一下！
+If this project helps you, please give it a Star ⭐️!
