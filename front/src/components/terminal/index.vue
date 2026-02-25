@@ -7,7 +7,7 @@
         <span class="server-name" v-if="server">- {{ server.hostname || server.ip_address }}</span>
       </div>
       <div class="terminal-actions">
-        <button v-if="!connected && !connecting" class="action-btn reconnect-btn" @click="connect">
+        <button v-if="!connected && !connecting && !sshTesting" class="action-btn reconnect-btn" @click="connect">
           <Icon icon="lucide:refresh-cw" />
           {{ $t('server.reconnect') }}
         </button>
@@ -18,7 +18,18 @@
       </div>
     </div>
     <div class="terminal-body">
-      <div v-if="connecting" class="connecting-state">
+      <div v-if="sshTesting" class="connecting-state">
+        <Icon icon="lucide:loader-2" class="spinner" />
+        <p>{{ $t('server.sshTesting') }}</p>
+      </div>
+      <div v-else-if="sshTestFailed" class="error-state">
+        <Icon icon="lucide:shield-alert" class="error-icon" />
+        <p>{{ sshTestError || $t('server.sshTestFailed') }}</p>
+        <button class="retry-btn" @click="connect">
+          {{ $t('server.reconnect') }}
+        </button>
+      </div>
+      <div v-else-if="connecting" class="connecting-state">
         <Icon icon="lucide:loader-2" class="spinner" />
         <p>{{ $t('server.connecting') }}</p>
       </div>
@@ -47,17 +58,22 @@ import { useRouter } from 'vue-router'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
-import { getTerminalWebSocketUrl, getAuthToken } from '@/api/server'
+import { getTerminalWebSocketUrl, getAuthToken, testSSHConnection } from '@/api/server'
 import type { Server } from '@/types'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   server: Server
 }>()
 
 const router = useRouter()
+const { t } = useI18n()
 
 const terminalRef = ref<HTMLElement>()
-const connecting = ref(true)
+const sshTesting = ref(true)
+const sshTestFailed = ref(false)
+const sshTestError = ref('')
+const connecting = ref(false)
 const connected = ref(false)
 const connectionError = ref(false)
 const authFailed = ref(false)
@@ -67,7 +83,39 @@ let term: Terminal | null = null
 let fitAddon: FitAddon | null = null
 let resizeObserver: ResizeObserver | null = null
 
-const connect = () => {
+const connect = async () => {
+  sshTesting.value = true
+  sshTestFailed.value = false
+  sshTestError.value = ''
+  connecting.value = false
+  connectionError.value = false
+  connected.value = false
+  authFailed.value = false
+
+  // 先测试 SSH 连接
+  try {
+    await testSSHConnection(props.server.id)
+    // SSH 测试成功，继续连接 WebSocket
+    sshTesting.value = false
+    connectWebSocket()
+  } catch (error: any) {
+    sshTesting.value = false
+    sshTestFailed.value = true
+    // 从错误响应中获取错误消息
+    if (error.response?.data?.message) {
+      sshTestError.value = error.response.data.message
+    } else if (error.response?.data?.code === 60024) {
+      sshTestError.value = t('server.sshTestFailed')
+    } else if (error.response?.data?.code === 60023) {
+      sshTestError.value = t('server.sshConfigError')
+    } else {
+      sshTestError.value = t('server.sshTestFailed')
+    }
+    console.error('SSH test failed:', error)
+  }
+}
+
+const connectWebSocket = () => {
   connecting.value = true
   connectionError.value = false
   connected.value = false

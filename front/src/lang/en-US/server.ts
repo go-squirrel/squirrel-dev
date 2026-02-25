@@ -63,5 +63,9 @@ export default {
   selectAuthType: 'Please select auth type',
   searchPlaceholder: 'Search hostname, IP or alias...',
   serverList: 'Server List',
-  selectServer: 'Select a server to connect'
+  selectServer: 'Select a server to connect',
+  sshTestFailed: 'SSH connection test failed',
+  sshTesting: 'Testing SSH connection...',
+  sshTestSuccess: 'SSH connection test successful',
+  sshConfigError: 'SSH configuration error'
 }

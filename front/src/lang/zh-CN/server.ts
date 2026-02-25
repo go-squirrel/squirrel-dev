@@ -63,5 +63,9 @@ export default {
   selectAuthType: '请选择认证方式',
   searchPlaceholder: '搜索主机名、IP或别名...',
   serverList: '服务器列表',
-  selectServer: '请选择要连接的服务器'
+  selectServer: '请选择要连接的服务器',
+  sshTestFailed: 'SSH 连接测试失败',
+  sshTesting: '测试 SSH 连接中...',
+  sshTestSuccess: 'SSH 连接测试成功',
+  sshConfigError: 'SSH 配置错误'
 }

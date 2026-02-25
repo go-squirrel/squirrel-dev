@@ -47,6 +47,13 @@ export function getTerminalWebSocketUrl(serverId: number): string {
 }
 
 /**
+ * 测试 SSH 连接
+ */
+export function testSSHConnection(serverId: number): Promise<{ message: string; hostname: string; ip_address: string; ssh_port: number }> {
+  return post(`/ssh/test/${serverId}`)
+}
+
+/**
  * 获取当前用户的 token
  */
 export function getAuthToken(): string {
