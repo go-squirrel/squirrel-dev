@@ -129,8 +129,9 @@ onMounted(() => {
 <style scoped>
 .terminal-page {
   display: flex;
-  width: 100%;
-  height: 100%;
+  width: calc(100% + 40px);
+  height: calc(100vh - 52px); /* 100vh - header height */
+  margin: -20px; /* 抵消 MainContent 的 padding */
   overflow: hidden;
 }
 
