@@ -34,6 +34,7 @@ type Config struct {
 	Server    Server
 	Common    Common
 	Apiserver Apiserver
+	Cache     Cache
 }
 
 // 获取文件绝对路径

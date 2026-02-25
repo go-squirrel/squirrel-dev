@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"squirrel-dev/internal/pkg/cache"
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/pkg/middleware/log"
 	"squirrel-dev/internal/squ-agent/config"
@@ -54,7 +55,36 @@ func (o *AppOptions) NewServer() (*server.Server, error) {
 	}
 
 	s.Cron = cron.New(s.Config, s.AgentDB, s.AppDB, s.ScriptTaskDB, s.MonitorDB)
+
+	// 初始化缓存
+	s.Cache = o.initCache()
+
 	return s, nil
+}
+
+// initCache 初始化缓存，默认使用内存方式
+func (o *AppOptions) initCache() cache.Cache {
+	cacheType := o.Config.Cache.Type
+	if cacheType == "" {
+		cacheType = "memory"
+	}
+
+	opts := []cache.Option{
+		cache.WithMaxCost(o.Config.Cache.Memory.MaxCost),
+		cache.WithBufferItems(o.Config.Cache.Memory.BufferItems),
+		cache.WithMetrics(o.Config.Cache.Memory.Metrics),
+	}
+
+	connectionString := o.Config.Cache.GetConnectionString()
+
+	c, err := cache.New(cacheType, connectionString, opts...)
+	if err != nil {
+		fmt.Printf("Cache initialization failed, falling back to memory cache: %v\n", err)
+		// 降级到内存缓存
+		c, _ = cache.New("memory", "", opts...)
+	}
+
+	return c
 }
 
 func (o *AppOptions) loadConfig(configFile string) {

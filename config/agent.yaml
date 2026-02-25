@@ -6,6 +6,18 @@ server:
   cors:
     origins: ["*"]
     methods: ["PUT", "PATCH"]
+# 缓存配置
+cache:
+  type: memory  # memory 或 redis
+  redis:
+    addr: "127.0.0.1:6379"
+    password: ""
+    db: 0
+    poolSize: 10
+  memory:
+    maxCost: 1073741824  # 1GB
+    bufferItems: 64
+    metrics: false
 # 数据库配置项
 db:
   type: sqlite # mysql or sqlite

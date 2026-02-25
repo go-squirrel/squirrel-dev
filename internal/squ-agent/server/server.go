@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"squirrel-dev/internal/pkg/cache"
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/pkg/middleware/cors"
 	"squirrel-dev/internal/pkg/middleware/log"
@@ -23,6 +24,7 @@ type Server struct {
 	AppDB        database.DB
 	MonitorDB    database.DB
 	ScriptTaskDB database.DB
+	Cache        cache.Cache
 	Cron         *cron.Cron
 }
 
