@@ -48,12 +48,14 @@
         <Icon icon="lucide:terminal" class="empty-icon" />
         <p>{{ $t('server.selectServer') }}</p>
       </div>
-      <TerminalComponent
-        v-else
-        :key="selectedServer.id"
-        :server="selectedServer"
-        @close="handleClose"
-      />
+      <keep-alive>
+        <TerminalComponent
+          v-if="selectedServer"
+          :key="selectedServer.id"
+          :server="selectedServer"
+          @close="handleClose"
+        />
+      </keep-alive>
     </div>
   </div>
 </template>
