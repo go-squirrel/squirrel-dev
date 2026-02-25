@@ -260,7 +260,7 @@ You may obtain a copy of the License at
 
 ## Acknowledgments
 
-Thanks to all contributors who have helped with this project.
+[![Contributors](https://contrib.rocks/image?repo=go-squirrel/squirrel-dev)](https://github.com/go-squirrel/squirrel-dev/graphs/contributors)
 
 ---
 

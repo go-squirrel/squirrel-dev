@@ -257,7 +257,7 @@ You may obtain a copy of the License at
 
 ## 致谢
 
-感谢所有为本项目做出贡献的开发者。
+[![Contributors](https://contrib.rocks/image?repo=go-squirrel/squirrel-dev)](https://github.com/go-squirrel/squirrel-dev/graphs/contributors)
 
 ---
 
