@@ -1,7 +1,10 @@
 package monitor
 
 import (
+	"context"
 	"sort"
+	"time"
+
 	"squirrel-dev/internal/pkg/response"
 	monitorres "squirrel-dev/internal/squ-agent/handler/monitor/res"
 	"squirrel-dev/internal/squ-agent/model"
@@ -12,6 +15,23 @@ import (
 
 // GetStats 获取系统统计数据
 func (m *Monitor) GetStats() response.Response {
+	ctx := context.Background()
+
+	// 1. 尝试从缓存获取完整数据
+	if m.Cache != nil {
+		if cached, err := m.Cache.Get(ctx, cacheKeyStatsFull); err == nil {
+			if stats, ok := cached.(monitorres.Stats); ok {
+				return response.Success(stats)
+			}
+		}
+	}
+
+	// 2. 缓存未命中，降级到实时收集（同步）
+	return m.collectAndReturnStats(ctx)
+}
+
+// collectAndReturnStats 实时收集并返回统计数据
+func (m *Monitor) collectAndReturnStats(ctx context.Context) response.Response {
 	if m.Factory == nil {
 		zap.L().Error("Factory is nil")
 		return response.Error(model.ReturnErrCode(nil))
@@ -33,6 +53,18 @@ func (m *Monitor) GetStats() response.Response {
 	}
 
 	// 构建响应
+	stats := m.buildStats(hostInfo, topCPU, topMemory)
+
+	// 缓存结果
+	if m.Cache != nil {
+		m.Cache.Set(ctx, cacheKeyStatsFull, stats, statsCacheTTL)
+	}
+
+	return response.Success(stats)
+}
+
+// buildStats 构建统计数据响应
+func (m *Monitor) buildStats(hostInfo *collector.HostInfo, topCPU, topMemory []collector.ProcessStats) monitorres.Stats {
 	stats := monitorres.Stats{
 		Timestamp: hostInfo.Timestamp,
 		Hostname:  hostInfo.Hostname,
@@ -102,8 +134,18 @@ func (m *Monitor) GetStats() response.Response {
 		})
 	}
 
-	return response.Success(stats)
+	return stats
 }
+
+// 缓存 Key 常量
+const (
+	cacheKeyStatsFull = "monitor:stats:full"
+)
+
+// 缓存 TTL
+const (
+	statsCacheTTL = 10 * time.Second
+)
 
 // GetAllNetIO 获取所有网卡IO统计（汇总）
 func (m *Monitor) GetAllNetIO() response.Response {

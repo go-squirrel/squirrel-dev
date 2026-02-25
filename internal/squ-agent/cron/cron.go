@@ -1,6 +1,7 @@
 package cron
 
 import (
+	"squirrel-dev/internal/pkg/cache"
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/squ-agent/config"
 	appRepository "squirrel-dev/internal/squ-agent/repository/application"
@@ -19,6 +20,7 @@ import (
 type Cron struct {
 	Config         *config.Config
 	Cron           *cronV3.Cron
+	Cache          cache.Cache
 	AppRepository  appRepository.Repository
 	ScriptTaskRepo scriptTaskRepo.Repository
 	ConfigRepo     confRepository.Repository
@@ -26,12 +28,13 @@ type Cron struct {
 	HTTPClient     *httpclient.Client
 }
 
-func New(config *config.Config, agentDB, appDB, scriptTaskDB, monitorDB database.DB) *Cron {
+func New(config *config.Config, cache cache.Cache, agentDB, appDB, scriptTaskDB, monitorDB database.DB) *Cron {
 
 	c := cronV3.New(cronV3.WithSeconds())
 	return &Cron{
 		Config:         config,
 		Cron:           c,
+		Cache:          cache,
 		AppRepository:  appRepository.New(appDB.GetDB()),
 		ScriptTaskRepo: scriptTaskRepo.New(scriptTaskDB.GetDB()),
 		ConfigRepo:     confRepository.New(agentDB.GetDB()),
@@ -58,6 +61,12 @@ func (c *Cron) Start() error {
 	err = c.startMonitor()
 	if err != nil {
 		zap.L().Warn("failed started cron monitor", zap.String("cron", "start monitor"))
+		return err
+	}
+
+	err = c.startMonitorStats()
+	if err != nil {
+		zap.L().Warn("failed started cron monitor stats", zap.String("cron", "start monitor stats"))
 		return err
 	}
 

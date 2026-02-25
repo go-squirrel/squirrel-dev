@@ -36,6 +36,9 @@ func (o *AppOptions) NewServer() (*server.Server, error) {
 		o.Config.Log.MaxSize, o.Config.Log.MaxBackups, o.Config.Log.MaxAge,
 	)
 
+	// 初始化缓存（在 Cron 之前）
+	s.Cache = o.initCache()
+
 	if o.Config.DB.Type == "sqlite" {
 		s.AgentDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.AgentFilePath, database.WithMigrate(true))
 		s.AppDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.AppFilePath, database.WithMigrate(true))
@@ -54,10 +57,7 @@ func (o *AppOptions) NewServer() (*server.Server, error) {
 		s.ScriptTaskDB = s.AgentDB
 	}
 
-	s.Cron = cron.New(s.Config, s.AgentDB, s.AppDB, s.ScriptTaskDB, s.MonitorDB)
-
-	// 初始化缓存
-	s.Cache = o.initCache()
+	s.Cron = cron.New(s.Config, s.Cache, s.AgentDB, s.AppDB, s.ScriptTaskDB, s.MonitorDB)
 
 	return s, nil
 }

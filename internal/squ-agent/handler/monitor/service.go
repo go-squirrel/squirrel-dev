@@ -1,6 +1,7 @@
 package monitor
 
 import (
+	"squirrel-dev/internal/pkg/cache"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-agent/config"
 	monitorres "squirrel-dev/internal/squ-agent/handler/monitor/res"
@@ -13,13 +14,15 @@ import (
 
 type Monitor struct {
 	Config     *config.Config
+	Cache      cache.Cache
 	Repository monitorRepository.Repository
 	Factory    *collector.CollectorFactory
 }
 
-func New(config *config.Config, repo monitorRepository.Repository, factory *collector.CollectorFactory) *Monitor {
+func New(config *config.Config, cache cache.Cache, repo monitorRepository.Repository, factory *collector.CollectorFactory) *Monitor {
 	return &Monitor{
 		Config:     config,
+		Cache:      cache,
 		Repository: repo,
 		Factory:    factory,
 	}

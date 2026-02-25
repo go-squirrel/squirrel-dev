@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 
+	"squirrel-dev/internal/pkg/cache"
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/squ-agent/config"
 	"squirrel-dev/internal/squ-agent/handler/monitor"
@@ -11,7 +12,7 @@ import (
 	"squirrel-dev/pkg/collector"
 )
 
-func MonitorRouter(group *gin.RouterGroup, conf *config.Config, db database.DB) {
+func MonitorRouter(group *gin.RouterGroup, conf *config.Config, cache cache.Cache, db database.DB) {
 	res.RegisterCode()
 
 	// 创建收集器工厂并注册收集器
@@ -23,7 +24,7 @@ func MonitorRouter(group *gin.RouterGroup, conf *config.Config, db database.DB) 
 	factory.Register(collector.NewProcessCollector())
 
 	// 创建monitor服务实例
-	service := monitor.New(conf, monitorRepository.New(db.GetDB()), factory)
+	service := monitor.New(conf, cache, monitorRepository.New(db.GetDB()), factory)
 
 	// register routes
 	group.GET("/monitor/stats", monitor.StatsHandler(service))
