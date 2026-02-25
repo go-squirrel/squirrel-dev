@@ -31,6 +31,22 @@ type DiskIOMonitor struct {
 	CollectTime    time.Time `gorm:"column:collect_time;type:timestamp;default:CURRENT_TIMESTAMP;index" json:"collect_time"` // 数据收集时间
 }
 
+// DiskUsageMonitor 磁盘使用量表，记录各分区磁盘使用情况
+type DiskUsageMonitor struct {
+	BaseModel
+	DeviceName  string    `gorm:"column:device_name;type:varchar(100);not null" json:"device_name"`                       // 设备名称/挂载点
+	MountPoint  string    `gorm:"column:mount_point;type:varchar(255)" json:"mount_point"`                                // 挂载点路径
+	FsType      string    `gorm:"column:fs_type;type:varchar(50)" json:"fs_type"`                                         // 文件系统类型
+	Total       uint64    `gorm:"column:total;type:bigint unsigned" json:"total"`                                         // 磁盘总量(bytes)
+	Used        uint64    `gorm:"column:used;type:bigint unsigned" json:"used"`                                           // 磁盘已用量(bytes)
+	Free        uint64    `gorm:"column:free;type:bigint unsigned" json:"free"`                                           // 磁盘剩余量(bytes)
+	Usage       float64   `gorm:"column:usage;type:decimal(5,2)" json:"usage"`                                            // 磁盘使用率(%)
+	InodesTotal uint64    `gorm:"column:inodes_total;type:bigint unsigned" json:"inodes_total"`                           // inode总数
+	InodesUsed  uint64    `gorm:"column:inodes_used;type:bigint unsigned" json:"inodes_used"`                             // inode已用量
+	InodesFree  uint64    `gorm:"column:inodes_free;type:bigint unsigned" json:"inodes_free"`                             // inode剩余量
+	CollectTime time.Time `gorm:"column:collect_time;type:timestamp;default:CURRENT_TIMESTAMP;index" json:"collect_time"` // 数据收集时间
+}
+
 // NetworkMonitor 网卡流量表，记录网络流量数据
 type NetworkMonitor struct {
 	BaseModel
