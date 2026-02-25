@@ -60,3 +60,8 @@ func (m *Monitor) GetNetworkMonitorPage(serverID uint, page, count int) response
 	path := fmt.Sprintf("monitor/net/%d/%d", page, count)
 	return m.callAgent(serverID, path, "get network monitoring data page")
 }
+
+func (m *Monitor) GetDiskUsageMonitorPage(serverID uint, page, count int) response.Response {
+	path := fmt.Sprintf("monitor/disk-usage/%d/%d", page, count)
+	return m.callAgent(serverID, path, "get disk usage monitoring data page")
+}

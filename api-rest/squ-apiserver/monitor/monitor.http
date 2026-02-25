@@ -37,3 +37,8 @@ Authorization: Bearer {{token}}
 GET   {{url}}/api/v1/monitor/net/1/1/5
 content-type: application/json
 Authorization: Bearer {{token}}
+
+### get disk usage monitor page
+GET   {{url}}/api/v1/monitor/disk-usage/1/1/10
+content-type: application/json
+Authorization: Bearer {{token}}
