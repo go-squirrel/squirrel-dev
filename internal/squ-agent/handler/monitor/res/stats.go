@@ -153,6 +153,22 @@ type NetworkMonitorResponse struct {
 	CollectTime   time.Time `json:"collect_time"`
 }
 
+// DiskUsageMonitorResponse disk usage monitor response
+type DiskUsageMonitorResponse struct {
+	ID          uint      `json:"id"`
+	DeviceName  string    `json:"device_name"`
+	MountPoint  string    `json:"mount_point"`
+	FsType      string    `json:"fs_type"`
+	Total       uint64    `json:"total"`
+	Used        uint64    `json:"used"`
+	Free        uint64    `json:"free"`
+	Usage       float64   `json:"usage"`
+	InodesTotal uint64    `json:"inodes_total"`
+	InodesUsed  uint64    `json:"inodes_used"`
+	InodesFree  uint64    `json:"inodes_free"`
+	CollectTime time.Time `json:"collect_time"`
+}
+
 // PageData 分页数据
 type PageData struct {
 	List  interface{} `json:"list"`

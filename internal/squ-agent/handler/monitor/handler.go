@@ -125,7 +125,7 @@ func DiskIOMonitorPageHandler(service *Monitor) func(c *gin.Context) {
 	}
 }
 
-// NetworkMonitorPageHandler 查询网卡流量监控数据分页
+// NetworkMonitorPageHandler query network monitor data page
 func NetworkMonitorPageHandler(service *Monitor) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		pageStr := c.Param("page")
@@ -152,6 +152,37 @@ func NetworkMonitorPageHandler(service *Monitor) func(c *gin.Context) {
 		}
 
 		resp := service.GetNetworkMonitorPage(page, count)
+		c.JSON(http.StatusOK, resp)
+	}
+}
+
+// DiskUsageMonitorPageHandler query disk usage monitor data page
+func DiskUsageMonitorPageHandler(service *Monitor) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		pageStr := c.Param("page")
+		countStr := c.Param("count")
+
+		if pageStr == "" || countStr == "" {
+			zap.L().Warn("Page or count parameter is empty")
+			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
+			return
+		}
+
+		page, err := strconv.Atoi(pageStr)
+		if err != nil || page < 1 {
+			zap.L().Warn("Invalid page parameter", zap.String("page", pageStr), zap.Error(err))
+			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
+			return
+		}
+
+		count, err := strconv.Atoi(countStr)
+		if err != nil || count < 1 || count > 100 {
+			zap.L().Warn("Invalid count parameter", zap.String("count", countStr), zap.Error(err))
+			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
+			return
+		}
+
+		resp := service.GetDiskUsageMonitorPage(page, count)
 		c.JSON(http.StatusOK, resp)
 	}
 }

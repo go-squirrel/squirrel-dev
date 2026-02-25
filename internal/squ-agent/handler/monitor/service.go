@@ -25,15 +25,15 @@ func New(config *config.Config, repo monitorRepository.Repository, factory *coll
 	}
 }
 
-// GetBaseMonitorPage 获取基础监控数据分页
+// GetBaseMonitorPage get base monitor data page
 func (m *Monitor) GetBaseMonitorPage(page, count int) response.Response {
 	monitors, total, err := m.Repository.GetBaseMonitorPage(page, count)
 	if err != nil {
-		zap.L().Error("Failed to get base monitor page", zap.Int("page", page), zap.Int("count", count), zap.Error(err))
+		zap.L().Error("Failed to get base monitor page",
+			zap.Int("page", page), zap.Int("count", count), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	// 转换为响应结构
 	var responseList []monitorres.BaseMonitorResponse
 	for _, item := range monitors {
 		responseList = append(responseList, monitorres.BaseMonitorResponse{
@@ -59,15 +59,15 @@ func (m *Monitor) GetBaseMonitorPage(page, count int) response.Response {
 	return response.Success(result)
 }
 
-// GetDiskIOMonitorPage 获取磁盘IO监控数据分页
+// GetDiskIOMonitorPage get disk IO monitor data page
 func (m *Monitor) GetDiskIOMonitorPage(page, count int) response.Response {
 	monitors, total, err := m.Repository.GetDiskIOMonitorPage(page, count)
 	if err != nil {
-		zap.L().Error("Failed to get disk IO monitor page", zap.Int("page", page), zap.Int("count", count), zap.Error(err))
+		zap.L().Error("Failed to get disk IO monitor page",
+			zap.Int("page", page), zap.Int("count", count), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	// 转换为响应结构
 	var responseList []monitorres.DiskIOMonitorResponse
 	for _, item := range monitors {
 		responseList = append(responseList, monitorres.DiskIOMonitorResponse{
@@ -96,15 +96,52 @@ func (m *Monitor) GetDiskIOMonitorPage(page, count int) response.Response {
 	return response.Success(result)
 }
 
-// GetNetworkMonitorPage 获取网卡流量监控数据分页
-func (m *Monitor) GetNetworkMonitorPage(page, count int) response.Response {
-	monitors, total, err := m.Repository.GetNetworkMonitorPage(page, count)
+// GetDiskUsageMonitorPage get disk usage monitor data page
+func (m *Monitor) GetDiskUsageMonitorPage(page, count int) response.Response {
+	monitors, total, err := m.Repository.GetDiskUsageMonitorPage(page, count)
 	if err != nil {
-		zap.L().Error("Failed to get network monitor page", zap.Int("page", page), zap.Int("count", count), zap.Error(err))
+		zap.L().Error("Failed to get disk usage monitor page",
+			zap.Int("page", page), zap.Int("count", count), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
-	// 转换为响应结构
+	var responseList []monitorres.DiskUsageMonitorResponse
+	for _, item := range monitors {
+		responseList = append(responseList, monitorres.DiskUsageMonitorResponse{
+			ID:          item.ID,
+			DeviceName:  item.DeviceName,
+			MountPoint:  item.MountPoint,
+			FsType:      item.FsType,
+			Total:       item.Total,
+			Used:        item.Used,
+			Free:        item.Free,
+			Usage:       item.Usage,
+			InodesTotal: item.InodesTotal,
+			InodesUsed:  item.InodesUsed,
+			InodesFree:  item.InodesFree,
+			CollectTime: item.CollectTime,
+		})
+	}
+
+	result := monitorres.PageData{
+		List:  responseList,
+		Total: total,
+		Page:  page,
+		Size:  count,
+	}
+
+	return response.Success(result)
+}
+
+// GetNetworkMonitorPage get network monitor data page
+func (m *Monitor) GetNetworkMonitorPage(page, count int) response.Response {
+	monitors, total, err := m.Repository.GetNetworkMonitorPage(page, count)
+	if err != nil {
+		zap.L().Error("Failed to get network monitor page",
+			zap.Int("page", page), zap.Int("count", count), zap.Error(err))
+		return response.Error(model.ReturnErrCode(err))
+	}
+
 	var responseList []monitorres.NetworkMonitorResponse
 	for _, item := range monitors {
 		responseList = append(responseList, monitorres.NetworkMonitorResponse{

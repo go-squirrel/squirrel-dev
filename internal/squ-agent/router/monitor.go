@@ -25,7 +25,7 @@ func MonitorRouter(group *gin.RouterGroup, conf *config.Config, db database.DB) 
 	// 创建monitor服务实例
 	service := monitor.New(conf, monitorRepository.New(db.GetDB()), factory)
 
-	// 注册路由
+	// register routes
 	group.GET("/monitor/stats", monitor.StatsHandler(service))
 	group.GET("/monitor/stats/io/:device", monitor.DiskIOHandler(service))
 	group.GET("/monitor/stats/io/all", monitor.AllDiskIOHandler(service))
@@ -33,5 +33,6 @@ func MonitorRouter(group *gin.RouterGroup, conf *config.Config, db database.DB) 
 	group.GET("/monitor/stats/net/all", monitor.AllNetIOHandler(service))
 	group.GET("/monitor/base/:page/:count", monitor.BaseMonitorPageHandler(service))
 	group.GET("/monitor/disk/:page/:count", monitor.DiskIOMonitorPageHandler(service))
+	group.GET("/monitor/disk-usage/:page/:count", monitor.DiskUsageMonitorPageHandler(service))
 	group.GET("/monitor/net/:page/:count", monitor.NetworkMonitorPageHandler(service))
 }

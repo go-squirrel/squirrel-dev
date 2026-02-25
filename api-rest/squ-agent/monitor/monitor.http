@@ -29,3 +29,7 @@ content-type: application/json
 ### get all network io
 GET   {{url}}/api/v1/monitor/net/1/5
 content-type: application/json
+
+### get disk usage monitor page
+GET   {{url}}/api/v1/monitor/disk-usage/1/10
+content-type: application/json
