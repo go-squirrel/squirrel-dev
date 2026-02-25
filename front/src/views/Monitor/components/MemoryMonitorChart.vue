@@ -30,19 +30,25 @@ const props = defineProps<{
 const chartContainer = ref<HTMLDivElement>()
 let chartInstance: echarts.ECharts | null = null
 
+const sortedData = computed(() => {
+  return [...props.data].sort((a, b) =>
+    new Date(a.collect_time).getTime() - new Date(b.collect_time).getTime()
+  )
+})
+
 const latestValue = computed(() => {
-  if (props.data.length === 0) return 0
-  return props.data[props.data.length - 1].memory_usage
+  if (sortedData.value.length === 0) return 0
+  return sortedData.value[sortedData.value.length - 1].memory_usage
 })
 
 const latestUsed = computed(() => {
-  if (props.data.length === 0) return 0
-  return props.data[props.data.length - 1].memory_used
+  if (sortedData.value.length === 0) return 0
+  return sortedData.value[sortedData.value.length - 1].memory_used
 })
 
 const latestTotal = computed(() => {
-  if (props.data.length === 0) return 0
-  return props.data[props.data.length - 1].memory_total
+  if (sortedData.value.length === 0) return 0
+  return sortedData.value[sortedData.value.length - 1].memory_total
 })
 
 const getUsageClass = (value: number) => {
@@ -52,10 +58,10 @@ const getUsageClass = (value: number) => {
 }
 
 const getChartOption = () => {
-  const times = props.data.map(d =>
+  const times = sortedData.value.map(d =>
     new Date(d.collect_time).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   )
-  const values = props.data.map(d => d.memory_usage)
+  const values = sortedData.value.map(d => d.memory_usage)
 
   return {
     tooltip: {

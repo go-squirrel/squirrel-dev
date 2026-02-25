@@ -27,9 +27,15 @@ const props = defineProps<{
 const chartContainer = ref<HTMLDivElement>()
 let chartInstance: echarts.ECharts | null = null
 
+const sortedData = computed(() => {
+  return [...props.data].sort((a, b) =>
+    new Date(a.collect_time).getTime() - new Date(b.collect_time).getTime()
+  )
+})
+
 const latestValue = computed(() => {
-  if (props.data.length === 0) return 0
-  return props.data[props.data.length - 1].cpu_usage
+  if (sortedData.value.length === 0) return 0
+  return sortedData.value[sortedData.value.length - 1].cpu_usage
 })
 
 const getUsageClass = (value: number) => {
@@ -39,10 +45,10 @@ const getUsageClass = (value: number) => {
 }
 
 const getChartOption = () => {
-  const times = props.data.map(d =>
+  const times = sortedData.value.map(d =>
     new Date(d.collect_time).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   )
-  const values = props.data.map(d => d.cpu_usage)
+  const values = sortedData.value.map(d => d.cpu_usage)
 
   return {
     tooltip: {

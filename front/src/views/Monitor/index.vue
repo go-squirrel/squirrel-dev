@@ -34,6 +34,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import Loading from '@/components/Loading/index.vue'
 import Empty from '@/components/Empty/index.vue'
 import ServerSelector from './components/ServerSelector.vue'
@@ -58,6 +59,9 @@ import type {
 } from '@/types/monitor'
 import type { Server } from '@/types'
 
+const route = useRoute()
+const router = useRouter()
+
 const loading = ref(false)
 const selectedServer = ref<number | null>(null)
 const timeRange = ref<TimeRange>('1h')
@@ -73,9 +77,13 @@ const netInterfaces = ref<string[]>([])
 const loadServers = async () => {
   try {
     servers.value = await fetchServers()
-    if (servers.value.length > 0 && !selectedServer.value) {
-      selectedServer.value = servers.value[0].id
-      await loadMonitorData()
+    if (servers.value.length > 0) {
+      const queryServerId = Number(route.query.serverId)
+      if (queryServerId && servers.value.some(s => s.id === queryServerId)) {
+        selectedServer.value = queryServerId
+      } else if (!selectedServer.value) {
+        selectedServer.value = servers.value[0].id
+      }
     }
   } catch (error) {
     console.error('Failed to load servers:', error)
@@ -125,6 +133,7 @@ const loadMonitorData = async () => {
 
 watch(selectedServer, (newVal) => {
   if (newVal) {
+    router.replace({ query: { serverId: String(newVal) } })
     loadMonitorData()
   }
 })

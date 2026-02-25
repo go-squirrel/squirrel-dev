@@ -39,21 +39,27 @@ const filteredData = computed(() => {
   return props.data.filter(d => d.mount_point === selectedMount.value)
 })
 
+const sortedData = computed(() => {
+  return [...filteredData.value].sort((a, b) =>
+    new Date(a.collect_time).getTime() - new Date(b.collect_time).getTime()
+  )
+})
+
 const latestUsed = computed(() => {
-  if (filteredData.value.length === 0) return 0
-  return filteredData.value[filteredData.value.length - 1].used
+  if (sortedData.value.length === 0) return 0
+  return sortedData.value[sortedData.value.length - 1].used
 })
 
 const latestTotal = computed(() => {
-  if (filteredData.value.length === 0) return 0
-  return filteredData.value[filteredData.value.length - 1].total
+  if (sortedData.value.length === 0) return 0
+  return sortedData.value[sortedData.value.length - 1].total
 })
 
 const getChartOption = () => {
-  const times = filteredData.value.map(d =>
+  const times = sortedData.value.map(d =>
     new Date(d.collect_time).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   )
-  const values = filteredData.value.map(d => d.usage)
+  const values = sortedData.value.map(d => d.usage)
 
   return {
     tooltip: {
