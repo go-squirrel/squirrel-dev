@@ -23,7 +23,7 @@ func NewRistrettoCache(opts *Options) *RistrettoCache {
 // Connect 初始化 ristretto 缓存
 func (r *RistrettoCache) Connect(_ string) error {
 	config := &ristretto.Config{
-		NumCounters: 1e7,     // 10M
+		NumCounters: 1e7, // 10M
 		MaxCost:     r.options.MaxCost,
 		BufferItems: r.options.BufferItems,
 		Metrics:     r.options.Metrics,
@@ -47,7 +47,7 @@ func (r *RistrettoCache) Close() error {
 }
 
 // Get 获取缓存值
-func (r *RistrettoCache) Get(ctx context.Context, key string) (interface{}, error) {
+func (r *RistrettoCache) Get(ctx context.Context, key string) (any, error) {
 	if r.client == nil {
 		return nil, ErrCacheNotConnected
 	}
@@ -61,7 +61,7 @@ func (r *RistrettoCache) Get(ctx context.Context, key string) (interface{}, erro
 }
 
 // Set 设置缓存值
-func (r *RistrettoCache) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+func (r *RistrettoCache) Set(ctx context.Context, key string, value any, ttl time.Duration) error {
 	if r.client == nil {
 		return ErrCacheNotConnected
 	}
@@ -109,6 +109,6 @@ func (r *RistrettoCache) Flush(ctx context.Context) error {
 }
 
 // GetClient 获取底层 ristretto 客户端
-func (r *RistrettoCache) GetClient() interface{} {
+func (r *RistrettoCache) GetClient() any {
 	return r.client
 }

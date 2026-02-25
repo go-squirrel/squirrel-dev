@@ -171,8 +171,8 @@ type DiskUsageMonitorResponse struct {
 
 // PageData 分页数据
 type PageData struct {
-	List  interface{} `json:"list"`
-	Total int64       `json:"total"`
-	Page  int         `json:"page"`
-	Size  int         `json:"size"`
+	List  any   `json:"list"`
+	Total int64 `json:"total"`
+	Page  int   `json:"page"`
+	Size  int   `json:"size"`
 }

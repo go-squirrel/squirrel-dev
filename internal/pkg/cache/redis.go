@@ -55,7 +55,7 @@ func (r *RedisCache) Close() error {
 }
 
 // Get 获取缓存值
-func (r *RedisCache) Get(ctx context.Context, key string) (interface{}, error) {
+func (r *RedisCache) Get(ctx context.Context, key string) (any, error) {
 	if r.client == nil {
 		return nil, ErrCacheNotConnected
 	}
@@ -72,7 +72,7 @@ func (r *RedisCache) Get(ctx context.Context, key string) (interface{}, error) {
 }
 
 // Set 设置缓存值
-func (r *RedisCache) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+func (r *RedisCache) Set(ctx context.Context, key string, value any, ttl time.Duration) error {
 	if r.client == nil {
 		return ErrCacheNotConnected
 	}
@@ -113,6 +113,6 @@ func (r *RedisCache) Flush(ctx context.Context) error {
 }
 
 // GetClient 获取底层 Redis 客户端
-func (r *RedisCache) GetClient() interface{} {
+func (r *RedisCache) GetClient() any {
 	return r.client
 }

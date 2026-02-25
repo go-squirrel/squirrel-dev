@@ -12,9 +12,9 @@ type Cache interface {
 	// Close 关闭连接
 	Close() error
 	// Get 获取缓存值
-	Get(ctx context.Context, key string) (interface{}, error)
+	Get(ctx context.Context, key string) (any, error)
 	// Set 设置缓存值
-	Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error
+	Set(ctx context.Context, key string, value any, ttl time.Duration) error
 	// Delete 删除缓存
 	Delete(ctx context.Context, key string) error
 	// Exists 检查 key 是否存在
@@ -22,7 +22,7 @@ type Cache interface {
 	// Flush 清空所有缓存
 	Flush(ctx context.Context) error
 	// GetClient 获取底层客户端（可选，用于高级操作）
-	GetClient() interface{}
+	GetClient() any
 }
 
 // Options 缓存配置选项
