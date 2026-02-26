@@ -162,6 +162,19 @@ const formData = reactive<CreateServerRequest>({
 
 const errors = reactive<Record<string, string>>({})
 
+const resetForm = () => {
+  formData.ip_address = ''
+  formData.port = 10750
+  formData.ssh_username = ''
+  formData.ssh_port = 22
+  formData.ssh_password = ''
+  formData.ssh_private_key = ''
+  formData.auth_type = 'password'
+  formData.status = 'active'
+  formData.server_alias = ''
+  Object.keys(errors).forEach(key => delete errors[key])
+}
+
 watch(() => props.server, (server) => {
   if (server) {
     formData.ip_address = server.ip_address
@@ -179,19 +192,6 @@ watch(() => props.server, (server) => {
     resetForm()
   }
 }, { immediate: true })
-
-const resetForm = () => {
-  formData.ip_address = ''
-  formData.port = 10750
-  formData.ssh_username = ''
-  formData.ssh_port = 22
-  formData.ssh_password = ''
-  formData.ssh_private_key = ''
-  formData.auth_type = 'password'
-  formData.status = 'active'
-  formData.server_alias = ''
-  Object.keys(errors).forEach(key => delete errors[key])
-}
 
 const validate = () => {
   Object.keys(errors).forEach(key => delete errors[key])
