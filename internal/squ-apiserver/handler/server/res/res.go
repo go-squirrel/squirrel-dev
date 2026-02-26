@@ -14,3 +14,11 @@ type Server struct {
 	ServerAlias   *string        `json:"server_alias,omitempty"`
 	ServerInfo    map[string]any `json:"server_info"`
 }
+
+// SSHTestResult represents the response of SSH connection test.
+type SSHTestResult struct {
+	Message   string `json:"message"`
+	Hostname  string `json:"hostname"`
+	IpAddress string `json:"ip_address"`
+	SshPort   int    `json:"ssh_port"`
+}

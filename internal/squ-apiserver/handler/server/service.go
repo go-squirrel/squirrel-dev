@@ -140,19 +140,16 @@ func (s *Server) Registry(request req.Register) response.Response {
 	return response.Success("success")
 }
 
-// TestSSH 测试 SSH 连接
+// TestSSH tests SSH connection to the specified server.
 func (s *Server) TestSSH(id uint) response.Response {
-	// 从数据库获取服务器信息
+	// Get server info from database
 	daoS, err := s.Repository.Get(id)
 	if err != nil {
-		zap.L().Error("failed to get server",
-			zap.Uint("id", id),
-			zap.Error(err),
-		)
+		zap.L().Error("failed to get server", zap.Uint("id", id), zap.Error(err))
 		return response.Error(returnServerErrCode(err))
 	}
 
-	// 准备 SSH 连接参数
+	// Prepare SSH connection parameters
 	privateKey := ""
 	if daoS.SshPrivateKey != nil {
 		privateKey = *daoS.SshPrivateKey
@@ -172,10 +169,10 @@ func (s *Server) TestSSH(id uint) response.Response {
 		Type:       daoS.AuthType,
 	}
 
-	// 尝试建立 SSH 连接
+	// Try to establish SSH connection
 	sshClient, err := ssh.NewSsh(machine)
 	if err != nil {
-		zap.L().Error("SSH connection test failed",
+		zap.L().Error("ssh connection test failed",
 			zap.Uint("id", id),
 			zap.String("ip_address", daoS.IpAddress),
 			zap.String("username", daoS.SshUsername),
@@ -185,15 +182,12 @@ func (s *Server) TestSSH(id uint) response.Response {
 	}
 	defer sshClient.Close()
 
-	zap.L().Info("SSH connection test successful",
-		zap.Uint("id", id),
-		zap.String("ip_address", daoS.IpAddress),
-	)
+	zap.L().Info("ssh connection test successful", zap.Uint("id", id), zap.String("ip_address", daoS.IpAddress))
 
-	return response.Success(map[string]any{
-		"message":    "SSH connection successful",
-		"hostname":   daoS.Hostname,
-		"ip_address": daoS.IpAddress,
-		"ssh_port":   daoS.SshPort,
+	return response.Success(res.SSHTestResult{
+		Message:   "SSH connection successful",
+		Hostname:  daoS.Hostname,
+		IpAddress: daoS.IpAddress,
+		SshPort:   daoS.SshPort,
 	})
 }
