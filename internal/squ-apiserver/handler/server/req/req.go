@@ -5,6 +5,7 @@ type Server struct {
 	ID            uint   `json:"id"`
 	Hostname      string `json:"hostname"`
 	IpAddress     string `json:"ip_address"`
+	Port          int    `json:"port"`
 	SshUsername   string `json:"ssh_username"`
 	SshPassword   string `json:"ssh_password"`
 	SshPrivateKey string `json:"ssh_private_key"`

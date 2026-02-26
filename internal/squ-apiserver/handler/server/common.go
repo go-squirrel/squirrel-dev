@@ -67,6 +67,7 @@ func (s *Server) requestToModel(request req.Server) model.Server {
 	modelReq := model.Server{
 		Hostname:    request.Hostname,
 		IpAddress:   request.IpAddress,
+		AgentPort:   request.Port,
 		SshUsername: request.SshUsername,
 		SshPort:     request.SshPort,
 		AuthType:    request.AuthType,
