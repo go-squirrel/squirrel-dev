@@ -9,8 +9,9 @@ import (
 	"squirrel-dev/pkg/ssh"
 	"time"
 
-	"go.uber.org/zap"
 	serverRepository "squirrel-dev/internal/squ-apiserver/repository/server"
+
+	"go.uber.org/zap"
 )
 
 type Server struct {
@@ -20,7 +21,7 @@ type Server struct {
 }
 
 func New(conf *config.Config, repo serverRepository.Repository) *Server {
-	hc := httpclient.NewClient(30 * time.Second)
+	hc := httpclient.NewClient(3 * time.Second)
 	return &Server{
 		Config:     conf,
 		Repository: repo,
