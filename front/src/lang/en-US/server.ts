@@ -8,6 +8,7 @@ export default {
   viewDetail: 'View Detail',
   hostname: 'Hostname',
   ipAddress: 'IP Address',
+  agentPort: 'Agent Port',
   sshPort: 'SSH Port',
   username: 'Username',
   authType: 'Auth Type',

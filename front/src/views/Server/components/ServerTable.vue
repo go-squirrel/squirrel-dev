@@ -5,6 +5,7 @@
         <tr>
           <th>{{ $t('server.hostname') }}</th>
           <th>{{ $t('server.ipAddress') }}</th>
+          <th>{{ $t('server.agentPort') }}</th>
           <th>{{ $t('server.sshPort') }}</th>
           <th>{{ $t('server.username') }}</th>
           <th>{{ $t('server.authType') }}</th>
@@ -24,7 +25,8 @@
             </div>
           </td>
           <td class="ip-cell">{{ server.ip_address }}</td>
-          <td class="port-cell">{{ server.ssh_port }}</td>
+          <td class="port-cell">{{ server.port }}</td>
+          <td class="ssh-port-cell">{{ server.ssh_port }}</td>
           <td class="username-cell">{{ server.ssh_username }}</td>
           <td class="auth-cell">
             <span class="auth-badge" :class="server.auth_type">
@@ -166,7 +168,8 @@ const getStatusText = (status: string) => {
   color: #64748b;
 }
 
-.port-cell {
+.port-cell,
+.ssh-port-cell {
   color: #64748b;
 }
 

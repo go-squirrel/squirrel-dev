@@ -27,6 +27,10 @@
                 <span class="value">{{ serverDetail.ip_address }}</span>
               </div>
               <div class="info-item">
+                <span class="label">{{ $t('server.agentPort') }}</span>
+                <span class="value">{{ serverDetail.port }}</span>
+              </div>
+              <div class="info-item">
                 <span class="label">{{ $t('server.sshPort') }}</span>
                 <span class="value">{{ serverDetail.ssh_port }}</span>
               </div>

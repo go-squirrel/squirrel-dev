@@ -23,6 +23,18 @@
           </div>
 
           <div class="form-group">
+            <label>{{ $t('server.agentPort') }} *</label>
+            <input
+              v-model.number="formData.port"
+              type="number"
+              min="1"
+              max="65535"
+              :class="{ error: errors.port }"
+            />
+            <span v-if="errors.port" class="error-text">{{ errors.port }}</span>
+          </div>
+
+          <div class="form-group">
             <label>{{ $t('server.sshPort') }} *</label>
             <input
               v-model.number="formData.ssh_port"
@@ -138,6 +150,7 @@ const showPassword = ref(false)
 
 const formData = reactive<CreateServerRequest>({
   ip_address: '',
+  port: 10750,
   ssh_username: '',
   ssh_port: 22,
   ssh_password: '',
@@ -152,6 +165,7 @@ const errors = reactive<Record<string, string>>({})
 watch(() => props.server, (server) => {
   if (server) {
     formData.ip_address = server.ip_address
+    formData.port = server.port
     formData.ssh_username = server.ssh_username
     formData.ssh_port = server.ssh_port
     formData.auth_type = server.auth_type
@@ -168,6 +182,7 @@ watch(() => props.server, (server) => {
 
 const resetForm = () => {
   formData.ip_address = ''
+  formData.port = 10750
   formData.ssh_username = ''
   formData.ssh_port = 22
   formData.ssh_password = ''
@@ -195,6 +210,10 @@ const validate = () => {
     errors.ssh_port = '端口范围 1-65535'
   }
 
+  if (!formData.port || formData.port < 1 || formData.port > 65535) {
+    errors.port = '端口范围 1-65535'
+  }
+
   if (!isEdit.value) {
     if (formData.auth_type === 'password' && !formData.ssh_password) {
       errors.ssh_password = '必填项'
@@ -215,6 +234,7 @@ const handleSubmit = async () => {
     if (isEdit.value && props.server) {
       const updateData: UpdateServerRequest = {
         ip_address: formData.ip_address,
+        port: formData.port,
         ssh_username: formData.ssh_username,
         ssh_port: formData.ssh_port,
         auth_type: formData.auth_type,

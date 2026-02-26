@@ -8,6 +8,7 @@ export default {
   viewDetail: '查看详情',
   hostname: '主机名',
   ipAddress: 'IP地址',
+  agentPort: 'Agent端口',
   sshPort: 'SSH端口',
   username: '用户名',
   authType: '认证方式',

@@ -58,7 +58,7 @@
           </div>
           <div class="info-item">
             <span class="info-label">{{ $t('deployment.agentPort') }}</span>
-            <span class="info-value">{{ deployment.server.agent_port || 8080 }}</span>
+            <span class="info-value">{{ deployment.server.port || 8080 }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">{{ $t('deployment.serverHostname') }}</span>

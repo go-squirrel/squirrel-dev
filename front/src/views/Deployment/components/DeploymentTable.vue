@@ -37,7 +37,7 @@
               <Icon icon="lucide:server" class="server-icon" />
               <div class="server-info">
                 <span class="server-ip">{{ deployment.server.ip_address }}</span>
-                <span class="agent-port">:{{ deployment.server.agent_port || 8080 }}</span>
+                <span class="agent-port">:{{ deployment.server.port || 8080 }}</span>
               </div>
             </div>
           </td>

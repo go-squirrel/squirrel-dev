@@ -25,18 +25,19 @@ export interface Server {
   id: number
   hostname: string
   ip_address: string
+  port: number
   ssh_username: string
   ssh_port: number
   auth_type: 'password' | 'key'
   status: 'online' | 'offline' | 'unknown' | 'active' | 'inactive'
   server_info?: ServerInfo | null
   server_alias?: string
-  agent_port?: number
 }
 
 // 创建服务器请求
 export interface CreateServerRequest {
   ip_address: string
+  port: number
   ssh_username: string
   ssh_port: number
   ssh_password?: string
@@ -49,6 +50,7 @@ export interface CreateServerRequest {
 // 更新服务器请求
 export interface UpdateServerRequest {
   ip_address: string
+  port: number
   ssh_username: string
   ssh_port: number
   auth_type: 'password' | 'key'
