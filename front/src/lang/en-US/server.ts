@@ -68,5 +68,8 @@ export default {
   sshTestFailed: 'SSH connection test failed',
   sshTesting: 'Testing SSH connection...',
   sshTestSuccess: 'SSH connection test successful',
-  sshConfigError: 'SSH configuration error'
+  sshConfigError: 'SSH configuration error',
+  agentChecking: 'Checking Agent connection...',
+  agentCheckFailed: 'Agent connection failed, please check IP address and port',
+  agentNotReady: 'Agent is not ready, please ensure Agent is running'
 }

@@ -1,6 +1,6 @@
 // 服务器相关 API
 import { get, post, del } from '@/utils/request'
-import type { Server, CreateServerRequest, UpdateServerRequest } from '@/types'
+import type { Server, CreateServerRequest, UpdateServerRequest, AgentCheckResult } from '@/types'
 
 /**
  * 获取服务器列表
@@ -58,4 +58,11 @@ export function testSSHConnection(serverId: number): Promise<{ message: string; 
  */
 export function getAuthToken(): string {
   return localStorage.getItem('token') || ''
+}
+
+/**
+ * 检查 Agent 是否就绪
+ */
+export function checkAgent(data: { ip_address: string; port: number }): Promise<AgentCheckResult> {
+  return post('/server/check', data)
 }

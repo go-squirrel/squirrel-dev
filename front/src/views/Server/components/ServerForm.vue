@@ -11,6 +11,7 @@
       <form @submit.prevent="handleSubmit" class="modal-body">
         <div class="form-section">
           <h4>{{ $t('server.basicInfo') }}</h4>
+          <div v-if="agentError" class="agent-error">{{ agentError }}</div>
           <div class="form-group">
             <label>{{ $t('server.ipAddress') }} *</label>
             <input
@@ -124,7 +125,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createServer, updateServer } from '@/api/server'
+import { createServer, updateServer, checkAgent } from '@/api/server'
 import type { Server, CreateServerRequest, UpdateServerRequest } from '@/types'
 
 const props = defineProps<{
@@ -141,6 +142,7 @@ const { t } = useI18n()
 const isEdit = computed(() => !!props.server)
 const submitting = ref(false)
 const showPassword = ref(false)
+const agentError = ref('')
 
 const formData = reactive<CreateServerRequest>({
   ip_address: '',
@@ -167,6 +169,7 @@ const resetForm = () => {
   formData.status = 'active'
   formData.server_alias = ''
   Object.keys(errors).forEach(key => delete errors[key])
+  agentError.value = ''
 }
 
 watch(() => props.server, (server) => {
@@ -214,8 +217,26 @@ const validate = () => {
 const handleSubmit = async () => {
   if (!validate()) return
 
+  agentError.value = ''
   submitting.value = true
   try {
+    // 先检查 Agent 是否正常
+    try {
+      const checkResult = await checkAgent({
+        ip_address: formData.ip_address,
+        port: formData.port
+      })
+      if (!checkResult.ready) {
+        agentError.value = t('server.agentNotReady')
+        submitting.value = false
+        return
+      }
+    } catch (error) {
+      agentError.value = t('server.agentCheckFailed')
+      submitting.value = false
+      return
+    }
+
     if (isEdit.value && props.server) {
       const updateData: UpdateServerRequest = {
         ip_address: formData.ip_address,
@@ -368,6 +389,16 @@ const handleSubmit = async () => {
   font-size: 11px;
   color: #dc2626;
   margin-top: 4px;
+}
+
+.agent-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #dc2626;
 }
 
 .password-input-wrapper {

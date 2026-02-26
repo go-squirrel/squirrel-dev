@@ -68,5 +68,8 @@ export default {
   sshTestFailed: 'SSH 连接测试失败',
   sshTesting: '测试 SSH 连接中...',
   sshTestSuccess: 'SSH 连接测试成功',
-  sshConfigError: 'SSH 配置错误'
+  sshConfigError: 'SSH 配置错误',
+  agentChecking: '检查 Agent 连接中...',
+  agentCheckFailed: 'Agent 连接失败，请检查 IP 地址和端口是否正确',
+  agentNotReady: 'Agent 未就绪，请确保 Agent 已启动并正常运行'
 }

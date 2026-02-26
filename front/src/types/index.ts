@@ -60,6 +60,19 @@ export interface UpdateServerRequest {
   ssh_private_key?: string
 }
 
+// 检查 Agent 请求
+export interface CheckAgentRequest {
+  ip_address: string
+  port: number
+}
+
+// 检查 Agent 响应
+export interface AgentCheckResult {
+  ready: boolean
+  message: string
+  server_info: ServerInfo | null
+}
+
 // 应用类型（概览页显示的简化版本）
 export interface Application {
   id: number
