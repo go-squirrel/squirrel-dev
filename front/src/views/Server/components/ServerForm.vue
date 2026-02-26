@@ -85,15 +85,12 @@
           </div>
 
           <div v-if="formData.auth_type === 'password'" class="form-group">
-            <label>
-              {{ $t('server.sshPassword') }}
-              {{ isEdit ? `(${t('server.optional')})` : '*' }}
-            </label>
+            <label>{{ $t('server.sshPassword') }} ({{ $t('server.optional') }})</label>
             <div class="password-input-wrapper">
               <input
                 v-model="formData.ssh_password"
                 :type="showPassword ? 'text' : 'password'"
-                :placeholder="isEdit ? $t('server.optional') : ''"
+                :placeholder="$t('server.optional')"
               />
               <button type="button" class="toggle-password-btn" @click="showPassword = !showPassword">
                 <Icon :icon="showPassword ? 'lucide:eye-off' : 'lucide:eye'" />
@@ -102,14 +99,11 @@
           </div>
 
           <div v-if="formData.auth_type === 'key'" class="form-group">
-            <label>
-              {{ $t('server.sshPrivateKey') }}
-              {{ isEdit ? `(${t('server.optional')})` : '*' }}
-            </label>
+            <label>{{ $t('server.sshPrivateKey') }} ({{ $t('server.optional') }})</label>
             <textarea
               v-model="formData.ssh_private_key"
               rows="6"
-              :placeholder="isEdit ? $t('server.optional') : ''"
+              :placeholder="$t('server.optional')"
             ></textarea>
           </div>
         </div>
@@ -212,15 +206,6 @@ const validate = () => {
 
   if (!formData.port || formData.port < 1 || formData.port > 65535) {
     errors.port = '端口范围 1-65535'
-  }
-
-  if (!isEdit.value) {
-    if (formData.auth_type === 'password' && !formData.ssh_password) {
-      errors.ssh_password = '必填项'
-    }
-    if (formData.auth_type === 'key' && !formData.ssh_private_key) {
-      errors.ssh_private_key = '必填项'
-    }
   }
 
   return Object.keys(errors).length === 0

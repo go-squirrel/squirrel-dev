@@ -8,6 +8,7 @@ import (
 	"squirrel-dev/internal/squ-apiserver/model"
 	"squirrel-dev/pkg/utils"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -64,8 +65,14 @@ func (s *Server) modelToResponse(daoS model.Server, status string) res.Server {
 }
 
 func (s *Server) requestToModel(request req.Server) model.Server {
+	// 如果 hostname 为空，使用 ip_address 作为默认值
+	hostname := request.Hostname
+	if hostname == "" {
+		hostname = request.IpAddress
+	}
+
 	modelReq := model.Server{
-		Hostname:    request.Hostname,
+		Hostname:    hostname,
 		IpAddress:   request.IpAddress,
 		AgentPort:   request.Port,
 		SshUsername: request.SshUsername,
@@ -73,12 +80,28 @@ func (s *Server) requestToModel(request req.Server) model.Server {
 		AuthType:    request.AuthType,
 		Status:      request.Status,
 	}
+
+	// 处理 server_alias
+	if request.ServerAlias != "" {
+		modelReq.ServerAlias = &request.ServerAlias
+	}
+
+	// 处理认证信息
 	if request.AuthType == model.ServerAuthTypePassword {
-		modelReq.SshPassword = &request.SshPassword
+		if request.SshPassword != "" {
+			modelReq.SshPassword = &request.SshPassword
+		}
 	} else {
-		modelReq.SshPrivateKey = &request.SshPrivateKey
+		if request.SshPrivateKey != "" {
+			modelReq.SshPrivateKey = &request.SshPrivateKey
+		}
 	}
 	return modelReq
+}
+
+// generateUUID 生成服务器唯一标识
+func generateUUID() string {
+	return uuid.New().String()
 }
 
 // returnServerErrCode 根据错误类型返回精确的服务器错误码

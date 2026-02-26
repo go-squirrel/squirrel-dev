@@ -82,6 +82,8 @@ func (s *Server) Delete(id uint) response.Response {
 
 func (s *Server) Add(request req.Server) response.Response {
 	modelReq := s.requestToModel(request)
+	// 生成 UUID
+	modelReq.UUID = generateUUID()
 
 	err := s.Repository.Add(&modelReq)
 	if err != nil {
@@ -97,10 +99,22 @@ func (s *Server) Add(request req.Server) response.Response {
 }
 
 func (s *Server) Update(request req.Server) response.Response {
+	// 先获取原有的服务器记录
+	existingServer, err := s.Repository.Get(request.ID)
+	if err != nil {
+		zap.L().Error("failed to get server for update",
+			zap.Uint("id", request.ID),
+			zap.Error(err),
+		)
+		return response.Error(returnServerErrCode(err))
+	}
+
 	modelReq := s.requestToModel(request)
 	modelReq.ID = request.ID
+	// 保留原有的 UUID
+	modelReq.UUID = existingServer.UUID
 
-	err := s.Repository.Update(&modelReq)
+	err = s.Repository.Update(&modelReq)
 
 	if err != nil {
 		zap.L().Error("failed to update server",
