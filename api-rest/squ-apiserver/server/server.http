@@ -48,3 +48,11 @@ Authorization: Bearer {{token}}
 POST    {{url}}/api/v1/ssh/test/1
 content-type: application/json
 Authorization: Bearer {{token}}
+
+### 
+
+POST    {{url}}/api/v1/server/check
+content-type: application/json
+Authorization: Bearer {{token}}
+
+< json/check.json

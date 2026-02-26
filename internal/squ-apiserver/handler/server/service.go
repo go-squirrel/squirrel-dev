@@ -191,3 +191,24 @@ func (s *Server) TestSSH(id uint) response.Response {
 		SshPort:   daoS.SshPort,
 	})
 }
+
+// CheckAgent 检查 Agent 是否就绪
+func (s *Server) CheckAgent(request req.CheckAgent) response.Response {
+	status, agentResp := s.getAgentInfo(request.IpAddress, request.Port)
+
+	result := res.AgentCheckResult{
+		Ready:      status == "online",
+		ServerInfo: nil,
+	}
+
+	if result.Ready {
+		result.Message = "Agent is ready"
+		if agentResp.Data != nil {
+			result.ServerInfo = agentResp.Data.(map[string]any)
+		}
+	} else {
+		result.Message = "Agent is not ready"
+	}
+
+	return response.Success(result)
+}

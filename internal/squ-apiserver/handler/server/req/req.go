@@ -21,3 +21,9 @@ type Register struct {
 	AgentPort int    `json:"agent_port" binding:"required"` // Agent端口
 	IpAddress string `json:"ip_address"`
 }
+
+// CheckAgent 检查 Agent 是否就绪请求
+type CheckAgent struct {
+	IpAddress string `json:"ip_address" binding:"required"` // IP 地址
+	Port      int    `json:"port" binding:"required"`       // Agent 端口
+}

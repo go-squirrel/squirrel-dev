@@ -165,3 +165,20 @@ func TestSSHHandler(service *Server) func(c *gin.Context) {
 		c.JSON(http.StatusOK, resp)
 	}
 }
+
+// CheckAgentHandler 检查 Agent 是否就绪处理函数
+func CheckAgentHandler(service *Server) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		request := req.CheckAgent{}
+		err := c.ShouldBindJSON(&request)
+		if err != nil {
+			zap.L().Warn("failed to bind request JSON",
+				zap.Error(err),
+			)
+			c.JSON(http.StatusOK, response.Error(res.ErrInvalidParameter))
+			return
+		}
+		resp := service.CheckAgent(request)
+		c.JSON(http.StatusOK, resp)
+	}
+}

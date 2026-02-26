@@ -22,3 +22,10 @@ type SSHTestResult struct {
 	IpAddress string `json:"ip_address"`
 	SshPort   int    `json:"ssh_port"`
 }
+
+// AgentCheckResult 检查 Agent 是否就绪的响应
+type AgentCheckResult struct {
+	Ready      bool           `json:"ready"`       // Agent 是否就绪
+	Message    string         `json:"message"`     // 提示信息
+	ServerInfo map[string]any `json:"server_info"` // Agent 返回的服务器信息
+}
