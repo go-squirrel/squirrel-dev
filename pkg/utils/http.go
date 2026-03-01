@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/url"
 	"path"
+	"strings"
 )
 
 // GenAgentUrl constructs a full URL from components.
@@ -12,6 +13,7 @@ import (
 // - If address has no port and port != 0, the port is appended.
 // - Handles IPv4, IPv6 (with brackets), and domain names correctly.
 // - Properly joins baseuri and uri using path.Join for robust path concatenation.
+// - Supports query string in uri (e.g., "monitor/base?range=1h")
 func GenAgentUrl(schema, address string, port int, baseuri, uri string) string {
 	host := address
 
@@ -32,15 +34,24 @@ func GenAgentUrl(schema, address string, port int, baseuri, uri string) string {
 	}
 	// else: address already has port, use as-is
 
+	// Separate path and query string from uri
+	pathPart := uri
+	queryPart := ""
+	if idx := strings.Index(uri, "?"); idx != -1 {
+		pathPart = uri[:idx]
+		queryPart = uri[idx+1:]
+	}
+
 	// Normalize and join paths
 	// Ensure both parts are treated as path segments
-	fullPath := path.Join("/", baseuri, uri)
+	fullPath := path.Join("/", baseuri, pathPart)
 	// path.Join always returns absolute path (starts with /)
 
 	u := url.URL{
-		Scheme: schema,
-		Host:   host,
-		Path:   fullPath,
+		Scheme:   schema,
+		Host:     host,
+		Path:     fullPath,
+		RawQuery: queryPart,
 	}
 
 	return u.String()

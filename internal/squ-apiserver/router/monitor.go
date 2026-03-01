@@ -23,8 +23,8 @@ func Monitor(group *gin.RouterGroup, conf *config.Config, db database.DB) {
 	group.GET("/monitor/stats/io/:serverId/all", monitor.AllDiskIOHandler(service))
 	group.GET("/monitor/stats/net/:serverId/:interface", monitor.NetIOHandler(service))
 	group.GET("/monitor/stats/net/:serverId/all", monitor.AllNetIOHandler(service))
-	group.GET("/monitor/base/:serverId/:page/:count", monitor.BaseMonitorPageHandler(service))
-	group.GET("/monitor/disk/:serverId/:page/:count", monitor.DiskIOMonitorPageHandler(service))
-	group.GET("/monitor/disk-usage/:serverId/:page/:count", monitor.DiskUsageMonitorPageHandler(service))
-	group.GET("/monitor/net/:serverId/:page/:count", monitor.NetworkMonitorPageHandler(service))
+	group.GET("/monitor/base/:serverId", monitor.BaseMonitorRangeHandler(service))
+	group.GET("/monitor/disk/:serverId", monitor.DiskIOMonitorRangeHandler(service))
+	group.GET("/monitor/disk-usage/:serverId", monitor.DiskUsageMonitorRangeHandler(service))
+	group.GET("/monitor/net/:serverId", monitor.NetworkMonitorRangeHandler(service))
 }

@@ -2,7 +2,6 @@ package monitor
 
 import (
 	"net/http"
-	"strconv"
 
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-agent/handler/monitor/res"
@@ -63,126 +62,50 @@ func AllNetIOHandler(service *Monitor) func(c *gin.Context) {
 	}
 }
 
-// BaseMonitorPageHandler 查询基础监控数据分页
-func BaseMonitorPageHandler(service *Monitor) func(c *gin.Context) {
+// BaseMonitorRangeHandler 按时间范围查询基础监控数据
+func BaseMonitorRangeHandler(service *Monitor) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		pageStr := c.Param("page")
-		countStr := c.Param("count")
-
-		if pageStr == "" || countStr == "" {
-			zap.L().Warn("Page or count parameter is empty")
-			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
-			return
+		timeRange := c.Query("range")
+		if timeRange == "" {
+			timeRange = "1h"
 		}
-
-		page, err := strconv.Atoi(pageStr)
-		if err != nil || page < 1 {
-			zap.L().Warn("Invalid page parameter", zap.String("page", pageStr), zap.Error(err))
-			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
-			return
-		}
-
-		count, err := strconv.Atoi(countStr)
-		if err != nil || count < 1 || count > 100 {
-			zap.L().Warn("Invalid count parameter", zap.String("count", countStr), zap.Error(err))
-			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
-			return
-		}
-
-		resp := service.GetBaseMonitorPage(page, count)
+		resp := service.GetBaseMonitorByRange(timeRange)
 		c.JSON(http.StatusOK, resp)
 	}
 }
 
-// DiskIOMonitorPageHandler 查询磁盘IO监控数据分页
-func DiskIOMonitorPageHandler(service *Monitor) func(c *gin.Context) {
+// DiskIOMonitorRangeHandler 按时间范围查询磁盘IO监控数据
+func DiskIOMonitorRangeHandler(service *Monitor) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		pageStr := c.Param("page")
-		countStr := c.Param("count")
-
-		if pageStr == "" || countStr == "" {
-			zap.L().Warn("Page or count parameter is empty")
-			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
-			return
+		timeRange := c.Query("range")
+		if timeRange == "" {
+			timeRange = "1h"
 		}
-
-		page, err := strconv.Atoi(pageStr)
-		if err != nil || page < 1 {
-			zap.L().Warn("Invalid page parameter", zap.String("page", pageStr), zap.Error(err))
-			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
-			return
-		}
-
-		count, err := strconv.Atoi(countStr)
-		if err != nil || count < 1 || count > 100 {
-			zap.L().Warn("Invalid count parameter", zap.String("count", countStr), zap.Error(err))
-			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
-			return
-		}
-
-		resp := service.GetDiskIOMonitorPage(page, count)
+		resp := service.GetDiskIOMonitorByRange(timeRange)
 		c.JSON(http.StatusOK, resp)
 	}
 }
 
-// NetworkMonitorPageHandler query network monitor data page
-func NetworkMonitorPageHandler(service *Monitor) func(c *gin.Context) {
+// DiskUsageMonitorRangeHandler 按时间范围查询磁盘使用监控数据
+func DiskUsageMonitorRangeHandler(service *Monitor) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		pageStr := c.Param("page")
-		countStr := c.Param("count")
-
-		if pageStr == "" || countStr == "" {
-			zap.L().Warn("Page or count parameter is empty")
-			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
-			return
+		timeRange := c.Query("range")
+		if timeRange == "" {
+			timeRange = "1h"
 		}
-
-		page, err := strconv.Atoi(pageStr)
-		if err != nil || page < 1 {
-			zap.L().Warn("Invalid page parameter", zap.String("page", pageStr), zap.Error(err))
-			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
-			return
-		}
-
-		count, err := strconv.Atoi(countStr)
-		if err != nil || count < 1 || count > 100 {
-			zap.L().Warn("Invalid count parameter", zap.String("count", countStr), zap.Error(err))
-			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
-			return
-		}
-
-		resp := service.GetNetworkMonitorPage(page, count)
+		resp := service.GetDiskUsageMonitorByRange(timeRange)
 		c.JSON(http.StatusOK, resp)
 	}
 }
 
-// DiskUsageMonitorPageHandler query disk usage monitor data page
-func DiskUsageMonitorPageHandler(service *Monitor) func(c *gin.Context) {
+// NetworkMonitorRangeHandler 按时间范围查询网络监控数据
+func NetworkMonitorRangeHandler(service *Monitor) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		pageStr := c.Param("page")
-		countStr := c.Param("count")
-
-		if pageStr == "" || countStr == "" {
-			zap.L().Warn("Page or count parameter is empty")
-			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
-			return
+		timeRange := c.Query("range")
+		if timeRange == "" {
+			timeRange = "1h"
 		}
-
-		page, err := strconv.Atoi(pageStr)
-		if err != nil || page < 1 {
-			zap.L().Warn("Invalid page parameter", zap.String("page", pageStr), zap.Error(err))
-			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
-			return
-		}
-
-		count, err := strconv.Atoi(countStr)
-		if err != nil || count < 1 || count > 100 {
-			zap.L().Warn("Invalid count parameter", zap.String("count", countStr), zap.Error(err))
-			c.JSON(http.StatusOK, response.Error(res.ErrCodeParameter))
-			return
-		}
-
-		resp := service.GetDiskUsageMonitorPage(page, count)
+		resp := service.GetNetworkMonitorByRange(timeRange)
 		c.JSON(http.StatusOK, resp)
 	}
 }

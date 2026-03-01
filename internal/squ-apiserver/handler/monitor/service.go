@@ -46,22 +46,22 @@ func (m *Monitor) GetAllNetIO(serverID uint) response.Response {
 	return m.callAgent(serverID, "monitor/stats/net/all", "get all network IO data")
 }
 
-func (m *Monitor) GetBaseMonitorPage(serverID uint, page, count int) response.Response {
-	path := fmt.Sprintf("monitor/base/%d/%d", page, count)
-	return m.callAgent(serverID, path, "get base monitoring data page")
+func (m *Monitor) GetBaseMonitorByRange(serverID uint, timeRange string) response.Response {
+	path := fmt.Sprintf("monitor/base?range=%s", timeRange)
+	return m.callAgent(serverID, path, "get base monitor by time range")
 }
 
-func (m *Monitor) GetDiskIOMonitorPage(serverID uint, page, count int) response.Response {
-	path := fmt.Sprintf("monitor/disk/%d/%d", page, count)
-	return m.callAgent(serverID, path, "get disk IO monitoring data page")
+func (m *Monitor) GetDiskIOMonitorByRange(serverID uint, timeRange string) response.Response {
+	path := fmt.Sprintf("monitor/disk?range=%s", timeRange)
+	return m.callAgent(serverID, path, "get disk IO monitor by time range")
 }
 
-func (m *Monitor) GetNetworkMonitorPage(serverID uint, page, count int) response.Response {
-	path := fmt.Sprintf("monitor/net/%d/%d", page, count)
-	return m.callAgent(serverID, path, "get network monitoring data page")
+func (m *Monitor) GetDiskUsageMonitorByRange(serverID uint, timeRange string) response.Response {
+	path := fmt.Sprintf("monitor/disk-usage?range=%s", timeRange)
+	return m.callAgent(serverID, path, "get disk usage monitor by time range")
 }
 
-func (m *Monitor) GetDiskUsageMonitorPage(serverID uint, page, count int) response.Response {
-	path := fmt.Sprintf("monitor/disk-usage/%d/%d", page, count)
-	return m.callAgent(serverID, path, "get disk usage monitoring data page")
+func (m *Monitor) GetNetworkMonitorByRange(serverID uint, timeRange string) response.Response {
+	path := fmt.Sprintf("monitor/net?range=%s", timeRange)
+	return m.callAgent(serverID, path, "get network monitor by time range")
 }

@@ -32,8 +32,8 @@ func MonitorRouter(group *gin.RouterGroup, conf *config.Config, cache cache.Cach
 	group.GET("/monitor/stats/io/all", monitor.AllDiskIOHandler(service))
 	group.GET("/monitor/stats/net/:interface", monitor.NetIOHandler(service))
 	group.GET("/monitor/stats/net/all", monitor.AllNetIOHandler(service))
-	group.GET("/monitor/base/:page/:count", monitor.BaseMonitorPageHandler(service))
-	group.GET("/monitor/disk/:page/:count", monitor.DiskIOMonitorPageHandler(service))
-	group.GET("/monitor/disk-usage/:page/:count", monitor.DiskUsageMonitorPageHandler(service))
-	group.GET("/monitor/net/:page/:count", monitor.NetworkMonitorPageHandler(service))
+	group.GET("/monitor/base", monitor.BaseMonitorRangeHandler(service))
+	group.GET("/monitor/disk", monitor.DiskIOMonitorRangeHandler(service))
+	group.GET("/monitor/disk-usage", monitor.DiskUsageMonitorRangeHandler(service))
+	group.GET("/monitor/net", monitor.NetworkMonitorRangeHandler(service))
 }

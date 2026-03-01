@@ -14,10 +14,10 @@ type Repository interface {
 	CreateNetworkMonitor(data *model.NetworkMonitor) error
 	CreateDiskUsageMonitor(data *model.DiskUsageMonitor) error
 	DeleteBeforeTime(beforeTime time.Time) error
-	GetBaseMonitorPage(page, pageSize int) ([]model.BaseMonitor, int64, error)
-	GetDiskIOMonitorPage(page, pageSize int) ([]model.DiskIOMonitor, int64, error)
-	GetNetworkMonitorPage(page, pageSize int) ([]model.NetworkMonitor, int64, error)
-	GetDiskUsageMonitorPage(page, pageSize int) ([]model.DiskUsageMonitor, int64, error)
+	GetBaseMonitorByTimeRange(since time.Time) ([]model.BaseMonitor, error)
+	GetDiskIOMonitorByTimeRange(since time.Time) ([]model.DiskIOMonitor, error)
+	GetNetworkMonitorByTimeRange(since time.Time) ([]model.NetworkMonitor, error)
+	GetDiskUsageMonitorByTimeRange(since time.Time) ([]model.DiskUsageMonitor, error)
 }
 
 func New(db *gorm.DB) Repository {

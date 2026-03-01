@@ -23,22 +23,27 @@ GET   {{url}}/api/v1/monitor/stats/net/1/all
 content-type: application/json
 Authorization: Bearer {{token}}
 
-###
-GET   {{url}}/api/v1/monitor/base/1/1/5
+### get base monitor by time range - 1h
+GET   {{url}}/api/v1/monitor/base/1?range=1h
 content-type: application/json
 Authorization: Bearer {{token}}
 
-### get all network io
-GET   {{url}}/api/v1/monitor/disk/1/1/5
+### get base monitor by time range - 6h
+GET   {{url}}/api/v1/monitor/base/1?range=6h
 content-type: application/json
 Authorization: Bearer {{token}}
 
-### get all network io
-GET   {{url}}/api/v1/monitor/net/1/1/5
+### get disk io monitor by time range
+GET   {{url}}/api/v1/monitor/disk/1?range=1h
 content-type: application/json
 Authorization: Bearer {{token}}
 
-### get disk usage monitor page
-GET   {{url}}/api/v1/monitor/disk-usage/1/1/10
+### get network monitor by time range
+GET   {{url}}/api/v1/monitor/net/1?range=1h
+content-type: application/json
+Authorization: Bearer {{token}}
+
+### get disk usage monitor by time range
+GET   {{url}}/api/v1/monitor/disk-usage/1?range=1h
 content-type: application/json
 Authorization: Bearer {{token}}

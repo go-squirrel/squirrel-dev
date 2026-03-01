@@ -31,9 +31,9 @@ func NewClient(cfg *config.Config) *Client {
 
 // CallResult 封装 Agent 调用结果
 type CallResult struct {
-	Resp   response.Response
-	URL    string
-	Err    error
+	Resp    response.Response
+	URL     string
+	Err     error
 	ErrCode int // 业务错误码，用于上层返回
 }
 

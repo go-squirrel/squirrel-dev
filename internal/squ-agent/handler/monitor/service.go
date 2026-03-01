@@ -1,6 +1,7 @@
 package monitor
 
 import (
+	"fmt"
 	"squirrel-dev/internal/pkg/cache"
 	"squirrel-dev/internal/pkg/response"
 	"squirrel-dev/internal/squ-agent/config"
@@ -8,6 +9,7 @@ import (
 	"squirrel-dev/internal/squ-agent/model"
 	monitorRepository "squirrel-dev/internal/squ-agent/repository/monitor"
 	"squirrel-dev/pkg/collector"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -28,12 +30,35 @@ func New(config *config.Config, cache cache.Cache, repo monitorRepository.Reposi
 	}
 }
 
-// GetBaseMonitorPage get base monitor data page
-func (m *Monitor) GetBaseMonitorPage(page, count int) response.Response {
-	monitors, total, err := m.Repository.GetBaseMonitorPage(page, count)
+// parseTimeRange 解析时间范围字符串
+func parseTimeRange(rangeStr string) (time.Time, error) {
+	now := time.Now()
+	switch rangeStr {
+	case "1h":
+		return now.Add(-1 * time.Hour), nil
+	case "6h":
+		return now.Add(-6 * time.Hour), nil
+	case "24h":
+		return now.Add(-24 * time.Hour), nil
+	case "7d":
+		return now.Add(-7 * 24 * time.Hour), nil
+	default:
+		return time.Time{}, fmt.Errorf("invalid time range: %s", rangeStr)
+	}
+}
+
+// GetBaseMonitorByRange 按时间范围获取基础监控数据
+func (m *Monitor) GetBaseMonitorByRange(timeRange string) response.Response {
+	since, err := parseTimeRange(timeRange)
 	if err != nil {
-		zap.L().Error("Failed to get base monitor page",
-			zap.Int("page", page), zap.Int("count", count), zap.Error(err))
+		zap.L().Warn("Invalid time range", zap.String("range", timeRange), zap.Error(err))
+		return response.Error(monitorres.ErrCodeParameter)
+	}
+
+	monitors, err := m.Repository.GetBaseMonitorByTimeRange(since)
+	if err != nil {
+		zap.L().Error("Failed to get base monitor by range",
+			zap.String("range", timeRange), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -52,22 +77,21 @@ func (m *Monitor) GetBaseMonitorPage(page, count int) response.Response {
 		})
 	}
 
-	result := monitorres.PageData{
-		List:  responseList,
-		Total: total,
-		Page:  page,
-		Size:  count,
-	}
-
-	return response.Success(result)
+	return response.Success(responseList)
 }
 
-// GetDiskIOMonitorPage get disk IO monitor data page
-func (m *Monitor) GetDiskIOMonitorPage(page, count int) response.Response {
-	monitors, total, err := m.Repository.GetDiskIOMonitorPage(page, count)
+// GetDiskIOMonitorByRange 按时间范围获取磁盘IO监控数据
+func (m *Monitor) GetDiskIOMonitorByRange(timeRange string) response.Response {
+	since, err := parseTimeRange(timeRange)
 	if err != nil {
-		zap.L().Error("Failed to get disk IO monitor page",
-			zap.Int("page", page), zap.Int("count", count), zap.Error(err))
+		zap.L().Warn("Invalid time range", zap.String("range", timeRange), zap.Error(err))
+		return response.Error(monitorres.ErrCodeParameter)
+	}
+
+	monitors, err := m.Repository.GetDiskIOMonitorByTimeRange(since)
+	if err != nil {
+		zap.L().Error("Failed to get disk IO monitor by range",
+			zap.String("range", timeRange), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -89,22 +113,21 @@ func (m *Monitor) GetDiskIOMonitorPage(page, count int) response.Response {
 		})
 	}
 
-	result := monitorres.PageData{
-		List:  responseList,
-		Total: total,
-		Page:  page,
-		Size:  count,
-	}
-
-	return response.Success(result)
+	return response.Success(responseList)
 }
 
-// GetDiskUsageMonitorPage get disk usage monitor data page
-func (m *Monitor) GetDiskUsageMonitorPage(page, count int) response.Response {
-	monitors, total, err := m.Repository.GetDiskUsageMonitorPage(page, count)
+// GetDiskUsageMonitorByRange 按时间范围获取磁盘使用监控数据
+func (m *Monitor) GetDiskUsageMonitorByRange(timeRange string) response.Response {
+	since, err := parseTimeRange(timeRange)
 	if err != nil {
-		zap.L().Error("Failed to get disk usage monitor page",
-			zap.Int("page", page), zap.Int("count", count), zap.Error(err))
+		zap.L().Warn("Invalid time range", zap.String("range", timeRange), zap.Error(err))
+		return response.Error(monitorres.ErrCodeParameter)
+	}
+
+	monitors, err := m.Repository.GetDiskUsageMonitorByTimeRange(since)
+	if err != nil {
+		zap.L().Error("Failed to get disk usage monitor by range",
+			zap.String("range", timeRange), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -126,22 +149,21 @@ func (m *Monitor) GetDiskUsageMonitorPage(page, count int) response.Response {
 		})
 	}
 
-	result := monitorres.PageData{
-		List:  responseList,
-		Total: total,
-		Page:  page,
-		Size:  count,
-	}
-
-	return response.Success(result)
+	return response.Success(responseList)
 }
 
-// GetNetworkMonitorPage get network monitor data page
-func (m *Monitor) GetNetworkMonitorPage(page, count int) response.Response {
-	monitors, total, err := m.Repository.GetNetworkMonitorPage(page, count)
+// GetNetworkMonitorByRange 按时间范围获取网络监控数据
+func (m *Monitor) GetNetworkMonitorByRange(timeRange string) response.Response {
+	since, err := parseTimeRange(timeRange)
 	if err != nil {
-		zap.L().Error("Failed to get network monitor page",
-			zap.Int("page", page), zap.Int("count", count), zap.Error(err))
+		zap.L().Warn("Invalid time range", zap.String("range", timeRange), zap.Error(err))
+		return response.Error(monitorres.ErrCodeParameter)
+	}
+
+	monitors, err := m.Repository.GetNetworkMonitorByTimeRange(since)
+	if err != nil {
+		zap.L().Error("Failed to get network monitor by range",
+			zap.String("range", timeRange), zap.Error(err))
 		return response.Error(model.ReturnErrCode(err))
 	}
 
@@ -164,12 +186,5 @@ func (m *Monitor) GetNetworkMonitorPage(page, count int) response.Response {
 		})
 	}
 
-	result := monitorres.PageData{
-		List:  responseList,
-		Total: total,
-		Page:  page,
-		Size:  count,
-	}
-
-	return response.Success(result)
+	return response.Success(responseList)
 }

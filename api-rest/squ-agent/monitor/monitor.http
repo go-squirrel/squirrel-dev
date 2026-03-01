@@ -18,18 +18,22 @@ content-type: application/json
 GET   {{url}}/api/v1/monitor/stats/net/all
 content-type: application/json
 
-### 
-GET   {{url}}/api/v1/monitor/base/1/5
+### get base monitor by time range - 1h
+GET   {{url}}/api/v1/monitor/base?range=1h
 content-type: application/json
 
-### get all network io
-GET   {{url}}/api/v1/monitor/disk/1/5
+### get base monitor by time range - 6h
+GET   {{url}}/api/v1/monitor/base?range=6h
 content-type: application/json
 
-### get all network io
-GET   {{url}}/api/v1/monitor/net/1/5
+### get disk io monitor by time range
+GET   {{url}}/api/v1/monitor/disk?range=1h
 content-type: application/json
 
-### get disk usage monitor page
-GET   {{url}}/api/v1/monitor/disk-usage/1/10
+### get network monitor by time range
+GET   {{url}}/api/v1/monitor/net?range=1h
+content-type: application/json
+
+### get disk usage monitor by time range
+GET   {{url}}/api/v1/monitor/disk-usage?range=1h
 content-type: application/json
