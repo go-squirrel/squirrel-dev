@@ -22,18 +22,42 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { Icon } from '@iconify/vue'
 import * as echarts from 'echarts'
-import type { DiskUsageRecord } from '@/types/monitor'
+import type { DiskUsageRecord, TimeRange } from '@/types/monitor'
 import { formatBytes } from '@/utils/format'
 
 const props = defineProps<{
   data: DiskUsageRecord[]
   mountPoints: string[]
+  timeRange: TimeRange
 }>()
 
 const chartContainer = ref<HTMLDivElement>()
 let chartInstance: echarts.ECharts | null = null
 
 const selectedMount = ref('/')
+
+// 根据时间范围计算开始时间
+const getTimeRangeBounds = (range: TimeRange): [Date, Date] => {
+  const now = new Date()
+  let start: Date
+  switch (range) {
+    case '1h':
+      start = new Date(now.getTime() - 1 * 60 * 60 * 1000)
+      break
+    case '6h':
+      start = new Date(now.getTime() - 6 * 60 * 60 * 1000)
+      break
+    case '24h':
+      start = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+      break
+    case '7d':
+      start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      break
+    default:
+      start = new Date(now.getTime() - 1 * 60 * 60 * 1000)
+  }
+  return [start, now]
+}
 
 const filteredData = computed(() => {
   return props.data.filter(d => d.mount_point === selectedMount.value)
@@ -56,17 +80,21 @@ const latestTotal = computed(() => {
 })
 
 const getChartOption = () => {
-  const times = sortedData.value.map(d =>
-    new Date(d.collect_time).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-  )
-  const values = sortedData.value.map(d => d.usage)
+  const [startTime, endTime] = getTimeRangeBounds(props.timeRange)
+
+  // 使用时间戳作为 x 轴数据
+  const dataPoints = sortedData.value.map(d => [
+    new Date(d.collect_time).getTime(),
+    d.usage
+  ])
 
   return {
     tooltip: {
       trigger: 'axis',
       formatter: (params: any) => {
-        return `<strong>${params[0].axisValue}</strong><br/>
-                ${params[0].seriesName}: ${params[0].value.toFixed(2)}%`
+        if (!params[0] || params[0].value[1] === null) return ''
+        const time = new Date(params[0].value[0]).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+        return `<strong>${time}</strong><br/>磁盘使用率: ${params[0].value[1].toFixed(2)}%`
       }
     },
     grid: {
@@ -77,10 +105,18 @@ const getChartOption = () => {
       containLabel: true
     },
     xAxis: {
-      type: 'category',
-      data: times,
+      type: 'time',
+      min: startTime.getTime(),
+      max: endTime.getTime(),
       axisLine: { lineStyle: { color: '#e2e8f0' } },
-      axisLabel: { color: '#64748b', fontSize: 11, rotate: 30 },
+      axisLabel: {
+        color: '#64748b',
+        fontSize: 11,
+        rotate: 30,
+        formatter: (value: number) => {
+          return new Date(value).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+        }
+      },
       axisTick: { show: false }
     },
     yAxis: {
@@ -112,7 +148,7 @@ const getChartOption = () => {
           ]
         }
       },
-      data: values
+      data: dataPoints
     }]
   }
 }
@@ -125,7 +161,7 @@ const initChart = () => {
 
 const updateChart = () => {
   if (!chartInstance) return
-  chartInstance.setOption(getChartOption())
+  chartInstance.setOption(getChartOption(), { notMerge: true })
 }
 
 const handleResize = () => chartInstance?.resize()
@@ -140,7 +176,7 @@ onUnmounted(() => {
   chartInstance?.dispose()
 })
 
-watch([() => props.data, selectedMount], () => nextTick(() => updateChart()), { deep: true })
+watch([() => props.data, () => props.timeRange, selectedMount], () => nextTick(() => updateChart()), { deep: true })
 </script>
 
 <style scoped lang="scss">

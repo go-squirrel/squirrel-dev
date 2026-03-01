@@ -14,13 +14,13 @@
     <template v-else-if="selectedServer">
       <TimeRangeSelector v-model="timeRange" />
       <div class="charts-row">
-        <CPUMonitorChart :data="baseData" />
-        <MemoryMonitorChart :data="baseData" />
-        <DiskUsageChart :data="diskUsageData" :mount-points="mountPoints" />
+        <CPUMonitorChart :data="baseData" :time-range="timeRange" />
+        <MemoryMonitorChart :data="baseData" :time-range="timeRange" />
+        <DiskUsageChart :data="diskUsageData" :mount-points="mountPoints" :time-range="timeRange" />
       </div>
       <div class="charts-row io-row">
-        <DiskIOChart :data="diskData" :devices="diskDevices" />
-        <NetIOChart :data="netData" :interfaces="netInterfaces" />
+        <DiskIOChart :data="diskData" :devices="diskDevices" :time-range="timeRange" />
+        <NetIOChart :data="netData" :interfaces="netInterfaces" :time-range="timeRange" />
       </div>
     </template>
 

@@ -31,19 +31,43 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@iconify/vue'
 import * as echarts from 'echarts'
-import type { DiskIORecord } from '@/types/monitor'
+import type { DiskIORecord, TimeRange } from '@/types/monitor'
 import { formatBytes } from '@/utils/format'
 import { calculateDiskIOSpeed, groupAndCalculateSpeed, type DiskIOSpeedRecord } from '@/utils/monitor'
 
 const props = defineProps<{
   data: DiskIORecord[]
   devices: string[]
+  timeRange: TimeRange
 }>()
 
 const { t } = useI18n()
 const selectedDevice = ref('all')
 const chartContainer = ref<HTMLDivElement>()
 let chartInstance: echarts.ECharts | null = null
+
+// 根据时间范围计算开始时间
+const getTimeRangeBounds = (range: TimeRange): [Date, Date] => {
+  const now = new Date()
+  let start: Date
+  switch (range) {
+    case '1h':
+      start = new Date(now.getTime() - 1 * 60 * 60 * 1000)
+      break
+    case '6h':
+      start = new Date(now.getTime() - 6 * 60 * 60 * 1000)
+      break
+    case '24h':
+      start = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+      break
+    case '7d':
+      start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      break
+    default:
+      start = new Date(now.getTime() - 1 * 60 * 60 * 1000)
+  }
+  return [start, now]
+}
 
 // 计算速率数据
 const speedData = computed(() => {
@@ -96,19 +120,27 @@ const latestWriteSpeed = computed(() => {
 })
 
 const getChartOption = () => {
-  const times = speedData.value.map(d =>
-    new Date(d.collect_time).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-  )
-  const readValues = speedData.value.map(d => d.read_speed)
-  const writeValues = speedData.value.map(d => d.write_speed)
+  const [startTime, endTime] = getTimeRangeBounds(props.timeRange)
+
+  // 使用时间戳作为 x 轴数据
+  const readDataPoints = speedData.value.map(d => [
+    new Date(d.collect_time).getTime(),
+    d.read_speed
+  ])
+  const writeDataPoints = speedData.value.map(d => [
+    new Date(d.collect_time).getTime(),
+    d.write_speed
+  ])
 
   return {
     tooltip: {
       trigger: 'axis',
       formatter: (params: any) => {
-        let result = `<strong>${params[0].axisValue}</strong><br/>`
+        if (!params[0] || params[0].value[1] === null) return ''
+        const time = new Date(params[0].value[0]).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+        let result = `<strong>${time}</strong><br/>`
         params.forEach((param: any) => {
-          result += `${param.marker} ${param.seriesName}: ${formatBytes(param.value)}/s<br/>`
+          result += `${param.marker} ${param.seriesName}: ${formatBytes(param.value[1])}/s<br/>`
         })
         return result
       }
@@ -127,10 +159,18 @@ const getChartOption = () => {
       containLabel: true
     },
     xAxis: {
-      type: 'category',
-      data: times,
+      type: 'time',
+      min: startTime.getTime(),
+      max: endTime.getTime(),
       axisLine: { lineStyle: { color: '#e2e8f0' } },
-      axisLabel: { color: '#64748b', fontSize: 11, rotate: 30 },
+      axisLabel: {
+        color: '#64748b',
+        fontSize: 11,
+        rotate: 30,
+        formatter: (value: number) => {
+          return new Date(value).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+        }
+      },
       axisTick: { show: false }
     },
     yAxis: {
@@ -151,7 +191,7 @@ const getChartOption = () => {
         smooth: true,
         symbol: 'none',
         lineStyle: { width: 2, color: '#4fc3f7' },
-        data: readValues
+        data: readDataPoints
       },
       {
         name: t('monitor.write'),
@@ -159,7 +199,7 @@ const getChartOption = () => {
         smooth: true,
         symbol: 'none',
         lineStyle: { width: 2, color: '#94a3b8' },
-        data: writeValues
+        data: writeDataPoints
       }
     ]
   }
@@ -173,7 +213,7 @@ const initChart = () => {
 
 const updateChart = () => {
   if (!chartInstance) return
-  chartInstance.setOption(getChartOption())
+  chartInstance.setOption(getChartOption(), { notMerge: true })
 }
 
 const handleResize = () => chartInstance?.resize()
@@ -188,7 +228,7 @@ onUnmounted(() => {
   chartInstance?.dispose()
 })
 
-watch([() => props.data, selectedDevice], () => nextTick(() => updateChart()), { deep: true })
+watch([() => props.data, () => props.timeRange, selectedDevice], () => nextTick(() => updateChart()), { deep: true })
 </script>
 
 <style scoped lang="scss">
