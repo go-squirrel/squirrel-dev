@@ -47,7 +47,8 @@ import TimeRangeSelector from './components/TimeRangeSelector.vue'
 import {
   fetchBaseMonitorHistory,
   fetchDiskIOHistory,
-  fetchNetIOHistory
+  fetchNetIOHistory,
+  fetchDiskUsageHistory
 } from '@/api/monitor'
 import { fetchServers } from '@/api/server'
 import type {
@@ -95,31 +96,17 @@ const loadMonitorData = async () => {
 
   loading.value = true
   try {
-    const [base, disk, net] = await Promise.all([
-      fetchBaseMonitorHistory(selectedServer.value, 1, 100),
-      fetchDiskIOHistory(selectedServer.value, 1, 100),
-      fetchNetIOHistory(selectedServer.value, 1, 100)
+    const [base, disk, net, diskUsage] = await Promise.all([
+      fetchBaseMonitorHistory(selectedServer.value, timeRange.value),
+      fetchDiskIOHistory(selectedServer.value, timeRange.value),
+      fetchNetIOHistory(selectedServer.value, timeRange.value),
+      fetchDiskUsageHistory(selectedServer.value, timeRange.value)
     ])
 
-    baseData.value = base.list || []
-    diskData.value = disk.list || []
-    netData.value = net.list || []
-
-    // 从基础监控数据中提取磁盘使用量信息
-    diskUsageData.value = base.list?.map((item: BaseMonitorRecord) => ({
-      id: item.id,
-      device_name: 'root',
-      mount_point: '/',
-      fs_type: 'ext4',
-      total: item.disk_total,
-      used: item.disk_used,
-      free: item.disk_total - item.disk_used,
-      usage: item.disk_usage,
-      inodes_total: 0,
-      inodes_used: 0,
-      inodes_free: 0,
-      collect_time: item.collect_time
-    })) || []
+    baseData.value = base || []
+    diskData.value = disk || []
+    netData.value = net || []
+    diskUsageData.value = diskUsage || []
 
     mountPoints.value = [...new Set(diskUsageData.value.map((d: DiskUsageRecord) => d.mount_point))]
     diskDevices.value = [...new Set(diskData.value.map(d => d.disk_name))]

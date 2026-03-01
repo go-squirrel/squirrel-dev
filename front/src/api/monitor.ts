@@ -1,7 +1,7 @@
 // 监控相关 API
 import { get } from '@/utils/request'
 import type { MonitorData } from '@/types'
-import type { PageData, BaseMonitorRecord, DiskIORecord, NetworkIORecord } from '@/types/monitor'
+import type { TimeRange, BaseMonitorRecord, DiskIORecord, NetworkIORecord, DiskUsageRecord } from '@/types/monitor'
 
 /**
  * 获取监控统计
@@ -25,43 +25,49 @@ export function fetchIOStats(serverId: number, target: string): Promise<any> {
 }
 
 /**
- * 获取基础监控历史数据
+ * 获取基础监控历史数据（按时间范围）
  * @param serverId 服务器ID
- * @param page 页码
- * @param count 每页数量
+ * @param range 时间范围 (1h, 6h, 24h, 7d)
  */
 export function fetchBaseMonitorHistory(
   serverId: number,
-  page: number = 1,
-  count: number = 100
-): Promise<PageData<BaseMonitorRecord>> {
-  return get(`/monitor/base/${serverId}/${page}/${count}`)
+  range: TimeRange = '1h'
+): Promise<BaseMonitorRecord[]> {
+  return get(`/monitor/base/${serverId}?range=${range}`)
 }
 
 /**
- * 获取磁盘IO历史数据
+ * 获取磁盘IO历史数据（按时间范围）
  * @param serverId 服务器ID
- * @param page 页码
- * @param count 每页数量
+ * @param range 时间范围 (1h, 6h, 24h, 7d)
  */
 export function fetchDiskIOHistory(
   serverId: number,
-  page: number = 1,
-  count: number = 100
-): Promise<PageData<DiskIORecord>> {
-  return get(`/monitor/disk/${serverId}/${page}/${count}`)
+  range: TimeRange = '1h'
+): Promise<DiskIORecord[]> {
+  return get(`/monitor/disk/${serverId}?range=${range}`)
 }
 
 /**
- * 获取网络IO历史数据
+ * 获取网络IO历史数据（按时间范围）
  * @param serverId 服务器ID
- * @param page 页码
- * @param count 每页数量
+ * @param range 时间范围 (1h, 6h, 24h, 7d)
  */
 export function fetchNetIOHistory(
   serverId: number,
-  page: number = 1,
-  count: number = 100
-): Promise<PageData<NetworkIORecord>> {
-  return get(`/monitor/net/${serverId}/${page}/${count}`)
+  range: TimeRange = '1h'
+): Promise<NetworkIORecord[]> {
+  return get(`/monitor/net/${serverId}?range=${range}`)
+}
+
+/**
+ * 获取磁盘使用量历史数据（按时间范围）
+ * @param serverId 服务器ID
+ * @param range 时间范围 (1h, 6h, 24h, 7d)
+ */
+export function fetchDiskUsageHistory(
+  serverId: number,
+  range: TimeRange = '1h'
+): Promise<DiskUsageRecord[]> {
+  return get(`/monitor/disk-usage/${serverId}?range=${range}`)
 }
