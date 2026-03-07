@@ -16,6 +16,7 @@
 - 创建文件/目录
 - 删除文件/目录
 - 重命名文件/目录
+- **接收推送文件**（APIServer 分发）
 
 ## 1. 新增目录结构
 
@@ -28,6 +29,7 @@ internal/squ-agent/
         ├── create.go      # 创建文件/目录（新增）
         ├── delete.go      # 删除操作（新增）
         ├── rename.go      # 重命名操作（新增）
+        ├── receive.go     # 接收推送文件（新增）
         └── types.go       # 新增请求/响应结构
 ```
 
@@ -461,7 +463,101 @@ func (s *Service) Rename(c *gin.Context) {
 }
 ```
 
-## 8. 更新路由注册
+## 8. 接收推送文件实现
+
+Agent 需要提供一个接口，用于接收 APIServer 推送的文件（分发功能）。
+
+```go
+// internal/squ-agent/handler/fs/receive.go
+
+package fs
+
+import (
+    "encoding/json"
+    "io"
+    "os"
+    "path/filepath"
+    
+    "github.com/gin-gonic/gin"
+    
+    "squirrel-dev/internal/pkg/response"
+)
+
+// ReceiveRequest 接收推送文件请求
+type ReceiveRequest struct {
+    TargetPath string `json:"target_path" binding:"required"` // 目标路径
+    Mode       string `json:"mode"`                          // 权限模式
+    Overwrite  bool   `json:"overwrite"`                     // 是否覆盖
+}
+
+// Receive 接收 APIServer 推送的文件
+// 该接口由 APIServer 调用，用于将文件分发到 Agent
+func (s *Service) Receive(c *gin.Context) {
+    // 获取请求参数（从 query 或 header）
+    targetPath := c.Query("target_path")
+    if targetPath == "" {
+        // 尝试从 JSON body 获取
+        var req ReceiveRequest
+        if err := c.ShouldBindJSON(&req); err == nil {
+            targetPath = req.TargetPath
+        }
+    }
+    
+    if targetPath == "" {
+        response.Error(c, 400, "target_path 参数必填")
+        return
+    }
+    
+    // 安全校验
+    if err := s.security.ValidatePath(targetPath); err != nil {
+        response.Error(c, 403, err.Error())
+        return
+    }
+    
+    // 检查文件是否存在
+    if _, err := os.Stat(targetPath); err == nil {
+        overwrite := c.Query("overwrite") == "true"
+        if !overwrite {
+            response.Error(c, 400, "文件已存在")
+            return
+        }
+    }
+    
+    // 确保父目录存在
+    parentDir := filepath.Dir(targetPath)
+    if err := os.MkdirAll(parentDir, 0755); err != nil {
+        response.Error(c, 500, "创建父目录失败: "+err.Error())
+        return
+    }
+    
+    // 创建目标文件
+    mode := os.FileMode(0644)
+    if m := c.Query("mode"); m != "" {
+        mode = parseFileMode(m)
+    }
+    
+    file, err := os.OpenFile(targetPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode)
+    if err != nil {
+        response.Error(c, 500, "创建文件失败: "+err.Error())
+        return
+    }
+    defer file.Close()
+    
+    // 从请求体读取并写入文件
+    written, err := io.Copy(file, c.Request.Body)
+    if err != nil {
+        response.Error(c, 500, "写入文件失败: "+err.Error())
+        return
+    }
+    
+    response.Success(c, gin.H{
+        "path": targetPath,
+        "size": written,
+    })
+}
+```
+
+## 9. 更新路由注册
 
 ```go
 // internal/squ-agent/handler/fs/handler.go 更新
@@ -482,11 +578,12 @@ func RegisterRoutes(r *gin.RouterGroup) {
         fs.POST("/create", svc.CreateFile)     // 创建文件
         fs.POST("/delete", svc.Delete)         // 删除
         fs.POST("/rename", svc.Rename)         // 重命名
+        fs.POST("/receive", svc.Receive)       // 接收推送文件
     }
 }
 ```
 
-## 9. 测试用例
+## 10. 测试用例
 
 ### 测试文件写入
 
@@ -538,7 +635,21 @@ curl -X POST "http://localhost:10750/api/agent/v1/fs/rename" \
   -d '{"old_path": "/home/user/test.txt", "new_path": "/home/user/renamed.txt"}'
 ```
 
-## 10. 完成检查
+### 测试接收推送文件
+
+```bash
+# 模拟 APIServer 推送文件到 Agent
+curl -X POST "http://localhost:10750/api/agent/v1/fs/receive?target_path=/home/user/pushed.txt" \
+  -H "Content-Type: application/octet-stream" \
+  --data-binary "@./local-file.txt"
+
+# 带覆盖选项
+curl -X POST "http://localhost:10750/api/agent/v1/fs/receive?target_path=/home/user/pushed.txt&overwrite=true&mode=644" \
+  -H "Content-Type: application/octet-stream" \
+  --data-binary "@./local-file.txt"
+```
+
+## 11. 完成检查
 
 - [ ] 文件写入功能实现
 - [ ] 文件上传功能实现
@@ -546,10 +657,11 @@ curl -X POST "http://localhost:10750/api/agent/v1/fs/rename" \
 - [ ] 创建文件功能实现
 - [ ] 删除功能实现
 - [ ] 重命名功能实现
+- [ ] 接收推送文件功能实现
 - [ ] 路由更新完成
 - [ ] 单元测试通过
 - [ ] 集成测试通过
 
-## 11. 下一阶段
+## 12. 下一阶段
 
-完成本阶段后，Agent 端文件管理功能已完整。继续开发 [03-apiserver-proxy.md](./03-apiserver-proxy.md) 实现 APIServer 代理转发。
+完成本阶段后，Agent 端文件管理功能已完整。继续开发 [03-apiserver-storage.md](./03-apiserver-storage.md) 实现 APIServer 文件存储和分发功能。
