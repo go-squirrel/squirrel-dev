@@ -8,45 +8,55 @@ import (
 
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/pkg/middleware/log"
+	"squirrel-dev/internal/squ-apiserver/app"
 	"squirrel-dev/internal/squ-apiserver/config"
-	"squirrel-dev/internal/squ-apiserver/server"
 )
 
+// AppOptions 负责承接启动参数，并组装应用所需依赖。
 type AppOptions struct {
 	ConfFile string
 	Config   *config.Config
 }
 
 func NewAppOptions() *AppOptions {
-	o := &AppOptions{}
-	return o
+	return &AppOptions{}
 }
 
-func (o *AppOptions) NewServer() (*server.Server, error) {
-	s := server.NewServer()
+// NewServer 兼容当前模板家族的命名习惯，返回装配后的 App。
+func (o *AppOptions) NewServer() (*app.App, error) {
+	instance := app.New()
 	o.loadConfig(o.ConfFile)
-	s.Config = o.Config
+	instance.Config = o.Config
 
-	gin.SetMode(s.Config.Server.Mode)
-	s.Gin = gin.New()
+	gin.SetMode(instance.Config.Server.Mode)
+	instance.Gin = gin.New()
 
-	s.Log = log.NewClient(o.Config.Log.InfoFilePath, o.Config.Log.ErrorFilePath, o.Config.Log.Level,
-		o.Config.Log.MaxSize, o.Config.Log.MaxBackups, o.Config.Log.MaxAge,
+	instance.Log = log.NewClient(
+		o.Config.Log.InfoFilePath,
+		o.Config.Log.ErrorFilePath,
+		o.Config.Log.Level,
+		o.Config.Log.MaxSize,
+		o.Config.Log.MaxBackups,
+		o.Config.Log.MaxAge,
 	)
 
+	var connStr string
 	if o.Config.DB.Type == "sqlite" {
-		s.DB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.FilePath, database.WithMigrate(true))
+		connStr = o.Config.DB.Sqlite.FilePath
 	} else {
-		Connect := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		connStr = fmt.Sprintf(
+			"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 			o.Config.DB.Mysql.Username,
 			o.Config.DB.Mysql.Password,
 			o.Config.DB.Mysql.Host,
 			o.Config.DB.Mysql.Port,
-			o.Config.DB.Mysql.DbName)
-		s.DB = database.New(o.Config.DB.Type, Connect, database.WithMigrate(true))
+			o.Config.DB.Mysql.DbName,
+		)
 	}
 
-	return s, nil
+	instance.DB = database.New(o.Config.DB.Type, connStr, database.WithMigrate(true))
+
+	return instance, nil
 }
 
 func (o *AppOptions) loadConfig(configFile string) {

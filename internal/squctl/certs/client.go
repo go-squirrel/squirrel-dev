@@ -40,17 +40,17 @@ func (g *Generator) GenerateClient(cn string, overwrite bool) error {
 	template := &x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			CommonName:   cn,
-			Organization: []string{"Squirrel"},
-			Country:      []string{"CN"},
-			Province:     []string{"Beijing"},
-			Locality:     []string{"Beijing"},
+			CommonName:         cn,
+			Organization:       []string{"Squirrel"},
+			Country:            []string{"CN"},
+			Province:           []string{"Beijing"},
+			Locality:           []string{"Beijing"},
 			OrganizationalUnit: []string{"Agent"},
 		},
-		NotBefore:    time.Now(),
-		NotAfter:     time.Now().Add(g.expiry),
-		KeyUsage:     x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
-		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		NotBefore:   time.Now(),
+		NotAfter:    time.Now().Add(g.expiry),
+		KeyUsage:    x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 	}
 
 	// 使用 CA 签名

@@ -41,17 +41,17 @@ func (g *Generator) GenerateServer(cn string, hosts []string, overwrite bool) er
 	template := &x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			CommonName:   cn,
-			Organization: []string{"Squirrel"},
-			Country:      []string{"CN"},
-			Province:     []string{"Beijing"},
-			Locality:     []string{"Beijing"},
+			CommonName:         cn,
+			Organization:       []string{"Squirrel"},
+			Country:            []string{"CN"},
+			Province:           []string{"Beijing"},
+			Locality:           []string{"Beijing"},
 			OrganizationalUnit: []string{"APIServer"},
 		},
-		NotBefore:    time.Now(),
-		NotAfter:     time.Now().Add(g.expiry),
-		KeyUsage:     x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
-		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		NotBefore:   time.Now(),
+		NotAfter:    time.Now().Add(g.expiry),
+		KeyUsage:    x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 	}
 
 	// 解析 hosts 为 IP 和 DNS

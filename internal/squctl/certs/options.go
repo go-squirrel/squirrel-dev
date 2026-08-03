@@ -19,9 +19,9 @@ type CertsOptions struct {
 	CACN   string
 
 	// Server 证书相关
-	OnlyServer   bool
-	ServerCN     string
-	ServerHosts  []string
+	OnlyServer  bool
+	ServerCN    string
+	ServerHosts []string
 
 	// Client 证书相关
 	OnlyClient bool

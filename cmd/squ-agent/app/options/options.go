@@ -9,82 +9,107 @@ import (
 	"squirrel-dev/internal/pkg/cache"
 	"squirrel-dev/internal/pkg/database"
 	"squirrel-dev/internal/pkg/middleware/log"
+	"squirrel-dev/internal/squ-agent/app"
 	"squirrel-dev/internal/squ-agent/config"
-	"squirrel-dev/internal/squ-agent/cron"
-	"squirrel-dev/internal/squ-agent/server"
+	"squirrel-dev/internal/squ-agent/jobs"
 )
 
+// AppOptions 负责承接启动参数，并组装应用所需依赖。
 type AppOptions struct {
 	ConfFile string
 	Config   *config.Config
 }
 
 func NewAppOptions() *AppOptions {
-	o := &AppOptions{}
-	return o
+	return &AppOptions{}
 }
 
-func (o *AppOptions) NewServer() (*server.Server, error) {
-	s := server.NewServer()
+// NewServer 兼容当前模板家族的命名习惯，返回装配后的 App。
+func (o *AppOptions) NewServer() (*app.App, error) {
+	instance := app.New()
 	o.loadConfig(o.ConfFile)
-	s.Config = o.Config
+	instance.Config = o.Config
 
-	gin.SetMode(s.Config.Server.Mode)
-	s.Gin = gin.New()
+	gin.SetMode(instance.Config.Server.Mode)
+	instance.Gin = gin.New()
 
-	s.Log = log.NewClient(o.Config.Log.InfoFilePath, o.Config.Log.ErrorFilePath, o.Config.Log.Level,
-		o.Config.Log.MaxSize, o.Config.Log.MaxBackups, o.Config.Log.MaxAge,
+	instance.Log = log.NewClient(
+		o.Config.Log.InfoFilePath,
+		o.Config.Log.ErrorFilePath,
+		o.Config.Log.Level,
+		o.Config.Log.MaxSize,
+		o.Config.Log.MaxBackups,
+		o.Config.Log.MaxAge,
 	)
 
-	// 初始化缓存（在 Cron 之前）
-	s.Cache = o.initCache()
-
 	if o.Config.DB.Type == "sqlite" {
-		s.AgentDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.AgentFilePath, database.WithMigrate(true))
-		s.AppDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.AppFilePath, database.WithMigrate(true))
-		s.MonitorDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.MonitorFilePath, database.WithMigrate(true))
-		s.ScriptTaskDB = database.New(o.Config.DB.Type, o.Config.DB.Sqlite.ScriptTaskFilePath, database.WithMigrate(true))
+		instance.AgentDB = database.New(
+			o.Config.DB.Type,
+			o.Config.DB.Sqlite.AgentFilePath,
+			database.WithMigrate(true),
+		)
+		instance.AppDB = database.New(
+			o.Config.DB.Type,
+			o.Config.DB.Sqlite.AppFilePath,
+			database.WithMigrate(true),
+		)
+		instance.MonitorDB = database.New(
+			o.Config.DB.Type,
+			o.Config.DB.Sqlite.MonitorFilePath,
+			database.WithMigrate(true),
+		)
+		instance.ScriptTaskDB = database.New(
+			o.Config.DB.Type,
+			o.Config.DB.Sqlite.ScriptTaskFilePath,
+			database.WithMigrate(true),
+		)
 	} else {
-		Connect := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		connectionString := fmt.Sprintf(
+			"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 			o.Config.DB.Mysql.Username,
 			o.Config.DB.Mysql.Password,
 			o.Config.DB.Mysql.Host,
 			o.Config.DB.Mysql.Port,
-			o.Config.DB.Mysql.DbName)
-		s.AgentDB = database.New(o.Config.DB.Type, Connect, database.WithMigrate(true))
-		s.AppDB = s.AgentDB
-		s.MonitorDB = s.AgentDB
-		s.ScriptTaskDB = s.AgentDB
+			o.Config.DB.Mysql.DbName,
+		)
+		instance.AgentDB = database.New(o.Config.DB.Type, connectionString, database.WithMigrate(true))
+		instance.AppDB = instance.AgentDB
+		instance.MonitorDB = instance.AgentDB
+		instance.ScriptTaskDB = instance.AgentDB
 	}
 
-	s.Cron = cron.New(s.Config, s.Cache, s.AgentDB, s.AppDB, s.ScriptTaskDB, s.MonitorDB)
+	instance.Cache = o.initCache()
+	instance.Jobs = jobs.New(
+		o.Config,
+		instance.Cache,
+		instance.AgentDB,
+		instance.AppDB,
+		instance.ScriptTaskDB,
+		instance.MonitorDB,
+	)
 
-	return s, nil
+	return instance, nil
 }
 
-// initCache 初始化缓存，默认使用内存方式
 func (o *AppOptions) initCache() cache.Cache {
 	cacheType := o.Config.Cache.Type
 	if cacheType == "" {
 		cacheType = "memory"
 	}
 
-	opts := []cache.Option{
+	options := []cache.Option{
 		cache.WithMaxCost(o.Config.Cache.Memory.MaxCost),
 		cache.WithBufferItems(o.Config.Cache.Memory.BufferItems),
 		cache.WithMetrics(o.Config.Cache.Memory.Metrics),
 	}
-
-	connectionString := o.Config.Cache.GetConnectionString()
-
-	c, err := cache.New(cacheType, connectionString, opts...)
-	if err != nil {
-		fmt.Printf("Cache initialization failed, falling back to memory cache: %v\n", err)
-		// 降级到内存缓存
-		c, _ = cache.New("memory", "", opts...)
+	client, err := cache.New(cacheType, o.Config.Cache.GetConnectionString(), options...)
+	if err == nil {
+		return client
 	}
 
-	return c
+	fmt.Printf("Cache initialization failed, falling back to memory cache: %v\n", err)
+	client, _ = cache.New("memory", "", options...)
+	return client
 }
 
 func (o *AppOptions) loadConfig(configFile string) {

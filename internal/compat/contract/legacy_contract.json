@@ -1,0 +1,334 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "repository": "squirrel-dev-old",
+    "commit": "1dd982f"
+  },
+  "services": [
+    {
+      "name": "squ-agent",
+      "routes": [
+        {"method": "GET", "path": "/api/v1/health", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/application", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/application/:id", "auth": "none"},
+        {"method": "DELETE", "path": "/api/v1/application/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/application", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/application/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/application/start/:deployId", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/application/stop/:deployId", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/application/delete/:deployId", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/config", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/config/:id", "auth": "none"},
+        {"method": "DELETE", "path": "/api/v1/config/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/config", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/server/info", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/stats", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/stats/io/:device", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/stats/io/all", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/stats/net/:interface", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/stats/net/all", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/base", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/disk", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/disk-usage", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/net", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/script/execute", "auth": "none"}
+      ]
+    },
+    {
+      "name": "squ-apiserver",
+      "routes": [
+        {"method": "POST", "path": "/api/v1/login", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/ws/server/:id", "transport": "websocket", "auth": "message-token"},
+        {"method": "GET", "path": "/api/v1/health", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/server", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/server/:id", "auth": "none"},
+        {"method": "DELETE", "path": "/api/v1/server/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/server", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/server/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/server/check", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/ssh/test/:id", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/application", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/application/:id", "auth": "none"},
+        {"method": "DELETE", "path": "/api/v1/application/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/application", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/application/:id", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/deployment", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/deployment/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/deployment/deploy/:id", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/deployment/:id/servers", "auth": "none"},
+        {"method": "DELETE", "path": "/api/v1/deployment/deploy/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/deployment/stop/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/deployment/start/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/deployment/redeploy/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/deployment/report", "auth": "mtls-when-enabled"},
+        {"method": "GET", "path": "/api/v1/config", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/config/:id", "auth": "none"},
+        {"method": "DELETE", "path": "/api/v1/config/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/config", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/config/:id", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/app-store", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/app-store/:id", "auth": "none"},
+        {"method": "DELETE", "path": "/api/v1/app-store/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/app-store", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/app-store/:id", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/scripts", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/scripts/:id", "auth": "none"},
+        {"method": "DELETE", "path": "/api/v1/scripts/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/scripts", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/scripts/:id", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/scripts/execute", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/scripts/:id/results", "auth": "none"},
+        {"method": "POST", "path": "/api/v1/scripts/receive-result", "auth": "mtls-when-enabled"},
+        {"method": "GET", "path": "/api/v1/monitor/stats/:serverId", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/stats/io/:serverId/:device", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/stats/io/:serverId/all", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/stats/net/:serverId/:interface", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/stats/net/:serverId/all", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/base/:serverId", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/disk/:serverId", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/disk-usage/:serverId", "auth": "none"},
+        {"method": "GET", "path": "/api/v1/monitor/net/:serverId", "auth": "none"}
+      ]
+    }
+  ],
+  "cli": [
+    {
+      "program": "squ-agent",
+      "defaultConfig": "config/agent.yaml",
+      "versionOutputPrefix": "version:",
+      "commands": [{"name": "version"}]
+    },
+    {
+      "program": "squ-apiserver",
+      "defaultConfig": "config/apiserver.yaml",
+      "versionOutputPrefix": "version:",
+      "commands": [{"name": "version"}]
+    },
+    {
+      "program": "squctl",
+      "defaultConfig": "config/squctl.yaml",
+      "versionOutputPrefix": "version:",
+      "commands": [
+        {"name": "version"},
+        {
+          "name": "certs",
+          "flags": [
+            {"name": "output", "short": "o", "default": "./certs"},
+            {"name": "only-ca", "default": false},
+            {"name": "ca-cn", "default": "squirrel-ca"},
+            {"name": "only-server", "default": false},
+            {"name": "server-cn", "default": "squirrel-apiserver"},
+            {"name": "server-hosts", "default": ["127.0.0.1", "localhost"]},
+            {"name": "only-client", "default": false},
+            {"name": "client-cn", "default": "squirrel-agent"},
+            {"name": "expiry", "default": "87600h0m0s"},
+            {"name": "key-size", "default": 2048},
+            {"name": "overwrite", "default": false}
+          ]
+        }
+      ]
+    }
+  ],
+  "configs": [
+    {
+      "program": "squ-agent",
+      "defaultFile": "config/agent.yaml",
+      "requiredSections": ["server", "cache", "db", "log", "common", "apiserver"],
+      "sqlitePaths": [
+        "db.sqlite.agentFilePath",
+        "db.sqlite.appFilePath",
+        "db.sqlite.monitorFilePath",
+        "db.sqlite.scriptTaskFilePath"
+      ]
+    },
+    {
+      "program": "squ-apiserver",
+      "defaultFile": "config/apiserver.yaml",
+      "requiredSections": ["server", "auth", "db", "log", "agent", "mtls"],
+      "sqlitePaths": ["db.sqlite.filePath"]
+    },
+    {
+      "program": "squctl",
+      "defaultFile": "config/squctl.yaml",
+      "requiredSections": []
+    }
+  ],
+  "responses": {
+    "envelope": ["code", "message", "data"],
+    "common": [
+      {"code": 0, "name": "CodeSuccess", "message": "success"},
+      {"code": 41001, "name": "ErrCodeParameter", "message": "parameter error"},
+      {"code": 41002, "name": "ErrUserOrPassword", "message": "user or password error"},
+      {"code": 41003, "name": "ErrMissingAuthHeader", "message": "missing authorization header"},
+      {"code": 41004, "name": "ErrInvalidAuthFormat", "message": "invalid authorization header format"},
+      {"code": 41005, "name": "ErrTokenInvalid", "message": "invalid or expired token"},
+      {"code": 41006, "name": "ErrTLSRequired", "message": "tls connection required"},
+      {"code": 41007, "name": "ErrMissingClientCert", "message": "missing client certificate"},
+      {"code": 41008, "name": "ErrCertCNNotAllowed", "message": "client certificate common name not allowed"},
+      {"code": 41009, "name": "ErrCertVerifyFailed", "message": "client certificate verification failed"},
+      {"code": 50000, "name": "ErrSQL", "message": "sql error"},
+      {"code": 50001, "name": "ErrSQLNotFound", "message": "sql not found"},
+      {"code": 50002, "name": "ErrSQLNotUnique", "message": "sql not unique"},
+      {"code": 50003, "name": "ErrDuplicatedKey", "message": "duplicated key"}
+    ],
+    "agent": [
+      {"code": 10001, "name": "ErrDockerNotInstalled", "message": "docker not installed"},
+      {"code": 10002, "name": "ErrDockerComposeNotFound", "message": "docker-compose command not found"},
+      {"code": 10003, "name": "ErrDockerComposeStart", "message": "docker-compose start failed"},
+      {"code": 10004, "name": "ErrDockerComposeCreate", "message": "docker-compose file creation failed"},
+      {"code": 10005, "name": "ErrDockerComposeStop", "message": "docker-compose stop failed"},
+      {"code": 20001, "name": "ErrCodeSystem", "message": "system error"},
+      {"code": 20002, "name": "ErrCodeParameter", "message": "parameter error"},
+      {"code": 30001, "name": "ErrCodeSystem", "message": "system error"},
+      {"code": 30002, "name": "ErrCodeParameter", "message": "parameter error"},
+      {"code": 90001, "name": "ErrScriptExecutionFailed", "message": "script execution failed"},
+      {"code": 90002, "name": "ErrScriptAlreadyRunning", "message": "script is already running"}
+    ],
+    "apiserver": [
+      {"code": 60001, "name": "ErrServerNotFound", "message": "server not found"},
+      {"code": 60002, "name": "ErrServerAliasExists", "message": "server alias already exists"},
+      {"code": 60003, "name": "ErrServerUUIDNotFound", "message": "server not found by UUID"},
+      {"code": 60004, "name": "ErrServerAlreadyExists", "message": "server already exists"},
+      {"code": 60005, "name": "ErrServerUpdateFailed", "message": "server update failed"},
+      {"code": 60006, "name": "ErrServerDeleteFailed", "message": "server delete failed"},
+      {"code": 60021, "name": "ErrInvalidParameter", "message": "invalid parameter"},
+      {"code": 60022, "name": "ErrInvalidAuthType", "message": "invalid auth type"},
+      {"code": 60023, "name": "ErrInvalidSSHConfig", "message": "invalid SSH configuration"},
+      {"code": 60024, "name": "ErrSSHTestFailed", "message": "SSH connection test failed"},
+      {"code": 60041, "name": "ErrConnectFailed", "message": "connect failed"},
+      {"code": 60042, "name": "ErrAgentOffline", "message": "agent is offline"},
+      {"code": 60043, "name": "ErrAgentRequestFailed", "message": "agent request failed"},
+      {"code": 65001, "name": "ErrConfigNotFound", "message": "config not found"},
+      {"code": 65002, "name": "ErrConfigKeyAlreadyExists", "message": "config key already exists"},
+      {"code": 65003, "name": "ErrInvalidConfigKey", "message": "invalid config key"},
+      {"code": 65004, "name": "ErrInvalidConfigValue", "message": "invalid config value"},
+      {"code": 65005, "name": "ErrConfigUpdateFailed", "message": "config update failed"},
+      {"code": 65006, "name": "ErrConfigDeleteFailed", "message": "config delete failed"},
+      {"code": 66001, "name": "ErrAuthFailed", "message": "authentication failed"},
+      {"code": 66002, "name": "ErrInvalidCredentials", "message": "invalid username or password"},
+      {"code": 66003, "name": "ErrTokenGenerateFailed", "message": "failed to generate token"},
+      {"code": 66004, "name": "ErrInvalidToken", "message": "invalid token"},
+      {"code": 66005, "name": "ErrTokenExpired", "message": "token expired"},
+      {"code": 71001, "name": "ErrApplicationNotFound", "message": "application not found"},
+      {"code": 71002, "name": "ErrDuplicateApplication", "message": "application already exists"},
+      {"code": 71003, "name": "ErrInvalidApplicationName", "message": "invalid application name"},
+      {"code": 71004, "name": "ErrInvalidApplicationType", "message": "invalid application type"},
+      {"code": 71005, "name": "ErrInvalidApplicationConfig", "message": "invalid application configuration"},
+      {"code": 71006, "name": "ErrApplicationUpdateFailed", "message": "application update failed"},
+      {"code": 71007, "name": "ErrApplicationDeleteFailed", "message": "application delete failed"},
+      {"code": 72001, "name": "ErrDeploymentNotFound", "message": "deployment not found"},
+      {"code": 72002, "name": "ErrAlreadyDeployed", "message": "application already deployed to this server"},
+      {"code": 72003, "name": "ErrApplicationNotDeployed", "message": "application not deployed to this server"},
+      {"code": 72004, "name": "ErrDeployIDGenerateFailed", "message": "failed to generate deploy ID"},
+      {"code": 72005, "name": "ErrCreateDeploymentRecordFailed", "message": "failed to create deployment record"},
+      {"code": 72006, "name": "ErrInvalidDeploymentConfig", "message": "invalid deployment configuration"},
+      {"code": 72007, "name": "ErrComposeContainerNameConflict", "message": "docker-compose container name conflict detected"},
+      {"code": 72008, "name": "ErrComposePortConflict", "message": "docker-compose port conflict detected"},
+      {"code": 72009, "name": "ErrComposeVolumeConflict", "message": "docker-compose volume conflict detected"},
+      {"code": 72010, "name": "ErrComposeNetworkConflict", "message": "docker-compose network conflict detected"},
+      {"code": 72021, "name": "ErrAgentRequestFailed", "message": "failed to send request to agent"},
+      {"code": 72022, "name": "ErrAgentResponseParseFailed", "message": "failed to parse agent response"},
+      {"code": 72023, "name": "ErrAgentDeployFailed", "message": "agent deployment failed"},
+      {"code": 72024, "name": "ErrAgentDeleteFailed", "message": "agent delete application failed"},
+      {"code": 72025, "name": "ErrAgentStopFailed", "message": "agent stop application failed"},
+      {"code": 72026, "name": "ErrAgentStartFailed", "message": "agent start application failed"},
+      {"code": 72027, "name": "ErrAgentOperationFailed", "message": "agent operation failed"},
+      {"code": 73001, "name": "ErrAppStoreNotFound", "message": "application store not found"},
+      {"code": 73002, "name": "ErrDuplicateAppStore", "message": "application store already exists"},
+      {"code": 73003, "name": "ErrInvalidComposeContent", "message": "invalid compose content"},
+      {"code": 73004, "name": "ErrUnsupportedAppType", "message": "unsupported application type"},
+      {"code": 73005, "name": "ErrInvalidAppStoreConfig", "message": "invalid app store configuration"},
+      {"code": 73006, "name": "ErrAppStoreUpdateFailed", "message": "app store update failed"},
+      {"code": 73007, "name": "ErrAppStoreDeleteFailed", "message": "app store delete failed"},
+      {"code": 80001, "name": "ErrScriptNotFound", "message": "script not found"},
+      {"code": 80002, "name": "ErrDuplicateScript", "message": "script already exists"},
+      {"code": 80003, "name": "ErrInvalidScriptContent", "message": "invalid script content"},
+      {"code": 80004, "name": "ErrUnsupportedScriptType", "message": "unsupported script type"},
+      {"code": 80005, "name": "ErrScriptNotDeployed", "message": "script not deployed"},
+      {"code": 80021, "name": "ErrScriptExecutionFailed", "message": "script execution failed"},
+      {"code": 80022, "name": "ErrScriptTimeout", "message": "script execution timeout"},
+      {"code": 80023, "name": "ErrServerNotFound", "message": "server not found"},
+      {"code": 81001, "name": "ErrMonitorFailed", "message": "monitor request failed"},
+      {"code": 81002, "name": "ErrInvalidMonitorConfig", "message": "invalid monitor configuration"},
+      {"code": 81003, "name": "ErrMonitorDataNotFound", "message": "monitor data not found"},
+      {"code": 81004, "name": "ErrServerNotFound", "message": "server not found"}
+    ]
+  },
+  "databases": [
+    {
+      "program": "squ-apiserver",
+      "logicalName": "main",
+      "defaultPath": "./db/apiserver.db",
+      "tables": ["migrations", "healths", "users", "servers", "configs", "applications", "deployments", "app_stores", "scripts", "script_results"],
+      "migrations": ["1.0.0", "1.0.1"]
+    },
+    {
+      "program": "squ-agent",
+      "logicalName": "agent",
+      "defaultPath": "./db/agent.db",
+      "tables": ["migrations", "configs"],
+      "migrations": ["1.0.0"]
+    },
+    {
+      "program": "squ-agent",
+      "logicalName": "application",
+      "defaultPath": "./db/agent-app.db",
+      "tables": ["migrations", "applications"],
+      "migrations": ["1.0.0"]
+    },
+    {
+      "program": "squ-agent",
+      "logicalName": "monitor",
+      "defaultPath": "./db/agent-monitor.db",
+      "tables": ["migrations", "base_monitors", "disk_io_monitors", "disk_usage_monitors", "network_monitors"],
+      "migrations": ["1.0.0"]
+    },
+    {
+      "program": "squ-agent",
+      "logicalName": "script-task",
+      "defaultPath": "./db/agent-script-task.db",
+      "tables": ["migrations", "script_execution_tasks"],
+      "migrations": ["1.0.0"]
+    }
+  ],
+  "asyncBehaviors": [
+    {"program": "squ-agent", "name": "cron", "detail": "Starts after migrations and before the HTTP listener blocks."},
+    {"program": "squ-agent", "name": "monitor-stats", "detail": "Collects CPU, memory, disk, IO and process statistics."},
+    {"program": "squ-agent", "name": "script-result-report", "detail": "Retries reporting unreported script execution results to apiserver."},
+    {"program": "squ-apiserver", "name": "deployment-status", "detail": "Receives deployment status callbacks from agents."},
+    {"program": "squ-apiserver", "name": "terminal", "detail": "Proxies an authenticated WebSocket terminal over SSH."}
+  ],
+  "httpSamples": [
+    {
+      "service": "squ-apiserver",
+      "method": "GET",
+      "path": "/api/v1/health",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": "{\"code\":0,\"message\":\"success\",\"data\":\"health\"}"
+    },
+    {
+      "service": "squ-apiserver",
+      "method": "POST",
+      "path": "/api/v1/login",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": "{\"code\":0,\"message\":\"success\",\"data\":{\"token\":\"<jwt>\"}}"
+    },
+    {
+      "service": "squ-apiserver",
+      "method": "HEAD",
+      "path": "/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "body": ""
+    }
+  ],
+  "knownGaps": [
+    "The old apiserver cannot be built until the Vue dist directory is generated.",
+    "Redis tests require loopback socket access.",
+    "Kubernetes tests are not deterministic in the current environment.",
+    "API request and response DTO field snapshots still need module-level characterization tests.",
+    "Timing and retry semantics require black-box tests when the corresponding modules migrate."
+  ]
+}
